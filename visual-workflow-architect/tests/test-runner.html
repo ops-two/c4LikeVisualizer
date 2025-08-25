@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Workflow Architect - Data Store Tests</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .console-output {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .button.success {
+            background: #28a745;
+        }
+        .button.danger {
+            background: #dc3545;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 Visual Workflow Architect - Data Store Tests</h1>
+        <p>Testing the core data management layer for Bubble plugin integration</p>
+    </div>
+
+    <div class="test-container">
+        <h2>Test Controls</h2>
+        <button class="button" onclick="runTests()">🚀 Run All Tests</button>
+        <button class="button" onclick="clearConsole()">🧹 Clear Console</button>
+        <button class="button" onclick="showMockData()">📋 Show Mock Data</button>
+        <button class="button" onclick="showCurrentState()">📊 Show Current State</button>
+    </div>
+
+    <div class="test-container">
+        <h2>Console Output</h2>
+        <div id="console-output" class="console-output">
+Ready to run tests. Click "Run All Tests" to begin...
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>Data Store Statistics</h2>
+        <div id="stats-container" class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="containers-count">-</div>
+                <div class="stat-label">Containers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="sequences-count">-</div>
+                <div class="stat-label">Sequences</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="workflows-count">-</div>
+                <div class="stat-label">Workflows</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="initialized-status">-</div>
+                <div class="stat-label">Initialized</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load the data store -->
+    <script src="../src/data-store.js"></script>
+    
+    <!-- Load the test suite -->
+    <script src="data-store.test.js"></script>
+
+    <script>
+        // Console output management
+        const consoleOutput = document.getElementById('console-output');
+        const originalConsoleLog = console.log;
+        const originalConsoleError = console.error;
+
+        // Override console methods to display in our custom console
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            appendToConsole(args.join(' '), 'log');
+        };
+
+        console.error = function(...args) {
+            originalConsoleError.apply(console, args);
+            appendToConsole(args.join(' '), 'error');
+        };
+
+        function appendToConsole(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff6b6b' : '#00ff00';
+            consoleOutput.innerHTML += `<span style="color: #888">[${timestamp}]</span> <span style="color: ${color}">${message}</span>\n`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        function clearConsole() {
+            consoleOutput.innerHTML = 'Console cleared.\n';
+        }
+
+        function updateStats() {
+            if (window.WorkflowArchitectDataStore && window.WorkflowArchitectDataStore.data.isInitialized) {
+                const stats = window.WorkflowArchitectDataStore.getStats();
+                document.getElementById('containers-count').textContent = stats.containers;
+                document.getElementById('sequences-count').textContent = stats.sequences;
+                document.getElementById('workflows-count').textContent = stats.workflows;
+                document.getElementById('initialized-status').textContent = stats.isInitialized ? '✅ Yes' : '❌ No';
+            }
+        }
+
+        function runTests() {
+            clearConsole();
+            console.log('Starting comprehensive data store tests...\n');
+            
+            try {
+                const success = runDataStoreTests();
+                updateStats();
+                
+                if (success) {
+                    console.log('\n🎉 All tests completed successfully!');
+                    console.log('✅ Data store is ready for the next implementation phase.');
+                } else {
+                    console.log('\n⚠️ Some tests failed. Please review the errors above.');
+                }
+            } catch (error) {
+                console.error('Test execution failed:', error);
+            }
+        }
+
+        function showMockData() {
+            console.log('📋 Mock Bubble Data Structure:');
+            console.log(JSON.stringify(mockBubbleData, null, 2));
+        }
+
+        function showCurrentState() {
+            if (window.WorkflowArchitectDataStore && window.WorkflowArchitectDataStore.data.isInitialized) {
+                console.log('📊 Current Data Store State:');
+                console.log('Feature:', window.WorkflowArchitectDataStore.getFeature());
+                console.log('Containers:', window.WorkflowArchitectDataStore.getContainersArray());
+                console.log('Sequences:', window.WorkflowArchitectDataStore.getSequencesArray());
+                console.log('Workflows:', window.WorkflowArchitectDataStore.getWorkflowsArray());
+                console.log('Stats:', window.WorkflowArchitectDataStore.getStats());
+                
+                const issues = window.WorkflowArchitectDataStore.validateData();
+                if (issues.length > 0) {
+                    console.log('⚠️ Data validation issues:', issues);
+                } else {
+                    console.log('✅ No data validation issues found');
+                }
+            } else {
+                console.log('❌ Data store not initialized. Run tests first.');
+            }
+        }
+
+        // Initialize stats display
+        updateStats();
+    </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+<!-- Visual Workflow Architect Plugin - CDN Dependencies -->
+<!-- React Flow and dependencies -->
+<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/reactflow@11/dist/umd/index.js" crossorigin></script>
+
+<!-- Plugin core files via jsDelivr CDN -->
+<!-- Replace COMMIT_HASH with actual commit hash after deployment -->
+<script src="https://cdn.jsdelivr.net/gh/your-org/visual-workflow-architect@COMMIT_HASH/src/data-store.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/your-org/visual-workflow-architect@COMMIT_HASH/src/event-bridge.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/your-org/visual-workflow-architect@COMMIT_HASH/src/view-manager.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/your-org/visual-workflow-architect@COMMIT_HASH/src/sequence-renderer.js"></script>
+
+<!-- Plugin styles -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/your-org/visual-workflow-architect@COMMIT_HASH/styles/main.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/your-org/visual-workflow-architect@COMMIT_HASH/styles/nodes.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/your-org/visual-workflow-architect@COMMIT_HASH/styles/edges.css">

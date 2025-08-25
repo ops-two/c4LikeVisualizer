@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Workflow Architect - Plugin Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        .test-header {
+            background: linear-gradient(135deg, #6f42c1 0%, #007bff 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .test-controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .plugin-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 500px;
+            position: relative;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .button.success {
+            background: #28a745;
+        }
+        .button.danger {
+            background: #dc3545;
+        }
+        .console {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-header">
+        <h1>🔌 Visual Workflow Architect - Plugin Test</h1>
+        <p>Testing complete plugin integration with mock Bubble environment</p>
+    </div>
+
+    <div class="test-controls">
+        <h3>Test Controls</h3>
+        <button class="button" onclick="initializePlugin()">🚀 Initialize Plugin</button>
+        <button class="button success" onclick="mockDataRefresh()">🔄 Mock Data Refresh</button>
+        <button class="button danger" onclick="simulateError()">⚠️ Simulate Error</button>
+        <button class="button" onclick="showPluginState()">📊 Show Plugin State</button>
+        <button class="button" onclick="clearConsole()">🧹 Clear Console</button>
+        
+        <div id="console" class="console">
+Plugin test environment ready. Click "Initialize Plugin" to begin...
+        </div>
+    </div>
+
+    <div id="plugin-container" class="plugin-container">
+        <!-- Plugin will be rendered here -->
+    </div>
+
+    <!-- Load dependencies -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    
+    <!-- Load plugin files -->
+    <script src="../src/data-store.js"></script>
+    <script src="../src/event-bridge.js"></script>
+    <script src="../tests/data-store.test.js"></script>
+
+    <script>
+        // Mock Bubble context for testing
+        window.context = {
+            props: {
+                feature_id: "feature_123",
+                feature: {
+                    feature_id: "feature_123",
+                    name_text: "Test Authentication Flow",
+                    description_text: "Testing the plugin with authentication workflow",
+                    workspace_id: "workspace_456"
+                },
+                containers: mockBubbleData.containers,
+                sequences: mockBubbleData.sequences,
+                workflows: mockBubbleData.workflows
+            },
+            setCustomState: function(stateName, value) {
+                console.log(`Mock Bubble: setCustomState(${stateName}, ${value})`);
+            },
+            triggerEvent: function(eventName) {
+                console.log(`Mock Bubble: triggerEvent(${eventName})`);
+            },
+            refresh: function() {
+                console.log('Mock Bubble: refresh() called');
+            }
+        };
+
+        // Console management
+        const consoleElement = document.getElementById('console');
+        const originalConsoleLog = console.log;
+        const originalConsoleError = console.error;
+
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            appendToConsole(args.join(' '), 'log');
+        };
+
+        console.error = function(...args) {
+            originalConsoleError.apply(console, args);
+            appendToConsole(args.join(' '), 'error');
+        };
+
+        function appendToConsole(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff6b6b' : '#00ff00';
+            consoleElement.innerHTML += `<span style="color: #888">[${timestamp}]</span> <span style="color: ${color}">${message}</span>\n`;
+            consoleElement.scrollTop = consoleElement.scrollHeight;
+        }
+
+        function clearConsole() {
+            consoleElement.innerHTML = 'Console cleared.\n';
+        }
+
+        // Test functions
+        function initializePlugin() {
+            clearConsole();
+            console.log('🚀 Starting plugin initialization test...');
+            
+            // Load and execute the plugin
+            loadPluginScript();
+        }
+
+        function loadPluginScript() {
+            const script = document.createElement('script');
+            script.textContent = `
+                ${getPluginCode()}
+            `;
+            document.head.appendChild(script);
+        }
+
+        function getPluginCode() {
+            // Return the plugin code (would normally be loaded from update.txt)
+            return \`
+// Visual Workflow Architect Plugin - Main Controller
+// Entry point for Bubble plugin integration
+
+(function() {
+    'use strict';
+    
+    // Plugin configuration
+    const PLUGIN_CONFIG = {
+        name: 'Visual Workflow Architect',
+        version: '1.0.0',
+        debug: true,
+        retryAttempts: 3,
+        retryDelay: 1000
+    };
+
+    // Plugin state
+    let pluginState = {
+        isInitialized: false,
+        currentFeatureId: null,
+        bubbleInstance: null,
+        retryCount: 0
+    };
+
+    // Main plugin initialization
+    function initializePlugin() {
+        console.log(\`\${PLUGIN_CONFIG.name} v\${PLUGIN_CONFIG.version}: Starting initialization\`);
+        
+        try {
+            // Check if required dependencies are loaded
+            if (!checkDependencies()) {
+                console.error('Plugin dependencies not loaded, retrying...');
+                retryInitialization();
+                return;
+            }
+
+            // Get Bubble context and properties
+            const bubbleContext = getBubbleContext();
+            if (!bubbleContext.success) {
+                console.error('Failed to get Bubble context, retrying...');
+                retryInitialization();
+                return;
+            }
+
+            // Initialize plugin components
+            const initResult = initializeComponents(bubbleContext.data);
+            if (!initResult.success) {
+                console.error('Failed to initialize components:', initResult.error);
+                retryInitialization();
+                return;
+            }
+
+            // Mark as successfully initialized
+            pluginState.isInitialized = true;
+            pluginState.retryCount = 0;
+            
+            console.log(\`\${PLUGIN_CONFIG.name}: Successfully initialized\`);
+            
+            // Render the plugin UI
+            renderPlugin();
+
+        } catch (error) {
+            console.error(\`\${PLUGIN_CONFIG.name}: Initialization failed:\`, error);
+            retryInitialization();
+        }
+    }
+
+    // Check if all required dependencies are loaded
+    function checkDependencies() {
+        const required = [
+            'React',
+            'ReactDOM', 
+            'WorkflowArchitectDataStore',
+            'WorkflowArchitectEventBridge'
+        ];
+
+        for (const dep of required) {
+            if (typeof window[dep] === 'undefined') {
+                console.error(\`Missing dependency: \${dep}\`);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // Get Bubble context and properties
+    function getBubbleContext() {
+        try {
+            // Check if Bubble context is available
+            if (typeof context === 'undefined') {
+                return { success: false, error: 'Bubble context not available' };
+            }
+
+            // Get feature ID from props
+            const featureId = context.props.feature_id;
+            if (!featureId) {
+                return { success: false, error: 'No feature_id provided in props' };
+            }
+
+            // Get data from Bubble
+            const bubbleData = {
+                feature: context.props.feature || null,
+                containers: context.props.containers || [],
+                sequences: context.props.sequences || [],
+                workflows: context.props.workflows || []
+            };
+
+            return {
+                success: true,
+                data: {
+                    featureId: featureId,
+                    bubbleData: bubbleData,
+                    bubbleInstance: context
+                }
+            };
+
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Initialize plugin components
+    function initializeComponents(contextData) {
+        try {
+            // Store Bubble instance and feature ID
+            pluginState.bubbleInstance = contextData.bubbleInstance;
+            pluginState.currentFeatureId = contextData.featureId;
+
+            // Initialize data store
+            console.log('Initializing data store with Bubble data...');
+            const dataStoreInit = window.WorkflowArchitectDataStore.init(contextData.bubbleData);
+            if (!dataStoreInit) {
+                return { success: false, error: 'Data store initialization failed' };
+            }
+
+            // Initialize event bridge
+            console.log('Initializing event bridge...');
+            const eventBridgeInit = window.WorkflowArchitectEventBridge.init(contextData.bubbleInstance);
+            if (!eventBridgeInit) {
+                return { success: false, error: 'Event bridge initialization failed' };
+            }
+
+            // Validate data integrity
+            const validationIssues = window.WorkflowArchitectDataStore.validateData();
+            if (validationIssues.length > 0) {
+                console.warn('Data validation issues found:', validationIssues);
+                // Continue anyway, but log issues
+            }
+
+            return { success: true };
+
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Render the plugin UI
+    function renderPlugin() {
+        try {
+            console.log('Rendering plugin UI...');
+            
+            // Get the plugin container element
+            const container = document.querySelector('#plugin-container') || document.body;
+            
+            // Create plugin wrapper
+            const pluginWrapper = document.createElement('div');
+            pluginWrapper.id = 'workflow-architect-plugin';
+            pluginWrapper.className = 'workflow-architect-container';
+            
+            // Show basic info
+            showBasicInfo(pluginWrapper);
+            
+            // Clear container and add plugin
+            container.innerHTML = '';
+            container.appendChild(pluginWrapper);
+
+        } catch (error) {
+            console.error('Failed to render plugin UI:', error);
+            showErrorState(error.message);
+        }
+    }
+
+    // Show basic plugin info
+    function showBasicInfo(container) {
+        const feature = window.WorkflowArchitectDataStore.getFeature();
+        const stats = window.WorkflowArchitectDataStore.getStats();
+        
+        container.innerHTML = \`
+            <div class="plugin-header">
+                <h2>🎯 Visual Workflow Architect</h2>
+                <p>Feature: \${feature ? feature.name : 'Unknown'}</p>
+            </div>
+            <div class="plugin-stats">
+                <div class="stat-item">
+                    <span class="stat-value">\${stats.containers}</span>
+                    <span class="stat-label">Containers</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">\${stats.sequences}</span>
+                    <span class="stat-label">Sequences</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">\${stats.workflows}</span>
+                    <span class="stat-label">Workflows</span>
+                </div>
+            </div>
+            <div class="plugin-status">
+                <p>✅ Data Store: Initialized</p>
+                <p>✅ Event Bridge: Connected</p>
+                <p>🔄 React Flow: Coming in Phase 2</p>
+            </div>
+        \`;
+    }
+
+    // Show error state
+    function showErrorState(errorMessage) {
+        const container = document.querySelector('#workflow-architect-plugin') || document.body;
+        container.innerHTML = \`
+            <div class="error-container">
+                <div class="error-icon">⚠️</div>
+                <div class="error-title">Plugin Load Error</div>
+                <div class="error-message">\${errorMessage}</div>
+                <button onclick="location.reload()" class="retry-button">Retry</button>
+            </div>
+        \`;
+    }
+
+    // Retry initialization with exponential backoff
+    function retryInitialization() {
+        if (pluginState.retryCount >= PLUGIN_CONFIG.retryAttempts) {
+            console.error(\`\${PLUGIN_CONFIG.name}: Max retry attempts reached\`);
+            showErrorState('Failed to initialize after multiple attempts');
+            return;
+        }
+
+        pluginState.retryCount++;
+        const delay = PLUGIN_CONFIG.retryDelay * Math.pow(2, pluginState.retryCount - 1);
+        
+        console.log(\`\${PLUGIN_CONFIG.name}: Retrying initialization in \${delay}ms (attempt \${pluginState.retryCount})\`);
+        
+        setTimeout(initializePlugin, delay);
+    }
+
+    // Expose plugin interface
+    window.WorkflowArchitectPlugin = {
+        init: initializePlugin,
+        getState: () => ({ ...pluginState }),
+        getConfig: () => ({ ...PLUGIN_CONFIG })
+    };
+
+    // Auto-initialize
+    setTimeout(initializePlugin, 100);
+
+})();
+            \`;
+        }
+
+        function mockDataRefresh() {
+            console.log('🔄 Simulating Bubble data refresh...');
+            
+            // Update mock data
+            context.props.feature.name_text = "Updated Authentication Flow";
+            context.props.containers.push({
+                container_id: "container_004",
+                name_text: "New Service",
+                type_text: "Component",
+                feature_id: "feature_123",
+                order_index_number: 4,
+                color_hex_text: "#purple"
+            });
+
+            // Trigger refresh if plugin is loaded
+            if (window.WorkflowArchitectPlugin) {
+                window.WorkflowArchitectPlugin.refresh();
+            }
+        }
+
+        function simulateError() {
+            console.log('⚠️ Simulating plugin error...');
+            
+            // Temporarily break the context
+            const originalContext = window.context;
+            window.context = undefined;
+            
+            // Try to initialize
+            if (window.WorkflowArchitectPlugin) {
+                window.WorkflowArchitectPlugin.init();
+            }
+            
+            // Restore context after 2 seconds
+            setTimeout(() => {
+                window.context = originalContext;
+                console.log('✅ Context restored');
+            }, 2000);
+        }
+
+        function showPluginState() {
+            if (window.WorkflowArchitectPlugin) {
+                const state = window.WorkflowArchitectPlugin.getState();
+                const config = window.WorkflowArchitectPlugin.getConfig();
+                
+                console.log('📊 Plugin State:', state);
+                console.log('⚙️ Plugin Config:', config);
+                
+                if (window.WorkflowArchitectDataStore && window.WorkflowArchitectDataStore.data.isInitialized) {
+                    console.log('📈 Data Store Stats:', window.WorkflowArchitectDataStore.getStats());
+                }
+                
+                if (window.WorkflowArchitectEventBridge) {
+                    console.log('🔗 Event Bridge Status:', window.WorkflowArchitectEventBridge.getStatus());
+                }
+            } else {
+                console.log('❌ Plugin not loaded');
+            }
+        }
+    </script>
+</body>
+</html>

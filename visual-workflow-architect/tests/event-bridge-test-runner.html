@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Workflow Architect - Event Bridge Tests</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .console-output {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+        .button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .button:hover {
+            background: #218838;
+        }
+        .button.secondary {
+            background: #6c757d;
+        }
+        .button.secondary:hover {
+            background: #5a6268;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #28a745;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .stat-label {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .bubble-events {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .event-item {
+            background: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border-left: 3px solid #28a745;
+        }
+        .event-name {
+            font-weight: bold;
+            color: #28a745;
+        }
+        .event-data {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔗 Visual Workflow Architect - Event Bridge Tests</h1>
+        <p>Testing Bubble communication layer with mock interactions</p>
+    </div>
+
+    <div class="test-container">
+        <h2>Test Controls</h2>
+        <button class="button" onclick="runEventBridgeTests()">🚀 Run Event Bridge Tests</button>
+        <button class="button secondary" onclick="clearConsole()">🧹 Clear Console</button>
+        <button class="button secondary" onclick="showBubbleEvents()">📡 Show Bubble Events</button>
+        <button class="button secondary" onclick="showEventBridgeStatus()">📊 Show Status</button>
+    </div>
+
+    <div class="test-container">
+        <h2>Console Output</h2>
+        <div id="console-output" class="console-output">
+Ready to run event bridge tests. Click "Run Event Bridge Tests" to begin...
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>Event Bridge Status</h2>
+        <div id="stats-container" class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="initialized-status">-</div>
+                <div class="stat-label">Initialized</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="processing-status">-</div>
+                <div class="stat-label">Processing</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pending-updates">-</div>
+                <div class="stat-label">Pending Updates</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="debounce-active">-</div>
+                <div class="stat-label">Debounce Active</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>Mock Bubble Events</h2>
+        <div id="bubble-events" class="bubble-events">
+            <em>No events captured yet. Run tests to see Bubble interactions.</em>
+        </div>
+    </div>
+
+    <!-- Load dependencies -->
+    <script src="../src/data-store.js"></script>
+    <script src="../src/event-bridge.js"></script>
+    <script src="data-store.test.js"></script>
+    <script src="event-bridge.test.js"></script>
+
+    <script>
+        // Console output management
+        const consoleOutput = document.getElementById('console-output');
+        const originalConsoleLog = console.log;
+        const originalConsoleError = console.error;
+
+        // Override console methods to display in our custom console
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            appendToConsole(args.join(' '), 'log');
+        };
+
+        console.error = function(...args) {
+            originalConsoleError.apply(console, args);
+            appendToConsole(args.join(' '), 'error');
+        };
+
+        function appendToConsole(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff6b6b' : '#00ff00';
+            consoleOutput.innerHTML += `<span style="color: #888">[${timestamp}]</span> <span style="color: ${color}">${message}</span>\n`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        function clearConsole() {
+            consoleOutput.innerHTML = 'Console cleared.\n';
+        }
+
+        function updateStats() {
+            if (window.WorkflowArchitectEventBridge) {
+                const status = window.WorkflowArchitectEventBridge.getStatus();
+                document.getElementById('initialized-status').textContent = status.isInitialized ? '✅ Yes' : '❌ No';
+                document.getElementById('processing-status').textContent = status.isProcessing ? '🔄 Yes' : '⏸️ No';
+                document.getElementById('pending-updates').textContent = status.pendingUpdates;
+                document.getElementById('debounce-active').textContent = status.debounceActive ? '⏱️ Yes' : '⏹️ No';
+            }
+        }
+
+        function showBubbleEvents() {
+            const eventsContainer = document.getElementById('bubble-events');
+            
+            if (mockBubbleInstance && mockBubbleInstance.triggeredEvents.length > 0) {
+                eventsContainer.innerHTML = '';
+                mockBubbleInstance.triggeredEvents.forEach((event, index) => {
+                    const eventDiv = document.createElement('div');
+                    eventDiv.className = 'event-item';
+                    eventDiv.innerHTML = `
+                        <div class="event-name">${event.eventName}</div>
+                        <div class="event-data">
+                            <strong>Timestamp:</strong> ${new Date(event.timestamp).toLocaleTimeString()}<br>
+                            <strong>Data:</strong> ${event.customState || 'No data'}
+                        </div>
+                    `;
+                    eventsContainer.appendChild(eventDiv);
+                });
+            } else {
+                eventsContainer.innerHTML = '<em>No events captured yet. Run tests to see Bubble interactions.</em>';
+            }
+        }
+
+        function showEventBridgeStatus() {
+            console.log('📊 Event Bridge Status:');
+            if (window.WorkflowArchitectEventBridge) {
+                const status = window.WorkflowArchitectEventBridge.getStatus();
+                console.log('Initialized:', status.isInitialized);
+                console.log('Processing:', status.isProcessing);
+                console.log('Pending Updates:', status.pendingUpdates);
+                console.log('Debounce Active:', status.debounceActive);
+            } else {
+                console.log('❌ Event bridge not loaded');
+            }
+        }
+
+        function runEventBridgeTests() {
+            clearConsole();
+            console.log('Starting comprehensive event bridge tests...\n');
+            
+            try {
+                const success = runEventBridgeTests();
+                updateStats();
+                showBubbleEvents();
+                
+                if (success) {
+                    console.log('\n🎉 All event bridge tests completed successfully!');
+                    console.log('✅ Event bridge is ready for Bubble integration.');
+                } else {
+                    console.log('\n⚠️ Some tests failed. Please review the errors above.');
+                }
+            } catch (error) {
+                console.error('Test execution failed:', error);
+            }
+        }
+
+        // Initialize stats display
+        updateStats();
+        
+        // Auto-update stats every 2 seconds during testing
+        setInterval(updateStats, 2000);
+    </script>
+</body>
+</html>

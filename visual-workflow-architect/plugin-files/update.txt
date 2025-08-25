@@ -1,0 +1,359 @@
+// Visual Workflow Architect Plugin - Main Controller
+// Entry point for Bubble plugin integration
+
+(function() {
+    'use strict';
+    
+    // Plugin configuration
+    const PLUGIN_CONFIG = {
+        name: 'Visual Workflow Architect',
+        version: '1.0.0',
+        debug: true,
+        retryAttempts: 3,
+        retryDelay: 1000
+    };
+
+    // Plugin state
+    let pluginState = {
+        isInitialized: false,
+        currentFeatureId: null,
+        bubbleInstance: null,
+        retryCount: 0
+    };
+
+    // Main plugin initialization
+    function initializePlugin() {
+        console.log(`${PLUGIN_CONFIG.name} v${PLUGIN_CONFIG.version}: Starting initialization`);
+        
+        try {
+            // Check if required dependencies are loaded
+            if (!checkDependencies()) {
+                console.error('Plugin dependencies not loaded, retrying...');
+                retryInitialization();
+                return;
+            }
+
+            // Get Bubble context and properties
+            const bubbleContext = getBubbleContext();
+            if (!bubbleContext.success) {
+                console.error('Failed to get Bubble context, retrying...');
+                retryInitialization();
+                return;
+            }
+
+            // Initialize plugin components
+            const initResult = initializeComponents(bubbleContext.data);
+            if (!initResult.success) {
+                console.error('Failed to initialize components:', initResult.error);
+                retryInitialization();
+                return;
+            }
+
+            // Mark as successfully initialized
+            pluginState.isInitialized = true;
+            pluginState.retryCount = 0;
+            
+            console.log(`${PLUGIN_CONFIG.name}: Successfully initialized`);
+            
+            // Render the plugin UI
+            renderPlugin();
+
+        } catch (error) {
+            console.error(`${PLUGIN_CONFIG.name}: Initialization failed:`, error);
+            retryInitialization();
+        }
+    }
+
+    // Check if all required dependencies are loaded
+    function checkDependencies() {
+        const required = [
+            'React',
+            'ReactDOM', 
+            'ReactFlow',
+            'WorkflowArchitectDataStore',
+            'WorkflowArchitectEventBridge'
+        ];
+
+        for (const dep of required) {
+            if (typeof window[dep] === 'undefined') {
+                console.error(`Missing dependency: ${dep}`);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // Get Bubble context and properties (updated for Bubble property access patterns)
+    function getBubbleContext() {
+        try {
+            // Check if Bubble context is available
+            if (typeof properties === 'undefined') {
+                return { success: false, error: 'Bubble properties not available' };
+            }
+
+            // Get feature from properties (following storymap pattern)
+            if (!properties.feature) {
+                return { success: false, error: 'No feature provided in properties' };
+            }
+
+            // Get feature data
+            const feature = {
+                feature_id: properties.feature.get('_id'),
+                name_text: properties.feature.get('name'),
+                description_text: properties.feature.get('description') || '',
+                workspace_id: properties.feature.get('workspace') ? properties.feature.get('workspace').get('_id') : null
+            };
+
+            // Get containers data
+            const containerCount = properties.containers ? properties.containers.length() : 0;
+            const allContainers = containerCount > 0 ? properties.containers.get(0, containerCount) : [];
+            const containers = allContainers.map(container => ({
+                container_id: container.get('_id'),
+                name_text: container.get('name'),
+                type_text: container.get('type'),
+                feature_id: container.get('feature') ? container.get('feature').get('_id') : null,
+                component_url_text: container.get('component_url') || '',
+                description_text: container.get('description') || '',
+                order_index_number: container.get('order_index') || 0,
+                color_hex_text: container.get('color_hex') || '#3ea50b'
+            }));
+
+            // Get sequences data
+            const sequenceCount = properties.sequences ? properties.sequences.length() : 0;
+            const allSequences = sequenceCount > 0 ? properties.sequences.get(0, sequenceCount) : [];
+            const sequences = allSequences.map(sequence => ({
+                sequence_id: sequence.get('_id'),
+                label_text: sequence.get('Label'),
+                description_text: sequence.get('description') || '',
+                from_container_id: sequence.get('FromContainer') ? sequence.get('FromContainer').get('_id') : null,
+                to_container_id: sequence.get('ToContainer') ? sequence.get('ToContainer').get('_id') : null,
+                action_type_text: sequence.get('action_type') || 'Data Flow',
+                workflow_id: sequence.get('Workflow') ? sequence.get('Workflow').get('_id') : null,
+                order_index_number: sequence.get('order_index') || 0,
+                is_dashed_boolean: sequence.get('is_dashed') || false
+            }));
+
+            // Get workflows data
+            const workflowCount = properties.workflows ? properties.workflows.length() : 0;
+            const allWorkflows = workflowCount > 0 ? properties.workflows.get(0, workflowCount) : [];
+            const workflows = allWorkflows.map(workflow => ({
+                workflow_id: workflow.get('_id'),
+                name_text: workflow.get('Label'),
+                description_text: workflow.get('description') || '',
+                feature_id: workflow.get('feature') ? workflow.get('feature').get('_id') : null,
+                color_hex_text: workflow.get('color_hex') || '#e3f2fd',
+                order_index_number: workflow.get('order_index') || 0
+            }));
+
+            const bubbleData = {
+                feature: feature,
+                containers: containers,
+                sequences: sequences,
+                workflows: workflows
+            };
+
+            return {
+                success: true,
+                data: {
+                    featureId: feature.feature_id,
+                    bubbleData: bubbleData,
+                    bubbleInstance: instance
+                }
+            };
+
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Initialize plugin components
+    function initializeComponents(contextData) {
+        try {
+            // Store Bubble instance and feature ID
+            pluginState.bubbleInstance = contextData.bubbleInstance;
+            pluginState.currentFeatureId = contextData.featureId;
+
+            // Initialize data store
+            console.log('Initializing data store with Bubble data...');
+            const dataStoreInit = window.WorkflowArchitectDataStore.init(contextData.bubbleData);
+            if (!dataStoreInit) {
+                return { success: false, error: 'Data store initialization failed' };
+            }
+
+            // Initialize event bridge
+            console.log('Initializing event bridge...');
+            const eventBridgeInit = window.WorkflowArchitectEventBridge.init(contextData.bubbleInstance);
+            if (!eventBridgeInit) {
+                return { success: false, error: 'Event bridge initialization failed' };
+            }
+
+            // Validate data integrity
+            const validationIssues = window.WorkflowArchitectDataStore.validateData();
+            if (validationIssues.length > 0) {
+                console.warn('Data validation issues found:', validationIssues);
+                // Continue anyway, but log issues
+            }
+
+            return { success: true };
+
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Render the plugin UI
+    function renderPlugin() {
+        try {
+            console.log('Rendering plugin UI...');
+            
+            // Get the plugin container element
+            const container = document.querySelector('#plugin-container') || document.body;
+            
+            // Create plugin wrapper
+            const pluginWrapper = document.createElement('div');
+            pluginWrapper.id = 'workflow-architect-plugin';
+            pluginWrapper.className = 'workflow-architect-container';
+            
+            // Add loading state initially
+            pluginWrapper.innerHTML = `
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Loading Visual Workflow Architect...</div>
+                </div>
+            `;
+            
+            // Clear container and add plugin
+            container.innerHTML = '';
+            container.appendChild(pluginWrapper);
+
+            // Initialize view manager (when implemented)
+            if (window.WorkflowArchitectViewManager) {
+                window.WorkflowArchitectViewManager.init(pluginWrapper);
+            } else {
+                // Fallback: Show basic info for now
+                showBasicInfo(pluginWrapper);
+            }
+
+        } catch (error) {
+            console.error('Failed to render plugin UI:', error);
+            showErrorState(error.message);
+        }
+    }
+
+    // Show basic plugin info (temporary until view manager is implemented)
+    function showBasicInfo(container) {
+        const feature = window.WorkflowArchitectDataStore.getFeature();
+        const stats = window.WorkflowArchitectDataStore.getStats();
+        
+        container.innerHTML = `
+            <div class="plugin-header">
+                <h2>🎯 Visual Workflow Architect</h2>
+                <p>Feature: ${feature ? feature.name : 'Unknown'}</p>
+            </div>
+            <div class="plugin-stats">
+                <div class="stat-item">
+                    <span class="stat-value">${stats.containers}</span>
+                    <span class="stat-label">Containers</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">${stats.sequences}</span>
+                    <span class="stat-label">Sequences</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">${stats.workflows}</span>
+                    <span class="stat-label">Workflows</span>
+                </div>
+            </div>
+            <div class="plugin-status">
+                <p>✅ Data Store: Initialized</p>
+                <p>✅ Event Bridge: Connected</p>
+                <p>🔄 React Flow: Coming in Phase 2</p>
+            </div>
+        `;
+    }
+
+    // Show error state
+    function showErrorState(errorMessage) {
+        const container = document.querySelector('#workflow-architect-plugin') || document.body;
+        container.innerHTML = `
+            <div class="error-container">
+                <div class="error-icon">⚠️</div>
+                <div class="error-title">Plugin Load Error</div>
+                <div class="error-message">${errorMessage}</div>
+                <button onclick="location.reload()" class="retry-button">Retry</button>
+            </div>
+        `;
+    }
+
+    // Retry initialization with exponential backoff
+    function retryInitialization() {
+        if (pluginState.retryCount >= PLUGIN_CONFIG.retryAttempts) {
+            console.error(`${PLUGIN_CONFIG.name}: Max retry attempts reached`);
+            showErrorState('Failed to initialize after multiple attempts');
+            return;
+        }
+
+        pluginState.retryCount++;
+        const delay = PLUGIN_CONFIG.retryDelay * Math.pow(2, pluginState.retryCount - 1);
+        
+        console.log(`${PLUGIN_CONFIG.name}: Retrying initialization in ${delay}ms (attempt ${pluginState.retryCount})`);
+        
+        setTimeout(initializePlugin, delay);
+    }
+
+    // Handle Bubble data refresh
+    function handleDataRefresh() {
+        console.log('Bubble data refresh detected');
+        
+        try {
+            const bubbleContext = getBubbleContext();
+            if (bubbleContext.success) {
+                window.WorkflowArchitectEventBridge.handleDataRefresh(bubbleContext.data.bubbleData);
+                
+                // Re-render if needed
+                if (pluginState.isInitialized) {
+                    renderPlugin();
+                }
+            }
+        } catch (error) {
+            console.error('Failed to handle data refresh:', error);
+        }
+    }
+
+    // Plugin cleanup
+    function cleanup() {
+        console.log(`${PLUGIN_CONFIG.name}: Cleaning up`);
+        
+        // Clear any pending updates
+        if (window.WorkflowArchitectEventBridge) {
+            window.WorkflowArchitectEventBridge.flush();
+        }
+        
+        // Reset state
+        pluginState.isInitialized = false;
+        pluginState.currentFeatureId = null;
+        pluginState.bubbleInstance = null;
+    }
+
+    // Expose plugin interface
+    window.WorkflowArchitectPlugin = {
+        init: initializePlugin,
+        refresh: handleDataRefresh,
+        cleanup: cleanup,
+        getState: () => ({ ...pluginState }),
+        getConfig: () => ({ ...PLUGIN_CONFIG })
+    };
+
+    // Auto-initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializePlugin);
+    } else {
+        // DOM already loaded, initialize immediately
+        setTimeout(initializePlugin, 100);
+    }
+
+    // Handle page unload
+    window.addEventListener('beforeunload', cleanup);
+
+})();

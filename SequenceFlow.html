@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Stripe Checkout Sequence Diagram</title>
+<!-- React Library Scripts -->
+<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+<!-- Babel Script to transpile JSX -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #333;
+    background-color: #f8f9fa;
+  }
+
+  .diagram-container {
+    display: flex;
+    justify-content: space-around;
+    position: relative;
+    max-width: 1000px;
+    margin: auto;
+    padding-top: 30px;
+    padding-bottom: 50px;
+  }
+
+  .actor-lane {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-basis: 25%;
+    height: 100%;
+  }
+
+  .actor-lane h3 {
+    margin: 0;
+    padding: 10px;
+    font-weight: 500;
+    border-top: 5px solid transparent;
+  }
+  
+  .actor-lane.client h3 { border-color: #3ea50b; }
+  .actor-lane.server h3 { border-color: #ff8f0e; }
+  .actor-lane.stripe-api h3 { border-color: #0055bc; }
+  .actor-lane.stripe-checkout h3 { border-color: #635bff; }
+
+  .lifeline {
+    width: 2px;
+    height: 100%;
+    background-color: #d3d3d3;
+    z-index: 0;
+  }
+  
+  .activation-box {
+    position: absolute;
+    width: 10px;
+    height: 28px;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    border-radius: 2px;
+  }
+
+  /* --- Message/Arrow Styles --- */
+  .message {
+    position: absolute;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .message-label {
+    background-color: white;
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    z-index: 3;
+    /* max-width is now set dynamically via inline style */
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .arrow-line {
+    position: absolute;
+    top: 50%;
+    height: 2px;
+    background-color: #555;
+    z-index: 2;
+  }
+  
+  .arrow-line.dashed {
+    background-image: linear-gradient(to right, #555 50%, transparent 50%);
+    background-size: 12px 2px;
+    background-color: transparent;
+  }
+
+  .arrow-line::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -4px;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 8px solid #555;
+  }
+  
+  .arrow-line.left::after {
+    left: -1px; right: auto; border-left: none; border-right: 8px solid #555;
+  }
+
+  /* --- Styles for Improved Self-Referencing Loop --- */
+  .self-message {
+    position: absolute;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+  }
+
+  .self-message-path {
+    position: relative;
+    width: 70px;
+    height: 100%;
+  }
+  
+  .self-message-path-top,
+  .self-message-path-bottom,
+  .self-message-path-vertical {
+    position: absolute;
+    background-color: #555;
+  }
+
+  .self-message-path-top {
+    width: 100%; height: 2px; top: 0; left: 1px;
+  }
+
+  .self-message-path-top::after {
+    content: ''; position: absolute; right: -1px; top: -4px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 8px solid #555;
+  }
+
+  .self-message-path-vertical {
+    width: 2px; height: 100%; top: 0; left: 71px;
+  }
+
+  .self-message-path-bottom {
+    width: 100%; height: 2px; bottom: 0; left: 1px;
+  }
+
+  .self-message-path-bottom::after {
+    content: ''; position: absolute; left: -1px; top: -4px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-right: 8px solid #555;
+  }
+
+</style>
+</head>
+
+<body>
+
+<div id="root"></div>
+
+<script type="text/babel">
+  const { Fragment } = React;
+
+  const ActivationBox = ({ actorIndex, yPos, color }) => {
+    const actorsCount = 4;
+    const positionX = actorIndex * (100 / actorsCount) + (100 / (actorsCount * 2));
+    const style = { top: `${yPos}px`, left: `${positionX}%`, backgroundColor: color };
+    return <div className="activation-box" style={style}></div>;
+  };
+
+  // UPDATED: Message component now calculates label width
+  const Message = ({ label, from, to, yPos, dashed = false }) => {
+    const actorsCount = 4;
+    const isLeft = to < from;
+    const start = (isLeft ? to : from) * (100 / actorsCount) + (100 / (actorsCount * 2));
+    const distance = Math.abs(to - from);
+    const width = distance * (100 / actorsCount);
+    
+    // Determine max-width percentage based on distance
+    const maxWidthPercentage = distance === 1 ? 75 : 90;
+    const labelStyle = { maxWidth: `${maxWidthPercentage}%` };
+
+    const messageStyle = { top: `${yPos - 50}px`, left: `${start}%`, width: `${width}%` };
+    const arrowClass = `arrow-line ${dashed ? 'dashed' : ''} ${isLeft ? 'left' : ''}`;
+    
+    return (
+        <div className="message" style={messageStyle}>
+            <div className="message-label" style={labelStyle}>{label}</div>
+            <div className={arrowClass} style={{ width: '100%' }}></div>
+        </div>
+    );
+  };
+  
+  const SelfMessage = ({ label, actorIndex, yPos, height }) => {
+    const actorsCount = 4;
+    const position = actorIndex * (100 / actorsCount) + (100 / (actorsCount * 2));
+    const style = { top: `${yPos}px`, left: `${position}%`, height: `${height}px` };
+    
+    return (
+      <div className="self-message" style={style}>
+        <div className="self-message-path">
+          <div className="self-message-path-top"></div>
+          <div className="self-message-path-vertical"></div>
+          <div className="self-message-path-bottom"></div>
+        </div>
+        <div className="message-label" style={{ marginLeft: '10px' }}>{label}</div>
+      </div>
+    );
+  };
+
+  const SequenceDiagram = () => {
+    const actors = [
+        { name: 'Client', className: 'client', color: '#3ea50b' },
+        { name: 'Server', className: 'server', color: '#ff8f0e' },
+        { name: 'Stripe API', className: 'stripe-api', color: '#0055bc' },
+        { name: 'Stripe Checkout', className: 'stripe-checkout', color: '#635bff' },
+    ];
+    const messages = [
+        { label: "Send order information", from: 0, to: 1 },
+        { label: "Create Checkout Session", from: 1, to: 2 },
+        { label: "Return Checkout Session", from: 2, to: 1, dashed: true },
+        { label: "Redirect customer to the unique URL from the Checkout Session object", from: 1, to: 3 }, // Longer label to test wrapping
+        { label: "Customer completes payment", from: 3, self: true },
+        { label: "Customer returns to your application", from: 3, to: 0, dashed: true },
+        { label: "Handle fulfillment of the order", from: 2, to: 1, dashed: true } // Longer label
+    ];
+
+    // Pre-calculate Y positions
+    const startY = 130;
+    const stepY = 150;
+    let positionedMessages = [];
+    let currentY = startY;
+
+    messages.forEach(msg => {
+      positionedMessages.push({ ...msg, yPos: currentY });
+      currentY += msg.self ? stepY * 1.2 : stepY;
+    });
+    
+    const containerHeight = currentY;
+
+    return (
+      <div className="diagram-container" style={{ height: `${containerHeight}px` }}>
+        {actors.map(actor => (
+          <div key={actor.name} className={`actor-lane ${actor.className}`} style={{ height: `${containerHeight}px` }}>
+            <h3>{actor.name}</h3>
+            <div className="lifeline"></div>
+          </div>
+        ))}
+        
+        <Fragment>
+          {positionedMessages.map((msg, index) => {
+            const sequencedLabel = `${index + 1}. ${msg.label}`;
+            
+            if (msg.self) {
+              const loopHeight = stepY * 0.8;
+              return (
+                <Fragment key={index}>
+                  <ActivationBox actorIndex={msg.from} yPos={msg.yPos} color={actors[msg.from].color} />
+                  <ActivationBox actorIndex={msg.from} yPos={msg.yPos + loopHeight} color={actors[msg.from].color} />
+                  <SelfMessage label={sequencedLabel} actorIndex={msg.from} yPos={msg.yPos} height={loopHeight} />
+                </Fragment>
+              );
+            } else {
+              return (
+                <Fragment key={index}>
+                  <ActivationBox actorIndex={msg.from} yPos={msg.yPos} color={actors[msg.from].color} />
+                  <ActivationBox actorIndex={msg.to} yPos={msg.yPos} color={actors[msg.to].color} />
+                  <Message label={sequencedLabel} from={msg.from} to={msg.to} yPos={msg.yPos} dashed={!!msg.dashed} />
+                </Fragment>
+              );
+            }
+          })}
+        </Fragment>
+      </div>
+    );
+  };
+
+  const container = document.getElementById('root');
+  const root = ReactDOM.createRoot(container);
+  root.render(<SequenceDiagram />);
+</script>
+
+</body>
+</html>
