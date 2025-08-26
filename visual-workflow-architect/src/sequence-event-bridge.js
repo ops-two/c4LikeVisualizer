@@ -75,7 +75,12 @@ window.SequenceDiagramEventBridge = {
 
   // Handle container creation - following exact storymap-grid pattern
   handleContainerAdd(event) {
-    console.log('SequenceDiagramEventBridge: Handling container add:', event.detail);
+    console.log('SequenceDiagramEventBridge: handleContainerAdd called with event:', event.detail);
+    
+    if (!this.instance) {
+      console.error('SequenceDiagramEventBridge: No Bubble instance available!');
+      return;
+    }
     
     // Calculate next order_index intelligently (like storymap-grid does)
     const nextOrderIndex = this.getNextOrderIndex('container', event.detail.featureId);
@@ -90,11 +95,13 @@ window.SequenceDiagramEventBridge = {
       color_hex_text: event.detail.color || '#3ea50b'
     };
     
-    console.log('SequenceDiagramEventBridge: Dispatching container add to Bubble:', payload);
+    console.log('SequenceDiagramEventBridge: Publishing to Bubble workflow:', payload);
     
     // Publish to Bubble workflow exactly like storymap-grid
     this.instance.publishState('pending_add', JSON.stringify(payload));
     this.instance.triggerEvent('container_to_be_added');
+    
+    console.log('SequenceDiagramEventBridge: Bubble workflow triggered successfully');
     
     // Re-render UI after successful operation (like storymap-grid does)
     setTimeout(() => {
@@ -276,6 +283,8 @@ window.SequenceDiagramEventBridge = {
   },
 
   dispatchContainerAdd(name, type, color, featureId, orderIndex) {
+    console.log('SequenceDiagramEventBridge: dispatchContainerAdd called with:', { name, type, color, featureId, orderIndex });
+    
     const event = new CustomEvent('sequence:container_added', {
       detail: {
         name,
@@ -285,7 +294,10 @@ window.SequenceDiagramEventBridge = {
         orderIndex
       }
     });
+    
+    console.log('SequenceDiagramEventBridge: Dispatching event:', event);
     document.dispatchEvent(event);
+    console.log('SequenceDiagramEventBridge: Event dispatched successfully');
   },
 
   dispatchSequenceAdd(label, fromContainerId, toContainerId, featureId, isDashed, color, orderIndex) {

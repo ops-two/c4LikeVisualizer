@@ -602,8 +602,13 @@ window.WorkflowArchitectRenderer = {
         // Create container immediately with default name (like storymap-grid)
         const defaultName = "New Container";
         
+        // Debug logging
+        console.log("SequenceDiagramEventBridge exists:", !!window.SequenceDiagramEventBridge);
+        console.log("Feature ID found:", featureId);
+        
         // Dispatch container add event immediately
         if (window.SequenceDiagramEventBridge) {
+          console.log("Calling dispatchContainerAdd...");
           window.SequenceDiagramEventBridge.dispatchContainerAdd(
             defaultName,
             "Component",
@@ -611,6 +616,9 @@ window.WorkflowArchitectRenderer = {
             featureId,
             null // Will auto-calculate order index
           );
+          console.log("dispatchContainerAdd called successfully");
+        } else {
+          console.error("SequenceDiagramEventBridge not available!");
         }
       };
 
