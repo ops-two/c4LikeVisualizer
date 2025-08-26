@@ -29,7 +29,7 @@
 | FromContainer | ✅ Source container | Perfect - use as-is |
 | ToContainer | ✅ Target container | Perfect - use as-is |
 | order_index | ✅ Sequence order | Perfect - use as-is |
-| SequenceType | ✅ action_type | Perfect - use as-is |
+| SequenceType | ✅ sequence_type | Relationship to SequenceType data type |
 | Workflow | ✅ Workflow grouping | Perfect - use as-is |
 
 ### Missing Fields (Add These)

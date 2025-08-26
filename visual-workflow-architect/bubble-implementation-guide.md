@@ -38,8 +38,8 @@
 - `Label` → Sequence display text
 - `Feature` → Parent relationship
 - `FromContainer` → Source container
-- `ToContainer` → Target container
-- `SequenceType` → Action type
+- `ToContainer` → Target container  
+- `SequenceType` → Action type (relationship to SequenceType data type)
 - `Workflow` → Grouping
 - `order_index` → Sequence order (if exists)
 
@@ -253,30 +253,27 @@ Create 3 containers for the feature:
 Create 3 sequences connecting the containers:
 
 **Sequence 1:**
-
-- **label**: "Login Request"
-- **from_container**: User
-- **to_container**: Auth API
-- **feature**: User Authentication
-- **action_type**: "User Action"
+- **Label**: "Login Request"
+- **FromContainer**: User
+- **ToContainer**: Auth API
+- **Feature**: User Authentication
+- **SequenceType**: (select from existing SequenceType options)
 - **order_index**: 1
 
 **Sequence 2:**
-
-- **label**: "Validate Credentials"
-- **from_container**: Auth API
-- **to_container**: Database
-- **feature**: User Authentication
-- **action_type**: "API Call"
+- **Label**: "Validate Credentials"
+- **FromContainer**: Auth API
+- **ToContainer**: Database
+- **Feature**: User Authentication
+- **SequenceType**: (select from existing SequenceType options)
 - **order_index**: 2
 
 **Sequence 3:**
-
-- **label**: "Auth Token"
-- **from_container**: Auth API
-- **to_container**: User
-- **feature**: User Authentication
-- **action_type**: "API Response"
+- **Label**: "Auth Token"
+- **FromContainer**: Auth API
+- **ToContainer**: User
+- **Feature**: User Authentication
+- **SequenceType**: (select from existing SequenceType options)
 - **order_index**: 3
 
 ## Step 5: Create Test Page
