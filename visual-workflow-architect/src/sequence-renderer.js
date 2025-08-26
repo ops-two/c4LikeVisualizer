@@ -26,16 +26,16 @@ window.WorkflowArchitectRenderer = {
     }
 
     console.log("WorkflowArchitectRenderer: Starting render with data:", data);
-    
+
     // Use consistent container ID (like storymap-grid pattern)
     const containerId = "sequence-diagram-container";
     const containerHtml = `<div id="${containerId}" style="width: 100%; min-height: 400px;"></div>`;
-    
+
     // Simple HTML replacement like storymap-grid
     if (targetElement && targetElement.html) {
       targetElement.html(containerHtml);
     }
-    
+
     this.addSequenceDiagramStyles();
     this.renderSequenceDiagram(containerId, data);
     console.log("WorkflowArchitectRenderer: Render complete");
@@ -292,7 +292,7 @@ window.WorkflowArchitectRenderer = {
       );
       return;
     }
-    
+
     // Always render - no blocking like storymap-grid pattern
 
     // Transform data to sequence diagram format
@@ -366,9 +366,9 @@ window.WorkflowArchitectRenderer = {
           JSON.stringify(container, null, 2)
         );
         actors.push({
-          name: container.name_text || "Untitled Container",
+          name: container.name || container.name_text || "Untitled Container",
           className: `actor-${index}`,
-          color: container.color_hex_text || "#3ea50b",
+          color: container.color || container.color_hex_text || "#3ea50b",
         });
       });
     }
@@ -593,7 +593,7 @@ window.WorkflowArchitectRenderer = {
       // Toolbar event handlers - following storymap-grid pattern (immediate add with default name)
       const handleAddContainer = () => {
         console.log("Add Container clicked");
-        
+
         // Get feature ID from DOM or data store
         const featureId = document
           .querySelector("[data-feature-id]")
@@ -601,11 +601,14 @@ window.WorkflowArchitectRenderer = {
 
         // Create container immediately with default name (like storymap-grid)
         const defaultName = "New Container";
-        
+
         // Debug logging
-        console.log("SequenceDiagramEventBridge exists:", !!window.SequenceDiagramEventBridge);
+        console.log(
+          "SequenceDiagramEventBridge exists:",
+          !!window.SequenceDiagramEventBridge
+        );
         console.log("Feature ID found:", featureId);
-        
+
         // Dispatch container add event immediately
         if (window.SequenceDiagramEventBridge) {
           console.log("Calling dispatchContainerAdd...");
@@ -637,7 +640,7 @@ window.WorkflowArchitectRenderer = {
 
         // Create sequence immediately with default name (like storymap-grid)
         const defaultLabel = "New Sequence";
-        
+
         // Simple selection for demo - use first two containers
         const fromContainer = containers[0];
         const toContainer = containers[1];
