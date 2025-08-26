@@ -71,14 +71,52 @@ window.WorkflowArchitectRenderer = {
       <style id="sequence-diagram-styles">
         .sequence-diagram-container {
           display: flex;
-          justify-content: space-around;
+          flex-direction: column;
           position: relative;
           max-width: 1000px;
           margin: auto;
-          padding: 30px 20px 50px;
+          padding: 20px;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
           color: #333;
           background-color: #f8f9fa;
+        }
+        
+        .sequence-toolbar {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 20px;
+          padding: 10px;
+          background-color: white;
+          border: 1px solid #e0e0e0;
+          border-radius: 8px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .toolbar-button {
+          padding: 8px 16px;
+          background-color: #1976d2;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 500;
+          transition: background-color 0.2s;
+        }
+        
+        .toolbar-button:hover {
+          background-color: #1565c0;
+        }
+        
+        .toolbar-button:active {
+          background-color: #0d47a1;
+        }
+        
+        .sequence-diagram-content {
+          display: flex;
+          justify-content: space-around;
+          position: relative;
+          padding: 30px 20px 50px;
         }
         
         .actor-lane {
@@ -108,7 +146,6 @@ window.WorkflowArchitectRenderer = {
           position: absolute;
           width: 10px;
           height: 28px;
-          transform: translate(-50%, -50%);
           z-index: 1;
           border-radius: 2px;
         }
@@ -329,7 +366,12 @@ window.WorkflowArchitectRenderer = {
     const ActivationBox = ({ actorIndex, yPos, color }) => {
       const actorsCount = actors.length;
       const positionX = actorIndex * (100 / actorsCount) + (100 / (actorsCount * 2));
-      const style = { top: `${yPos}px`, left: `${positionX}%`, backgroundColor: color };
+      const style = { 
+        top: `${yPos}px`, 
+        left: `${positionX}%`, 
+        backgroundColor: color,
+        transform: 'translateX(-50%)'
+      };
       return React.createElement('div', { className: 'activation-box', style: style });
     };
     
@@ -363,43 +405,78 @@ window.WorkflowArchitectRenderer = {
       
       const containerHeight = currentY;
       
+      // Toolbar event handlers
+      const handleAddContainer = () => {
+        console.log('Add Container clicked');
+        // TODO: Implement add container functionality
+      };
+      
+      const handleAddSequence = () => {
+        console.log('Add Sequence clicked');
+        // TODO: Implement add sequence functionality
+      };
+      
       return React.createElement('div', 
-        { className: 'sequence-diagram-container', style: { height: `${containerHeight}px` } },
+        { className: 'sequence-diagram-container' },
         
-        // Actor lanes
-        ...actors.map((actor, index) => 
-          React.createElement('div', 
-            { key: actor.name, className: `actor-lane ${actor.className}`, style: { height: `${containerHeight}px` } },
-            React.createElement('h3', { style: { borderColor: actor.color } }, actor.name),
-            React.createElement('div', { className: 'lifeline' })
+        // Toolbar
+        React.createElement('div', 
+          { className: 'sequence-toolbar' },
+          React.createElement('button', 
+            { 
+              className: 'toolbar-button',
+              onClick: handleAddContainer
+            }, 
+            '+ Add Container'
+          ),
+          React.createElement('button', 
+            { 
+              className: 'toolbar-button',
+              onClick: handleAddSequence
+            }, 
+            '+ Add Sequence'
           )
         ),
         
-        // Messages and activation boxes
-        React.createElement(Fragment, null,
-          ...positionedMessages.map((msg, index) => {
-            const sequencedLabel = `${index + 1}. ${msg.label}`;
-            
-            return React.createElement(Fragment, { key: index },
-              React.createElement(ActivationBox, { 
-                actorIndex: msg.from, 
-                yPos: msg.yPos, 
-                color: actors[msg.from].color 
-              }),
-              React.createElement(ActivationBox, { 
-                actorIndex: msg.to, 
-                yPos: msg.yPos, 
-                color: actors[msg.to].color 
-              }),
-              React.createElement(Message, { 
-                label: sequencedLabel, 
-                from: msg.from, 
-                to: msg.to, 
-                yPos: msg.yPos, 
-                dashed: msg.dashed 
-              })
-            );
-          })
+        // Diagram content
+        React.createElement('div', 
+          { className: 'sequence-diagram-content', style: { height: `${containerHeight}px` } },
+          
+          // Actor lanes
+          ...actors.map((actor, index) => 
+            React.createElement('div', 
+              { key: actor.name, className: `actor-lane ${actor.className}`, style: { height: `${containerHeight}px` } },
+              React.createElement('h3', { style: { borderColor: actor.color } }, actor.name),
+              React.createElement('div', { className: 'lifeline' })
+            )
+          ),
+          
+          // Messages and activation boxes
+          React.createElement(Fragment, null,
+            ...positionedMessages.map((msg, index) => {
+              const sequencedLabel = `${index + 1}. ${msg.label}`;
+              
+              return React.createElement(Fragment, { key: index },
+                React.createElement(ActivationBox, { 
+                  actorIndex: msg.from, 
+                  yPos: msg.yPos, 
+                  color: actors[msg.from].color 
+                }),
+                React.createElement(ActivationBox, { 
+                  actorIndex: msg.to, 
+                  yPos: msg.yPos, 
+                  color: actors[msg.to].color 
+                }),
+                React.createElement(Message, { 
+                  label: sequencedLabel, 
+                  from: msg.from, 
+                  to: msg.to, 
+                  yPos: msg.yPos, 
+                  dashed: msg.dashed 
+                })
+              );
+            })
+          )
         )
       );
     };
