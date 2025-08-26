@@ -87,12 +87,14 @@ window.SequenceDiagramDataStore = {
       type: containerData.type || 'Component',
       color: containerData.color || '#3ea50b',
       orderIndex: containerData.orderIndex || this.getNextContainerOrder(),
-      featureId: this.feature?._id,
+      featureId: containerData.featureId || this.feature?.feature_id,
       isTemp: true
     };
     
     this.containers.set(tempId, container);
     console.log('SequenceDiagramDataStore: Added temporary container:', container);
+    console.log('SequenceDiagramDataStore: Container featureId:', container.featureId);
+    console.log('SequenceDiagramDataStore: Current feature:', this.feature);
     return container;
   },
 

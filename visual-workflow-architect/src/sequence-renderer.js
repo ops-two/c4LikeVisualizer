@@ -280,8 +280,7 @@ window.WorkflowArchitectRenderer = {
           content: '';
           position: absolute;
           top: -2px;
-          left: 0;
-          right: 0;
+          right: -2;
           width: 0;
           height: 0;
           border-left: 8px solid #495057;
@@ -290,7 +289,7 @@ window.WorkflowArchitectRenderer = {
         }
         
         .arrow-line.left::after {
-          left: -1px; 
+          left: -4px; 
           right: auto; 
           border-left: none; 
           border-right: 8px solid #555;
