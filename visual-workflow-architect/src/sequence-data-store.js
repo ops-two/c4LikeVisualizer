@@ -36,9 +36,12 @@ window.SequenceDiagramDataStore = {
     // Load containers into Map
     this.containers.clear();
     if (containersData && Array.isArray(containersData)) {
-      containersData.forEach(container => {
-        this.containers.set(container._id, {
-          id: container._id,
+      console.log('SequenceDiagramDataStore: Processing', containersData.length, 'containers');
+      containersData.forEach((container, index) => {
+        console.log(`SequenceDiagramDataStore: Container ${index}:`, container);
+        const containerId = container.container_id || container._id || `container_${index}`;
+        this.containers.set(containerId, {
+          id: containerId,
           name: container.name_text || 'Unnamed Container',
           type: container.type_text || 'Component',
           color: container.color_hex_text || '#3ea50b',
@@ -51,9 +54,11 @@ window.SequenceDiagramDataStore = {
     // Load sequences into Map
     this.sequences.clear();
     if (sequencesData && Array.isArray(sequencesData)) {
-      sequencesData.forEach(sequence => {
-        this.sequences.set(sequence._id, {
-          id: sequence._id,
+      console.log('SequenceDiagramDataStore: Processing', sequencesData.length, 'sequences');
+      sequencesData.forEach((sequence, index) => {
+        const sequenceId = sequence.sequence_id || sequence._id || `sequence_${index}`;
+        this.sequences.set(sequenceId, {
+          id: sequenceId,
           label: sequence.label_text || 'Unnamed Sequence',
           fromContainerId: sequence.from_container_id,
           toContainerId: sequence.to_container_id,

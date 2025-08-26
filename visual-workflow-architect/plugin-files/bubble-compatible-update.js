@@ -137,15 +137,15 @@ function(instance, properties, context) {
             editPermissions: properties.edit_permissions || false
         };
         
-        // Initialize sequence data store with bubble data - only if not already initialized
+        // Initialize or refresh sequence data store with current Bubble data
         if (window.SequenceDiagramDataStore) {
             if (!window.SequenceDiagramDataStore.isInitialized) {
                 console.log('UPDATE: Initializing sequence data store for the first time...');
                 window.SequenceDiagramDataStore.init(bubbleData.feature, containers, sequences);
             } else {
-                console.log('UPDATE: Data store already initialized, preserving existing data');
-                // Just update the feature info but keep existing containers/sequences
-                window.SequenceDiagramDataStore.updateFeature(bubbleData.feature);
+                console.log('UPDATE: Refreshing data store with current Bubble data (', containers.length, 'containers,', sequences.length, 'sequences)');
+                // Refresh with current Bubble data to ensure data store stays in sync
+                window.SequenceDiagramDataStore.loadData(bubbleData.feature, containers, sequences);
             }
         }
         
