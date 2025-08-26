@@ -43,19 +43,8 @@ function(instance, properties, context) {
         return;
     }
     
-    // 2.5. Debug: Check what renderer functions are available
-    console.log('UPDATE: WorkflowArchitectRenderer type:', typeof window.WorkflowArchitectRenderer);
-    console.log('UPDATE: WorkflowArchitectRenderer object:', window.WorkflowArchitectRenderer);
-    if (window.WorkflowArchitectRenderer) {
-        console.log('UPDATE: Available renderer methods:', Object.keys(window.WorkflowArchitectRenderer));
-    }
-    
-    // 3. Initialize event bridges if available
-    if (window.WorkflowArchitectEventBridge) {
-        window.WorkflowArchitectEventBridge.init(instance);
-        console.log('UPDATE: WorkflowArchitectEventBridge initialized');
-    }
-    
+    // 2.5. CRITICAL: Initialize Event Bridge IMMEDIATELY (following storymap-grid pattern)
+    // This MUST happen before any rendering or data processing to avoid race conditions
     console.log('UPDATE: Checking for SequenceDiagramEventBridge...', typeof window.SequenceDiagramEventBridge);
     if (window.SequenceDiagramEventBridge) {
         console.log('UPDATE: SequenceDiagramEventBridge found, initializing...');
@@ -63,6 +52,12 @@ function(instance, properties, context) {
         console.log('UPDATE: SequenceDiagramEventBridge initialized');
     } else {
         console.log('UPDATE: SequenceDiagramEventBridge not found!');
+    }
+    
+    // Initialize other event bridges if available
+    if (window.WorkflowArchitectEventBridge) {
+        window.WorkflowArchitectEventBridge.init(instance);
+        console.log('UPDATE: WorkflowArchitectEventBridge initialized');
     }
     
     // 4. Show success if all scripts loaded but no feature selected
