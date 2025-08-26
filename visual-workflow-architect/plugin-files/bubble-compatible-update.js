@@ -43,6 +43,13 @@ function(instance, properties, context) {
         return;
     }
     
+    // 2.5. Debug: Check what renderer functions are available
+    console.log('UPDATE: WorkflowArchitectRenderer type:', typeof window.WorkflowArchitectRenderer);
+    console.log('UPDATE: WorkflowArchitectRenderer object:', window.WorkflowArchitectRenderer);
+    if (window.WorkflowArchitectRenderer) {
+        console.log('UPDATE: Available renderer methods:', Object.keys(window.WorkflowArchitectRenderer));
+    }
+    
     // 3. Initialize event bridge if available
     if (window.WorkflowArchitectEventBridge) {
         window.WorkflowArchitectEventBridge.init(instance);

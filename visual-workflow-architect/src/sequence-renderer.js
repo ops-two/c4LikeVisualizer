@@ -135,40 +135,6 @@ window.WorkflowArchitectRenderer = {
     root.render(ReactFlowComponent);
 
     console.log('WorkflowArchitectRenderer: React Flow rendered successfully');
-  },
-  
-  renderContainersList: function(containers) {
-    if (containers.length === 0) {
-      return '<p style="margin: 0; color: #666; font-style: italic;">No containers defined</p>';
-    }
-    
-    var html = '<ul style="margin: 0; padding-left: 20px;">';
-    for (var i = 0; i < containers.length; i++) {
-      var container = containers[i];
-      html += '<li style="margin-bottom: 5px;">' +
-        '<strong>' + container.name + '</strong> ' +
-        '<span style="background: ' + container.colorHex + '; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">' + container.type + '</span>' +
-      '</li>';
-    }
-    html += '</ul>';
-    return html;
-  },
-  
-  renderSequencesList: function(sequences) {
-    if (sequences.length === 0) {
-      return '<p style="margin: 0; color: #666; font-style: italic;">No sequences defined</p>';
-    }
-    
-    var html = '<ul style="margin: 0; padding-left: 20px;">';
-    for (var i = 0; i < sequences.length; i++) {
-      var sequence = sequences[i];
-      html += '<li style="margin-bottom: 5px;">' +
-        '<strong>' + sequence.label + '</strong>' +
-        (sequence.description ? '<br><span style="color: #666; font-size: 12px;">' + sequence.description + '</span>' : '') +
-      '</li>';
-    }
-    html += '</ul>';
-    return html;
   }
 };
 
