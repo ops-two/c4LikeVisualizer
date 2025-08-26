@@ -200,12 +200,17 @@ window.SequenceDiagramEventBridge = {
         ? window.SequenceDiagramDataStore.getAllContainers()
         : window.SequenceDiagramDataStore.getAllSequences();
       
+      console.log(`SequenceDiagramEventBridge: Found ${entities.length} existing ${entityType}s in data store`);
+      console.log(`SequenceDiagramEventBridge: Entities:`, entities.map(e => ({id: e.id, name: e.name, orderIndex: e.orderIndex, featureId: e.featureId})));
+      
       // Filter by feature and get max order
       const featureEntities = entities.filter(e => e.featureId === featureId);
+      console.log(`SequenceDiagramEventBridge: Found ${featureEntities.length} ${entityType}s for feature ${featureId}`);
+      
       const maxOrder = Math.max(...featureEntities.map(e => e.orderIndex), -1);
       const nextOrder = maxOrder + 1;
       
-      console.log(`SequenceDiagramEventBridge: Calculated next ${entityType} order_index: ${nextOrder}`);
+      console.log(`SequenceDiagramEventBridge: Calculated next ${entityType} order_index: ${nextOrder} (max was ${maxOrder})`);
       return nextOrder;
     } catch (error) {
       console.error('SequenceDiagramEventBridge: Error calculating order_index:', error);
@@ -231,7 +236,12 @@ window.SequenceDiagramEventBridge = {
         if (featureId && window.SequenceDiagramDataStore) {
           // Re-render with current data using correct method name
           const currentData = window.SequenceDiagramDataStore.getSequenceDiagramData();
-          window.WorkflowArchitectRenderer.render(currentData, mainCanvas);
+          console.log('SequenceDiagramEventBridge: Re-rendering with data:', currentData);
+          
+          // Use setTimeout to avoid DOM timing issues
+          setTimeout(() => {
+            window.WorkflowArchitectRenderer.render(currentData, mainCanvas);
+          }, 100);
         }
       } else {
         console.warn('SequenceDiagramEventBridge: Cannot re-render - missing container or renderer');
