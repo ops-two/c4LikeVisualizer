@@ -33,6 +33,8 @@ window.SequenceDiagramEventBridge = {
     document.addEventListener('sequence:container_added', this.handleContainerAdd.bind(this));
     document.addEventListener('sequence:container_deleted', this.handleContainerDelete.bind(this));
     
+    console.log('SequenceDiagramEventBridge: Event listener for sequence:container_added registered');
+    
     // Sequence operations
     document.addEventListener('sequence:sequence_updated', this.handleSequenceUpdate.bind(this));
     document.addEventListener('sequence:sequence_added', this.handleSequenceAdd.bind(this));
@@ -83,6 +85,7 @@ window.SequenceDiagramEventBridge = {
   // Handle container creation - following exact storymap-grid pattern
   handleContainerAdd(event) {
     console.log('SequenceDiagramEventBridge: handleContainerAdd called with event:', event.detail);
+    console.log('SequenceDiagramEventBridge: Event type received:', event.type);
     
     if (!this.instance) {
       console.error('SequenceDiagramEventBridge: No Bubble instance available!');
