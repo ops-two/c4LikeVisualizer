@@ -177,9 +177,12 @@ window.WorkflowArchitectRenderer = {
     const actors = [];
     const messages = [];
     
+    console.log('DEBUG: Full data object:', JSON.stringify(data, null, 2));
+    
     // Create actors from containers
     if (data.containers) {
       data.containers.forEach((container, index) => {
+        console.log(`DEBUG: Container ${index}:`, JSON.stringify(container, null, 2));
         actors.push({
           name: container.name_text || 'Untitled Container',
           className: `actor-${index}`,
@@ -191,17 +194,65 @@ window.WorkflowArchitectRenderer = {
     // Create messages from sequences
     if (data.sequences) {
       data.sequences.forEach((sequence, index) => {
-        // Find actor indices
-        const fromIndex = data.containers.findIndex(c => c.container_id === sequence.from_container_id);
-        const toIndex = data.containers.findIndex(c => c.container_id === sequence.to_container_id);
+        console.log(`DEBUG: Sequence ${index}:`, JSON.stringify(sequence, null, 2));
+        
+        // Try multiple possible field names for container IDs
+        const possibleFromFields = ['from_container_id', 'from_container', 'source_container_id', 'source_container'];
+        const possibleToFields = ['to_container_id', 'to_container', 'target_container_id', 'target_container'];
+        
+        let fromContainerId = null;
+        let toContainerId = null;
+        
+        // Find the actual field names being used
+        for (const field of possibleFromFields) {
+          if (sequence[field]) {
+            fromContainerId = sequence[field];
+            console.log(`DEBUG: Found from container ID in field '${field}':`, fromContainerId);
+            break;
+          }
+        }
+        
+        for (const field of possibleToFields) {
+          if (sequence[field]) {
+            toContainerId = sequence[field];
+            console.log(`DEBUG: Found to container ID in field '${field}':`, toContainerId);
+            break;
+          }
+        }
+        
+        if (!fromContainerId || !toContainerId) {
+          console.log('DEBUG: Missing container IDs, checking all sequence fields:', Object.keys(sequence));
+          return;
+        }
+        
+        // Find actor indices - try different container ID field names
+        const possibleContainerIdFields = ['container_id', 'id', '_id', 'unique_id'];
+        let fromIndex = -1;
+        let toIndex = -1;
+        
+        for (const field of possibleContainerIdFields) {
+          if (fromIndex === -1) {
+            fromIndex = data.containers.findIndex(c => c[field] === fromContainerId);
+            if (fromIndex !== -1) console.log(`DEBUG: Found from container using field '${field}' at index:`, fromIndex);
+          }
+          if (toIndex === -1) {
+            toIndex = data.containers.findIndex(c => c[field] === toContainerId);
+            if (toIndex !== -1) console.log(`DEBUG: Found to container using field '${field}' at index:`, toIndex);
+          }
+        }
+        
+        console.log(`DEBUG: Final indices - from: ${fromIndex}, to: ${toIndex}`);
         
         if (fromIndex !== -1 && toIndex !== -1) {
           messages.push({
-            label: sequence.label_text || 'Untitled Sequence',
+            label: sequence.label_text || sequence.name_text || 'Untitled Sequence',
             from: fromIndex,
             to: toIndex,
             dashed: sequence.is_dashed_boolean || false
           });
+          console.log(`DEBUG: Added message from ${fromIndex} to ${toIndex}`);
+        } else {
+          console.log('DEBUG: Could not find matching containers for sequence');
         }
       });
     }
