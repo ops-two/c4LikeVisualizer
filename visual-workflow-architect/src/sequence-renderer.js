@@ -1,5 +1,5 @@
 // Visual Workflow Architect - Sequence Renderer
-// Renders sequence diagrams using React Flow
+// Renders Stripe-style UML sequence diagrams
 
 console.log('DEBUG: sequence-renderer.js script is loading...');
 
@@ -21,120 +21,276 @@ window.WorkflowArchitectRenderer = {
       return;
     }
 
-    // Check if React Flow is available
-    if (typeof ReactFlow === 'undefined') {
-      console.error('WorkflowArchitectRenderer: React Flow not loaded');
-      if (targetElement && targetElement.html) {
-        targetElement.html('<div style="padding:20px; color: red;">❌ React Flow library not loaded</div>');
-      }
-      return;
-    }
-
     // Clear the target element
     if (targetElement && targetElement.empty) {
       targetElement.empty();
     }
 
-    // Create React Flow container
-    const containerId = 'reactflow-' + Date.now();
-    const containerHtml = `<div id="${containerId}" style="width: 100%; height: 400px; border: 1px solid #ddd;"></div>`;
+    // Create sequence diagram container
+    const containerId = 'sequence-diagram-' + Date.now();
+    const containerHtml = `<div id="${containerId}" style="width: 100%; min-height: 400px;"></div>`;
     
     if (targetElement && targetElement.html) {
       targetElement.html(containerHtml);
     }
 
-    // Transform data to React Flow format
-    const { nodes, edges } = this.transformToReactFlow(data);
+    // Add CSS styles
+    this.addSequenceDiagramStyles();
     
-    // Render React Flow
+    // Render sequence diagram
     setTimeout(() => {
-      this.renderReactFlow(containerId, nodes, edges);
+      this.renderSequenceDiagram(containerId, data);
     }, 100);
 
     console.log('WorkflowArchitectRenderer: Render complete');
   },
 
-  // Transform containers and sequences to React Flow nodes and edges
-  transformToReactFlow: function(data) {
-    const nodes = [];
-    const edges = [];
+  // Add CSS styles for sequence diagram
+  addSequenceDiagramStyles: function() {
+    if (document.getElementById('sequence-diagram-styles')) return;
     
-    // Create container nodes (vertical lines)
-    if (data.containers) {
-      data.containers.forEach((container, index) => {
-        nodes.push({
-          id: container.container_id || `container-${index}`,
-          type: 'default',
-          position: { x: index * 200 + 100, y: 50 },
-          data: { 
-            label: container.name_text || 'Untitled Container',
-            type: container.type_text || 'Component'
-          },
-          style: {
-            background: container.color_hex_text || '#f0f0f0',
-            border: '2px solid #333',
-            borderRadius: '8px',
-            padding: '10px',
-            minWidth: '120px',
-            textAlign: 'center'
-          }
-        });
-      });
-    }
-
-    // Create sequence edges (horizontal arrows)
-    if (data.sequences) {
-      data.sequences.forEach((sequence, index) => {
-        if (sequence.from_container_id && sequence.to_container_id) {
-          edges.push({
-            id: sequence.sequence_id || `sequence-${index}`,
-            source: sequence.from_container_id,
-            target: sequence.to_container_id,
-            label: sequence.label_text || 'Untitled Sequence',
-            type: sequence.is_dashed_boolean ? 'smoothstep' : 'default',
-            style: {
-              stroke: sequence.color_hex_text || '#1976d2',
-              strokeWidth: 2,
-              strokeDasharray: sequence.is_dashed_boolean ? '5,5' : 'none'
-            },
-            labelStyle: {
-              fill: '#333',
-              fontWeight: 600
-            }
-          });
+    const styles = `
+      <style id="sequence-diagram-styles">
+        .sequence-diagram-container {
+          display: flex;
+          justify-content: space-around;
+          position: relative;
+          max-width: 1000px;
+          margin: auto;
+          padding: 30px 20px 50px;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          color: #333;
+          background-color: #f8f9fa;
         }
-      });
-    }
-
-    console.log('WorkflowArchitectRenderer: Transformed to', nodes.length, 'nodes and', edges.length, 'edges');
-    return { nodes, edges };
+        
+        .actor-lane {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          flex-basis: 25%;
+          height: 100%;
+        }
+        
+        .actor-lane h3 {
+          margin: 0;
+          padding: 10px;
+          font-weight: 500;
+          border-top: 5px solid transparent;
+          text-align: center;
+        }
+        
+        .lifeline {
+          width: 2px;
+          height: 100%;
+          background-color: #d3d3d3;
+          z-index: 0;
+        }
+        
+        .activation-box {
+          position: absolute;
+          width: 10px;
+          height: 28px;
+          transform: translate(-50%, -50%);
+          z-index: 1;
+          border-radius: 2px;
+        }
+        
+        .message {
+          position: absolute;
+          height: 100px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        
+        .message-label {
+          background-color: white;
+          padding: 8px 12px;
+          border: 1px solid #e0e0e0;
+          border-radius: 5px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+          z-index: 3;
+          text-align: center;
+          line-height: 1.4;
+          max-width: 75%;
+        }
+        
+        .arrow-line {
+          position: absolute;
+          top: 50%;
+          height: 2px;
+          background-color: #555;
+          z-index: 2;
+        }
+        
+        .arrow-line.dashed {
+          background-image: linear-gradient(to right, #555 50%, transparent 50%);
+          background-size: 12px 2px;
+          background-color: transparent;
+        }
+        
+        .arrow-line::after {
+          content: '';
+          position: absolute;
+          right: -1px;
+          top: -4px;
+          border-top: 5px solid transparent;
+          border-bottom: 5px solid transparent;
+          border-left: 8px solid #555;
+        }
+        
+        .arrow-line.left::after {
+          left: -1px; 
+          right: auto; 
+          border-left: none; 
+          border-right: 8px solid #555;
+        }
+      </style>
+    `;
+    
+    document.head.insertAdjacentHTML('beforeend', styles);
   },
 
-  // Render React Flow diagram
-  renderReactFlow: function(containerId, nodes, edges) {
+  // Render sequence diagram using React
+  renderSequenceDiagram: function(containerId, data) {
     const container = document.getElementById(containerId);
     if (!container) {
       console.error('WorkflowArchitectRenderer: Container not found:', containerId);
       return;
     }
 
-    // Create React Flow component
-    const ReactFlowComponent = React.createElement(ReactFlow.default, {
-      nodes: nodes,
-      edges: edges,
-      fitView: true,
-      attributionPosition: 'bottom-left',
-      defaultViewport: { x: 0, y: 0, zoom: 1 },
-      minZoom: 0.5,
-      maxZoom: 2,
-      style: { width: '100%', height: '100%' }
-    });
-
+    // Transform data to sequence diagram format
+    const { actors, messages } = this.transformToSequenceDiagram(data);
+    
+    // Create React components
+    const SequenceDiagram = this.createSequenceDiagramComponent(actors, messages);
+    
     // Render using ReactDOM
     const root = ReactDOM.createRoot(container);
-    root.render(ReactFlowComponent);
+    root.render(React.createElement(SequenceDiagram));
 
-    console.log('WorkflowArchitectRenderer: React Flow rendered successfully');
+    console.log('WorkflowArchitectRenderer: Sequence diagram rendered successfully');
+  },
+
+  // Transform data to sequence diagram format
+  transformToSequenceDiagram: function(data) {
+    const actors = [];
+    const messages = [];
+    
+    // Create actors from containers
+    if (data.containers) {
+      data.containers.forEach((container, index) => {
+        actors.push({
+          name: container.name_text || 'Untitled Container',
+          className: `actor-${index}`,
+          color: container.color_hex_text || '#3ea50b'
+        });
+      });
+    }
+    
+    // Create messages from sequences
+    if (data.sequences) {
+      data.sequences.forEach((sequence, index) => {
+        // Find actor indices
+        const fromIndex = data.containers.findIndex(c => c.container_id === sequence.from_container_id);
+        const toIndex = data.containers.findIndex(c => c.container_id === sequence.to_container_id);
+        
+        if (fromIndex !== -1 && toIndex !== -1) {
+          messages.push({
+            label: sequence.label_text || 'Untitled Sequence',
+            from: fromIndex,
+            to: toIndex,
+            dashed: sequence.is_dashed_boolean || false
+          });
+        }
+      });
+    }
+    
+    console.log('WorkflowArchitectRenderer: Transformed to', actors.length, 'actors and', messages.length, 'messages');
+    return { actors, messages };
+  },
+
+  // Create React sequence diagram component
+  createSequenceDiagramComponent: function(actors, messages) {
+    const { Fragment } = React;
+    
+    const ActivationBox = ({ actorIndex, yPos, color }) => {
+      const actorsCount = actors.length;
+      const positionX = actorIndex * (100 / actorsCount) + (100 / (actorsCount * 2));
+      const style = { top: `${yPos}px`, left: `${positionX}%`, backgroundColor: color };
+      return React.createElement('div', { className: 'activation-box', style: style });
+    };
+    
+    const Message = ({ label, from, to, yPos, dashed = false }) => {
+      const actorsCount = actors.length;
+      const isLeft = to < from;
+      const start = (isLeft ? to : from) * (100 / actorsCount) + (100 / (actorsCount * 2));
+      const distance = Math.abs(to - from);
+      const width = distance * (100 / actorsCount);
+      
+      const messageStyle = { top: `${yPos - 50}px`, left: `${start}%`, width: `${width}%` };
+      const arrowClass = `arrow-line ${dashed ? 'dashed' : ''} ${isLeft ? 'left' : ''}`;
+      
+      return React.createElement('div', { className: 'message', style: messageStyle },
+        React.createElement('div', { className: 'message-label' }, label),
+        React.createElement('div', { className: arrowClass, style: { width: '100%' } })
+      );
+    };
+    
+    return function SequenceDiagram() {
+      // Calculate positions
+      const startY = 130;
+      const stepY = 150;
+      let positionedMessages = [];
+      let currentY = startY;
+      
+      messages.forEach(msg => {
+        positionedMessages.push({ ...msg, yPos: currentY });
+        currentY += stepY;
+      });
+      
+      const containerHeight = currentY;
+      
+      return React.createElement('div', 
+        { className: 'sequence-diagram-container', style: { height: `${containerHeight}px` } },
+        
+        // Actor lanes
+        ...actors.map((actor, index) => 
+          React.createElement('div', 
+            { key: actor.name, className: `actor-lane ${actor.className}`, style: { height: `${containerHeight}px` } },
+            React.createElement('h3', { style: { borderColor: actor.color } }, actor.name),
+            React.createElement('div', { className: 'lifeline' })
+          )
+        ),
+        
+        // Messages and activation boxes
+        React.createElement(Fragment, null,
+          ...positionedMessages.map((msg, index) => {
+            const sequencedLabel = `${index + 1}. ${msg.label}`;
+            
+            return React.createElement(Fragment, { key: index },
+              React.createElement(ActivationBox, { 
+                actorIndex: msg.from, 
+                yPos: msg.yPos, 
+                color: actors[msg.from].color 
+              }),
+              React.createElement(ActivationBox, { 
+                actorIndex: msg.to, 
+                yPos: msg.yPos, 
+                color: actors[msg.to].color 
+              }),
+              React.createElement(Message, { 
+                label: sequencedLabel, 
+                from: msg.from, 
+                to: msg.to, 
+                yPos: msg.yPos, 
+                dashed: msg.dashed 
+              })
+            );
+          })
+        )
+      );
+    };
   }
 };
 
