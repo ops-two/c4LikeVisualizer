@@ -63,8 +63,29 @@ window.WorkflowArchitectRenderer = {
     console.log('WorkflowArchitectRenderer: Render complete');
   },
 
-  // Add CSS styles for sequence diagram
-  addSequenceDiagramStyles: function() {
+  // Initialize interactive systems
+  initializeInteractivity: function() {
+    console.log('WorkflowArchitectRenderer: Initializing interactivity systems');
+    
+    // Initialize inline edit system
+    if (window.SequenceDiagramInlineEdit && !window.SequenceDiagramInlineEdit.isInitialized) {
+      window.SequenceDiagramInlineEdit.init();
+    }
+    
+    // Initialize event bridge if Bubble instance is available
+    if (window.SequenceDiagramEventBridge && !window.SequenceDiagramEventBridge.isInitialized && window.bubbleInstance) {
+      window.SequenceDiagramEventBridge.init(window.bubbleInstance);
+    }
+    
+    // Initialize data store if not already done
+    if (window.SequenceDiagramDataStore && !window.SequenceDiagramDataStore.isInitialized) {
+      // Data will be initialized from bubble-compatible-update.js
+      console.log('WorkflowArchitectRenderer: Data store will be initialized by update handler');
+    }
+  },
+
+  // CSS styles for the sequence diagram
+  getSequenceDiagramStyles: function() {
     if (document.getElementById('sequence-diagram-styles')) return;
     
     const styles = `
@@ -81,15 +102,39 @@ window.WorkflowArchitectRenderer = {
           background-color: #f8f9fa;
         }
         
-        .sequence-toolbar {
-          display: flex;
-          gap: 10px;
-          margin-bottom: 20px;
-          padding: 10px;
-          background-color: white;
-          border: 1px solid #e0e0e0;
-          border-radius: 8px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        .sequence-inline-edit-input {
+          position: absolute;
+          z-index: 1000;
+          border: 2px solid #1976d2;
+          border-radius: 4px;
+          padding: 4px 8px;
+          background: white;
+          font-family: inherit;
+          font-size: inherit;
+          outline: none;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .container-name {
+          cursor: pointer;
+          padding: 2px 4px;
+          border-radius: 3px;
+          transition: background-color 0.2s;
+        }
+        
+        .container-name:hover {
+          background-color: rgba(25, 118, 210, 0.1);
+        }
+        
+        .sequence-label {
+          cursor: pointer;
+          padding: 2px 4px;
+          border-radius: 3px;
+          transition: background-color 0.2s;
+        }
+        
+        .sequence-label:hover {
+          background-color: rgba(25, 118, 210, 0.1);
         }
         
         .toolbar-button {
@@ -206,35 +251,52 @@ window.WorkflowArchitectRenderer = {
     document.head.insertAdjacentHTML('beforeend', styles);
   },
 
+  // Add CSS styles for sequence diagram
+  addSequenceDiagramStyles: function() {
+    if (document.getElementById('sequence-diagram-styles')) return;
+    
+    const styles = this.getSequenceDiagramStyles();
+    
+    document.head.insertAdjacentHTML('beforeend', styles);
+  },
+
   // Render sequence diagram using React
   renderSequenceDiagram: function(containerId, data) {
     // Use requestAnimationFrame to ensure DOM is ready
     requestAnimationFrame(() => {
-      const container = document.getElementById(containerId);
-      if (!container) {
-        console.error('WorkflowArchitectRenderer: Container not found:', containerId);
-        return;
-      }
-
-      // Prevent multiple renders on the same container
-      if (container.hasAttribute('data-rendered')) {
-        console.log('WorkflowArchitectRenderer: Container already rendered, skipping');
-        return;
-      }
-      container.setAttribute('data-rendered', 'true');
-
-      // Transform data to sequence diagram format
-      const { actors, messages } = this.transformToSequenceDiagram(data);
+      this.renderSequenceDiagramContent(data, containerId);
       
-      // Create React components
-      const SequenceDiagram = this.createSequenceDiagramComponent(actors, messages);
-      
-      // Render using ReactDOM
-      const root = ReactDOM.createRoot(container);
-      root.render(React.createElement(SequenceDiagram));
-
-      console.log('WorkflowArchitectRenderer: Sequence diagram rendered successfully');
+      // Initialize interactive systems after rendering
+      this.initializeInteractivity();
     });
+  },
+
+  // Render sequence diagram content
+  renderSequenceDiagramContent: function(data, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) {
+      console.error('WorkflowArchitectRenderer: Container not found:', containerId);
+      return;
+    }
+
+    // Prevent multiple renders on the same container
+    if (container.hasAttribute('data-rendered')) {
+      console.log('WorkflowArchitectRenderer: Container already rendered, skipping');
+      return;
+    }
+    container.setAttribute('data-rendered', 'true');
+
+    // Transform data to sequence diagram format
+    const { actors, messages } = this.transformToSequenceDiagram(data);
+    
+    // Create React components
+    const SequenceDiagram = this.createSequenceDiagramComponent(actors, messages);
+    
+    // Render using ReactDOM
+    const root = ReactDOM.createRoot(container);
+    root.render(React.createElement(SequenceDiagram));
+
+    console.log('WorkflowArchitectRenderer: Sequence diagram rendered successfully');
   },
 
   // Transform data to sequence diagram format
@@ -408,12 +470,56 @@ window.WorkflowArchitectRenderer = {
       // Toolbar event handlers
       const handleAddContainer = () => {
         console.log('Add Container clicked');
-        // TODO: Implement add container functionality
+        const containerName = prompt('Enter container name:');
+        if (containerName && containerName.trim()) {
+          // Get feature ID from DOM or data store
+          const featureId = document.querySelector('[data-feature-id]')?.getAttribute('data-feature-id');
+          
+          // Dispatch container add event
+          if (window.SequenceDiagramEventBridge) {
+            window.SequenceDiagramEventBridge.dispatchContainerAdd(
+              containerName.trim(),
+              'Component',
+              '#3ea50b',
+              featureId,
+              null // Will auto-calculate order index
+            );
+          }
+        }
       };
       
       const handleAddSequence = () => {
         console.log('Add Sequence clicked');
-        // TODO: Implement add sequence functionality
+        
+        // Get available containers for selection
+        const containers = window.SequenceDiagramDataStore ? 
+          window.SequenceDiagramDataStore.getAllContainers() : [];
+        
+        if (containers.length < 2) {
+          alert('You need at least 2 containers to create a sequence.');
+          return;
+        }
+        
+        const sequenceLabel = prompt('Enter sequence label:');
+        if (sequenceLabel && sequenceLabel.trim()) {
+          // Simple selection for demo - in production, use a proper modal
+          const fromContainer = containers[0];
+          const toContainer = containers[1];
+          const featureId = document.querySelector('[data-feature-id]')?.getAttribute('data-feature-id');
+          
+          // Dispatch sequence add event
+          if (window.SequenceDiagramEventBridge) {
+            window.SequenceDiagramEventBridge.dispatchSequenceAdd(
+              sequenceLabel.trim(),
+              fromContainer.id,
+              toContainer.id,
+              featureId,
+              false, // isDashed
+              '#1976d2', // color
+              null // Will auto-calculate order index
+            );
+          }
+        }
       };
       
       return React.createElement('div', 

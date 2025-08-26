@@ -133,6 +133,15 @@ function(instance, properties, context) {
             editPermissions: properties.edit_permissions || false
         };
         
+        // Initialize sequence data store with bubble data
+        if (window.SequenceDiagramDataStore && !window.SequenceDiagramDataStore.isInitialized) {
+            console.log('UPDATE: Initializing sequence data store...');
+            window.SequenceDiagramDataStore.init(bubbleData.feature, containers, sequences);
+        }
+        
+        // Store bubble instance globally for event bridge
+        window.bubbleInstance = instance;
+        
         // Store feature ID in DOM for persistence
         containerElement.attr('data-feature-id', properties.feature.get('_id'));
         
