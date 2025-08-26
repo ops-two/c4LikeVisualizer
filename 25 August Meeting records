@@ -1,0 +1,496 @@
+Opstwo team meeting - August 25
+VIEW RECORDING - 64 mins (No highlights): 
+
+---
+
+0:00 - Vikas Vimal (vikas.vimal90@gmail.com)
+  The snow would start, there's only a four month of summer in Toronto, so do you want to start today?
+
+0:10 - Rahul Gupta (Vikas Vimal)
+  Okay, we're going to start. Thank you.
+
+0:41 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Thank you. All those links on the side, it was the same page. So it was loading something for a moment and then it was being replaced by a generic dashboard.
+
+1:32 - Rahul Gupta (Vikas Vimal)
+  You might be using some other page.
+
+1:37 - Vikas Vimal (vikas.vimal90@gmail.com)
+  I went to the home page directly and the automation was that whenever you are logged in and you go to the home page, it will take you to the workspace page.  I think that's the next one. If you look at the workflow, page is loaded. Go to page workspace only when current user is signed in.  So it takes you to this page by default.
+
+2:37 - Rahul Gupta (Vikas Vimal)
+  So we have all the connections and the main tools list and for all of them and it is workflow.  Let's create a new connection, let's first see. This one is task management. Task management, first one, is the history check.  If you enable it, is the history uncheck. Good. So I'll again check. If you enable the whole IP, it might take time because it has around 55 reports, so it is taking around 4 seconds for that.  Okay, as you can see, script history is green and shelter 53 of them. If they enable, the answer is, this one is not going to refresh properly.  Data. So let me see. This is sometimes it doesn't force the refresh of it.
+
+4:04 - Vikas Vimal (vikas.vimal90@gmail.com)
+  So after API response, then so the thing is bubble sometimes doesn't wait for response. So you might want to just continuously run that every five seconds.  There is a trigger for every five seconds. every five seconds, just run that so that run the automation. So it pulls fresh data for the five seconds.
+
+4:36 - Rahul Gupta (Vikas Vimal)
+  OK, we are based on the data. Can we wait for this?
+
+4:44 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Pause. Pause for this data.
+
+4:49 - Rahul Gupta (Vikas Vimal)
+  Let's text them. But it is limited. Actually, I just put another field. that changed I I Thank
+
+5:00 - Vikas Vimal (vikas.vimal90@gmail.com)
+  so the connect main the the api key is it are you storing the any api key in here or not no not in double okay so every group you can set custom states for them so in connect main if you set a custom state and whenever you toggle the chart change the custom state like from yes to no or no to yes whatever uh and change the custom state so that it then keeps refreshing every five every every minute or every 30 seconds it keeps refreshing that list as long as that custom state is yes and that would mean that the automation like you you run through all the uh toggling and then it refreshes and after it finishes refreshing it turns off that custom state so custom state can be  We used to say that, okay, you need to refresh this group, and after you have finished refreshing, then you can change the custom state back and say, okay, monitor room now.
+
+6:13 - Rahul Gupta (Vikas Vimal)
+  Okay, let's add a new key for anyone. Okay, please. Add a new connection, it may be already existing current workspace, and this one is a new IP, yes, so let's quickly get a new IP open it in.  Okay, thank you for coming. Thank you. Okay.
+
+6:59 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Thank
+
+7:03 - Rahul Gupta (Vikas Vimal)
+  We can close in KTP cloud instance. Let's just say new connection. Connection. Connection. Connection. Connection. Connection. Connection. Connection is false because we suggest that made by default.  Checking all of them.
+
+7:53 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Mm-hmm.
+
+8:15 - Rahul Gupta (Vikas Vimal)
+  I think we have to set the default time area of time.
+
+8:35 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Right now, when you go to where, can you just refresh the page without the tab? I don't know.
+
+8:54 - Rahul Gupta (Vikas Vimal)
+  It does nothing like updates. Okay. Thank you. Thank Thank you. Thank you. Thank Thank So we were talking about Fathom.  So we talking about Fathom. Fathom.
+
+9:25 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Fathom.
+
+9:26 - Rahul Gupta (Vikas Vimal)
+  So if you go to workflow or somewhere with it. Okay. No, it's requirements. Okay. Okay. Okay. Okay. So
+
+10:22 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Yeah, it's usually slower in test mode.
+
+10:39 - Rahul Gupta (Vikas Vimal)
+  We have to next increment the user permissions, so that even if the mode is edit, but if the user doesn't have access to it, then we won't show it, so that you don't have permission, something like that.
+
+10:56 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Can you do one thing? Can you try opening Notion? Anything. Mighty. Page in Notion, and then copying it over to create a new note.  Just copy whatever is in Notion over to our and see where it is breaking. It will not be a one-to-one map because Notion has more fields, more field type, block types.
+
+11:27 - Rahul Gupta (Vikas Vimal)
+  We don't have a new button, right? Yeah, you don't have that yet.
+
+11:36 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Give me that. I did not work on the notes page at all. That shouldn't be too difficult. Thank you.  Thank you. Thank you. Thank you. you. Thank you. you. Thank Even for nodes nav, just use custom state, make it a separate reusable element, and use a custom state to pass which node is open.
+
+12:20 - Rahul Gupta (Vikas Vimal)
+  I'm passing it as a group state in the node, and whenever I select it, that node is being passed to the node.
+
+12:28 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Okay, so you're passing it, okay. I produce.
+
+12:36 - Rahul Gupta (Vikas Vimal)
+  I fully unpacked. Perfect. Let's see if we can switch it. Let's see .
+
+13:05 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Thank Yeah, hold on, I'll just create one so that it creates, whenever I'm refreshing a page, it's automatically, come on, I'm editing, give me one moment.  Thank you very Thank you very much. That should be it. Yeah, can refresh the page and see if, so does it always go to Tav's page?
+
+15:37 - Rahul Gupta (Vikas Vimal)
+  Let's see. I've been refreshing here, want to change the page. No, it's changing. You have to check if there is.
+
+15:52 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Yeah, so clicking on new notes under that tool.
+
+15:58 - Rahul Gupta (Vikas Vimal)
+  Oh, click on that.
+
+16:10 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Is it not, is it set to load, it should be set to load, it's empty I guess the name is empty that's it.
+
+16:27 - Rahul Gupta (Vikas Vimal)
+  Oh okay okay give me one moment I'll just set that also.
+  ACTION ITEM: Investigate why page navigation isn't maintaining selected tab on refresh
+ - WATCH: https://fathom.video/calls/388503314?timestamp=996.9999
+
+16:42 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Okay that should fit. Yeah I have to figure out why it's not. So the idea was that if you open a tab and if you just refresh the page it should open the same tab so I don't know why that is not working.  Okay I'll take a look at the navigation where it should be done now. What happens when you click on that?
+
+17:13 - Rahul Gupta (Vikas Vimal)
+  Listen, you know, I clicked on this. It opened. Oh, you are in the page.
+
+17:25 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Okay, okay, okay, okay. Give me one moment. I'm going to current page. So group notes nav. You have to have, not a text, but a current note.  State type note. Create when this is clicked. We don't need to do anything except it. Give me one moment.  I'm just doing it right now. Thank you. It will take up the documents, data things make no element, set state of an element, nav, nav, here, current, no, value, corrects, or not, okay.  And then here. Can I try now? It will again go back there, yeah. Let's see. Thanks.
+
+18:57 - Rahul Gupta (Vikas Vimal)
+  Thank you. Thank you. Thank you. Thank you. Thank you. My pleasure. You Did you click on it?
+
+19:37 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Thank you. Thank Thank Thank Thank you. Thank you. Thank you. Thank you. Thank you. Thank Thank I'll try now, let's see if this works.  Oh, you have to unhide, okay, hold on, hold on. There are some hide and hide rules here, give me one moment.  So what is the rule? Conditional get mode from page URL is view, okay. Instead of having the view or edit as a mode and getting it from page URL, you can store that in custom state.  Yeah. So what I will do is... I will just default it to edit for now, and try now.
+
+21:24 - Rahul Gupta (Vikas Vimal)
+  It's not getting repeats.
+
+21:37 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Okay, you have conditionals on both, group as well as testing. Okay, can you try now, once more? Okay.
+
+21:54 - Rahul Gupta (Vikas Vimal)
+  Okay. Okay. Okay. Okay. Okay. Okay. Okay. Okay. Okay.
+
+22:03 - Vikas Vimal (vikas.vimal90@gmail.com)
+  There's a note that is showing up, that group note.
+
+22:09 - Rahul Gupta (Vikas Vimal)
+  Group note is collapse, set, current sales note, current sales note. Okay, exclude group, group note.
+
+22:23 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Oh, am I picking it up from the wrong one? Okay, I might be picking up. Group notes here.
+
+22:31 - Rahul Gupta (Vikas Vimal)
+  It should be.
+
+22:35 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Okay, that should be it. Let me see. Group notes type item.
+
+22:42 - Rahul Gupta (Vikas Vimal)
+  Type, yeah.
+
+22:45 - Vikas Vimal (vikas.vimal90@gmail.com)
+  That is the one, set state. Let's see the other one. I don't know what time. Okay. Let This is go.  see you that. Thank for doing it all, right? Hello? Ah, okay, I think I figured out why element is visible.  Okay, can you try now? The element was hidden by default.
+
+24:46 - Rahul Gupta (Vikas Vimal)
+  No, the mode doesn't change right now.
+
+24:48 - Vikas Vimal (vikas.vimal90@gmail.com)
+  It's always by default in edit mode for now. You will use a custom state to switch from edit to view.
+
+24:57 - Rahul Gupta (Vikas Vimal)
+  Only show if the user will have edit rights.
+
+25:00 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Okay. Let's see. Let's see. Let's see. Let's So don't use navigation URL for edit handling.
+
+25:10 - Rahul Gupta (Vikas Vimal)
+  You compare side by side? Save it and see how it's looking in the view mode. Okay.
+
+25:23 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Let me just do that, right? Let me save it, I guess. Give me a moment, I'll just change it so that you can toggle.  It is just one button. Minimum width. Minimum height. Thank you. Thank you.
+
+27:07 - Rahul Gupta (Vikas Vimal)
+  Thank you. Thank
+
+28:02 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Thank you. Thank you. Thank you. Have you used custom states so far? Yeah, I did. Cool.
+
+30:00 - Rahul Gupta (Vikas Vimal)
+  Yeah. Thank
+
+30:00 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Okay, I'll just show you how I'm trying to use it.
+
+30:09 - Rahul Gupta (Vikas Vimal)
+  Create.
+
+30:24 - Vikas Vimal (vikas.vimal90@gmail.com)
+  So custom state is on node edit. So when the button is pressed, so if the node enabled is no, then the label says edit.  Otherwise, it says save. So when you press the button, it changes set state of an element. Not edit state.  No. If. So by it's if are to It's actually navigate And Now that it's enabled is yes, and yes, yes, no, go back by default, this should be no.  Now go back to project. Share this. Why do you have groups for these? Can't have it in the same parent, I guess.  Thank you.
+
+32:00 - Rahul Gupta (Vikas Vimal)
+  Thank you. Thank Thank
+
+32:12 - Vikas Vimal (vikas.vimal90@gmail.com)
+  When this is set to the current node from nav, in this conditional event, what it is, edit enable is no.  This element is visible. Copy. Based is yes. Are they trying now? Should be there.
+
+33:33 - Rahul Gupta (Vikas Vimal)
+  Okay, so let's see if you did. It's not so fast.
+
+33:40 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Okay, on.
+
+33:42 - Rahul Gupta (Vikas Vimal)
+  And this one is incorrect. Say it.
+
+34:06 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Is the workflow, can you turn on the debug mode, debug underscore mode equals to, to see where it's failing?
+
+34:35 - Rahul Gupta (Vikas Vimal)
+  Yes, okay. It seems, but, uh, the, the, the, the, should be related to, don't think. So, this one is, how it's been rendered now?
+  ACTION ITEM: Review and fix CSS issues in notes editor (spacing, headings, paragraphs)
+ - WATCH: https://fathom.video/calls/388503314?timestamp=2090.9999  Yeah. It's not good. Okay. So you, we might look at.
+
+35:01 - Vikas Vimal (vikas.vimal90@gmail.com)
+  the CSS a bit more so you see the distance between toggle so you see there's extra space above the heading we don't have that right so headings the paragraph before heading and the paragraph after heading both are the same size both the same spacing look at that a bit okay i will take a look so you will be working on this in the night you were working very late yesterday it seems hmm yeah i i slept in the day so i was able to work on it okay okay no worries i will take a look at this then uh why is it not showing properly the css is changed for like you have to one by one paper css so the header code header use this one css and then for this time yeah so don't use ai because ai will try to overwrite wrong things again you you you  So even if you're using AI, use it on section by section.
+
+36:05 - Rahul Gupta (Vikas Vimal)
+  I think I have saved the original CSS, so you can go back to your maybe this one. Documentation working code.
+  ACTION ITEM: Implement undo button functionality in notes editor
+ - WATCH: https://fathom.video/calls/388503314?timestamp=2177.9999  So you can take the CSS from here, you press your CSS and copy the chat.
+
+36:28 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Also, we don't have an undo button. So yeah, we have to fix that as well.
+
+36:33 - Rahul Gupta (Vikas Vimal)
+  There are tests we need to do on this page. But yeah. I think it's taking shape now. Yeah. It's taking shape right now.  And what I am struggling with is... So I tried to copy your task. The thing I'm struggling with is, since we have tasks in the workspace, how do we get all the tasks?  How does it currently get?
+
+37:13 - Vikas Vimal (vikas.vimal90@gmail.com)
+  How is the repeating group set?
+
+37:16 - Rahul Gupta (Vikas Vimal)
+  Because inside, like when we implemented, it is inside the project. Yes. if you go to the database.
+
+37:23 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Against project, right? What you need to do is just check against the current workflow in the page. The current workspace, sorry.  So instead of checking right now, in the project page, the search is against when project equals current page projects.  In workspace, you'll have to do when workspace equals current page workspace. Or when the task is not connected to the workspace.
+
+37:53 - Rahul Gupta (Vikas Vimal)
+  Well, you can do a parent check, right?
+
+37:56 - Vikas Vimal (vikas.vimal90@gmail.com)
+  So you have, we have done that in StoryMap. Okay. Do.
+
+38:01 - Rahul Gupta (Vikas Vimal)
+  Go in the edit mode.
+
+38:04 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Where is the repeating groups formula?
+
+38:08 - Rahul Gupta (Vikas Vimal)
+  I think this one is the main container. Parent group workspace. This one is the repeating.
+
+38:20 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Okay, so go to any of these, any task. I'll just show you how.
+
+38:29 - Rahul Gupta (Vikas Vimal)
+  Go to any of repeating group tasks.
+
+38:32 - Vikas Vimal (vikas.vimal90@gmail.com)
+  to repeating group.
+
+38:34 - Rahul Gupta (Vikas Vimal)
+  So here, do a search for.
+
+38:37 - Vikas Vimal (vikas.vimal90@gmail.com)
+  You have to use a search module.
+
+38:39 - Rahul Gupta (Vikas Vimal)
+  It is all task.
+
+38:43 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Do the tasks. Project equals search for projects. Workspace equals current page projects.
+
+38:58 - Rahul Gupta (Vikas Vimal)
+  Yeah, but it is returning list of projects. projects. Yeah.
+
+39:04 - Vikas Vimal (vikas.vimal90@gmail.com)
+  So make the change here and then you go back and I'll show you.
+
+39:10 - Rahul Gupta (Vikas Vimal)
+  Current users active workspace unique ID. So I think it's correct, right?
+
+39:15 - Vikas Vimal (vikas.vimal90@gmail.com)
+  But why is it showing error?
+
+39:19 - Rahul Gupta (Vikas Vimal)
+  I don't Don't use unique ID. Remove the unique ID.
+
+39:24 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Unique ID, okay.
+
+39:27 - Rahul Gupta (Vikas Vimal)
+  Workspace is equal to active worksets. Yeah, just that.
+
+39:32 - Vikas Vimal (vikas.vimal90@gmail.com)
+  And instead of, okay, search for tasks, instead of equals, use is in.
+
+39:38 - Rahul Gupta (Vikas Vimal)
+  Task is in?
+
+39:40 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Yeah, instead of equals, use is in. That's it.
+
+39:57 - Rahul Gupta (Vikas Vimal)
+  It's not that other filter, but.
+
+40:00 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Closed in in This
+
+40:11 - Rahul Gupta (Vikas Vimal)
+  So I think I have to check the workflows because I haven't copied the workflow yet, but I'm not sure if it's rendering properly.
+
+40:21 - Vikas Vimal (vikas.vimal90@gmail.com)
+  The AddTask, is there a workflow link to AddTask?
+
+40:33 - Rahul Gupta (Vikas Vimal)
+  Yeah, but that should be it.
+
+40:39 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Two sections, so my task will always be sorted by priority, what I'm doing today, tomorrow, etc. All tasks will be sorted by features, projects, groups.  Right, so you'll have to group them by which project and which feature within that project. Mhm.
+
+40:58 - Rahul Gupta (Vikas Vimal)
+  Mhm. Mhm. I think most of the things are already done with auto-binding. Do we need the sidebar? We need the sidebar, yes.
+
+41:13 - Vikas Vimal (vikas.vimal90@gmail.com)
+  So whenever you expand a task, you should see more details about it and comments. There's a comment reusable element for projects, for tasks, task comment, and you can use that.
+  ACTION ITEM: Implement personas and releases features in the project management tool
+ - WATCH: https://fathom.video/calls/388503314?timestamp=2502.9999
+  ACTION ITEM: Work on sequence diagram workflow for features
+ - WATCH: https://fathom.video/calls/388503314?timestamp=2514.9999  What I recommend is work on personas releases. You already have tools set up. Uh... Work on those two things.
+
+42:03 - Rahul Gupta (Vikas Vimal)
+  Personas and releases, I think.
+
+42:05 - Vikas Vimal (vikas.vimal90@gmail.com)
+  And also, we have to work on the sequence diagram workflow. Yeah, I will do something.
+
+42:15 - Rahul Gupta (Vikas Vimal)
+  That's why I'm asking that features is connected to the project. Project, yes.
+
+42:20 - Vikas Vimal (vikas.vimal90@gmail.com)
+  I mean, you can show features in workspace also, not an issue. If you want to show all features, you can show it in workspace, but it's not needed as such.  I'm using features somehow in the workspace level for the diagram. What? For the diagram.
+
+42:40 - Rahul Gupta (Vikas Vimal)
+  No, we're using features there.
+
+42:45 - Vikas Vimal (vikas.vimal90@gmail.com)
+  We don't need to use features there also. So even in the workflow diagram, you will have a global one.  The global one would be, so get, so every. Every feature will have two workflow entries. One will be the sequence diagram, where you have the vertical lines and the horizontal connectors.  Then you'll also have a JSON version of that same thing, which is a much more lighter version, so what is connected to what, basically that.  So both will be linked to a feature. And when you load the workflow map, the main map. The main map is in the workflow level or in the project level?
+
+43:36 - Rahul Gupta (Vikas Vimal)
+  Workflow level. No, the project or the workspace? Sorry, the workspace, sorry.
+
+43:44 - Vikas Vimal (vikas.vimal90@gmail.com)
+  So the main one is at the workspace level. So you will have to load all the projects, and then all the features within that project, and then those will be smaller boxes within the project.  So you'll have a project box, and then a feature box, and then within the feature only nodes showing what is connected to what.  about project. So, So You Okay, and then if you click on any one of them, it will open the feature in the in the new tab, and you can navigate to a new tab, but it will always be within a project, and then a feature.
+
+44:20 - Rahul Gupta (Vikas Vimal)
+  Okay, and how I can... I might be asking this question, but how we are showing the releases, at least only?
+
+44:51 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Yeah, I think you can just have cards for releases. Yeah, or you might... Yeah. Yeah. Yeah. Yeah. Yeah, you can just have cards for releases, just release planning would have.  The thing is, with release, you also need to have releases and dates. Usually releases means milestones where you clear your backlog.  So releases will have stories, technically. The child of releases is stories. So maybe find some way to show that.
+
+45:39 - Rahul Gupta (Vikas Vimal)
+  Maybe like what you were showing in the first story map. So the whole detox of the story releases, inside that journeys, inside that features, and inside that.  The thing is, features and releases, they are parallel.
+
+45:58 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Stories have both as parents. be honest. you. So while we are showing the journey feature story in the story map, for releases we don't have anything decent.  What you can do is just have a list of cards showing release name, date, and number of stories inside that, basically.  That's it.
+
+46:23 - Rahul Gupta (Vikas Vimal)
+  Got it. And the features page?
+
+46:30 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Yeah, it's not there yet.
+
+46:35 - Rahul Gupta (Vikas Vimal)
+  No, I don't think that the v2 one is an old one.
+
+46:42 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Let's try to do it right now. I don't think it is there yet. you. Thank you. Thank
+
+47:01 - Rahul Gupta (Vikas Vimal)
+  So let's, oh, one more thing was there, what is that? So what are the database? It's connected to feature content, content, and a story.  It is not connected to exergancy, right? So how we are going to show the sidebar? Like I tell, it's not connected to January, It's not connected Mm-hmm.  Mm Mm-hmm. So here you have described as journeys and features and notes. Well, don't need the notes to be linked to journeys to get the hierarchy.
+
+48:32 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Features are already linked there, right?
+
+48:35 - Rahul Gupta (Vikas Vimal)
+  Features are linked to journeys.
+
+48:38 - Vikas Vimal (vikas.vimal90@gmail.com)
+  So you don't need notes to be linked to journeys separately.
+
+48:42 - Rahul Gupta (Vikas Vimal)
+  Yeah. We are going to use the features to get the journeys separately. And, so you can each Thank you.
+
+49:43 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Give me one minute, just set it up. I think we are 30% there.
+
+50:01 - Rahul Gupta (Vikas Vimal)
+  Thank you.
+
+50:34 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Thank you. Thank you.
+
+51:41 - Rahul Gupta (Vikas Vimal)
+  Thank you.
+
+52:01 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Thank you. Thank
+
+53:01 - Rahul Gupta (Vikas Vimal)
+  Thank you. Thank you.
+
+54:10 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Thank you.
+
+54:40 - Rahul Gupta (Vikas Vimal)
+  Thank you.
+  ACTION ITEM: Create features page with list view and detail view including diagram
+ - WATCH: https://fathom.video/calls/388503314?timestamp=3328.9999
+
+55:04 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Thank you. Can you see the screen? Switch to Feature and Feature Details. So Features, you'll have a list of features under the project by default, and if you click on any feature in detail.  We should be able to... You see, yeah, that diagram and all the list of all the stories. Got it.
+
+56:09 - Rahul Gupta (Vikas Vimal)
+  This is a list of features, the cards.
+
+56:13 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Yes, you just name and just a small description.
+
+56:18 - Rahul Gupta (Vikas Vimal)
+  And where do want to show all the features?
+
+56:23 - Vikas Vimal (vikas.vimal90@gmail.com)
+  By default, when you switch to features, just show all the features and then if you click on any one of them.
+
+56:31 - Rahul Gupta (Vikas Vimal)
+  The bird-eye view of this, all the features in graph mode.
+
+56:36 - Vikas Vimal (vikas.vimal90@gmail.com)
+  The chart, that will be in the workspace.
+
+56:41 - Rahul Gupta (Vikas Vimal)
+  Not in the project. In the project, just put individual features.
+
+56:45 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Yeah.
+
+56:57 - Rahul Gupta (Vikas Vimal)
+  Got it. Thanks, guys.
+
+57:05 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Thank you. I also have the comments linked to the features. It can be also, yeah, it can be a sidebar.
+
+57:54 - Rahul Gupta (Vikas Vimal)
+  And while we are scrolling the page, are we scrolling the whole page or we are scrolling the middle part only?  It's his own flow. So
+
+58:04 - Vikas Vimal (vikas.vimal90@gmail.com)
+  So the diagram will definitely overflow. What you can have is a tab, maybe, let me see how to get a tab, okay.  Thank you.
+
+59:01 - Rahul Gupta (Vikas Vimal)
+  Thank you. Thank you. Thank you.
+
+1:00:40 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Maybe something like this. It says documentation, but imagine it's a feature. Thank you. Thank you. Thank you. Thank Thank  The thing is that this diagram would be important, I think, and the diagram needs width, so we cannot group it together with other elements.
+
+1:01:17 - Rahul Gupta (Vikas Vimal)
+  And then we are going to create the diagram in the feature space?
+
+1:01:24 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Yeah, feature details. So diagram links directly to features. Every feature has one diagram, only that's it. We don't need to have multiple diagrams, every feature has only one diagram.  Those diagrams can have workflows, like groups of horizontal lines can be one. So you can have multiple groups of those workflows.  We have have have this.
+
+1:02:01 - Rahul Gupta (Vikas Vimal)
+  this. have these have we from So these shown that's actually
+
+1:02:01 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Yeah, and it can be like a story map. can be tall. Okay, yeah, that's about it. Yeah, anything else that you want to discuss?  Are you getting stuck somewhere with anything?
+
+1:02:28 - Rahul Gupta (Vikas Vimal)
+  Right now, I think I'm already asking questions. Sure, sure.
+
+1:02:38 - Vikas Vimal (vikas.vimal90@gmail.com)
+  I think we are getting close. should be able to. right now we are in the August. By mid-September, I think we should be able to use this for our own work.
+
+1:02:52 - Rahul Gupta (Vikas Vimal)
+  You're going for the week, right? On the 30th, one whole week.
+
+1:02:56 - Vikas Vimal (vikas.vimal90@gmail.com)
+  Okay, no worries. I'll try to polish it in the meantime.
+
+1:03:00 - Rahul Gupta (Vikas Vimal)
+  So try to get the.
+
+1:03:02 - Vikas Vimal (vikas.vimal90@gmail.com)
+  The workflow diagram thing, so at least the main workflow, the sequence diagram, get that done, use the same CSS, like if did the same CSS as a story map, so the colors are similar, and yeah, that should be it, think.  All right, do you have any other questions for me? All right then, I think we can conclude, I'll see you tomorrow.  Yes, you too.
+
+1:03:36 - Rahul Gupta (Vikas Vimal)
+  Yeah. Bye.

@@ -1,44 +1,46 @@
-# Bubble Plugin Setup Guide - Visual Workflow Architect
+# Bubble Plugin Setup Guide - Visual Workflow Architect (CORRECTED)
 
 ## Step 1: Database Setup
 
-### Create Missing Data Types
+### Critical Update: Single Diagram Per Feature Architecture
 
-**1. Container (New Data Type)**
-```
-Type name: Container
-Fields:
-- name (text)
-- type (text) 
-- feature (Feature)
-- component_url (text)
-- description (text)
-- order_index (number)
-- color_hex (text)
-```
+**DO NOT CREATE Container Data Type** - Containers are stored as JSON within Feature records.
 
-**2. Update Sequence (Add Missing Fields)**
+### Update Feature Data Type (Required Fields)
 ```
-Add to existing Sequence type:
-- description (text)
-- action_type (text)
-- is_dashed (yes/no)
+Feature:
+- name (text) - existing
+- description (text) - ADD THIS
+- project (Project) - existing parent relationship
+- diagram_data (text) - ADD THIS - JSON string of visual diagram
+- connectivity_data (text) - ADD THIS - JSON string of lightweight connections
+- created_date (date) - ADD THIS
+- modified_date (date) - ADD THIS
 ```
 
-**3. Update Workflow (Add Missing Fields)**
+### Update Workflow Data Type (Simplified)
 ```
-Add to existing Workflow type:
-- feature (Feature)
-- description (text)
-- color_hex (text)
-- order_index (number)
+Workflow:
+- name (text) - existing as "Label"
+- description (text) - ADD THIS
+- feature (Feature) - ADD THIS - parent relationship
+- color_hex (text) - ADD THIS
+- order_index (number) - ADD THIS
 ```
 
-**4. Update Feature (Add Missing Fields)**
+### Update Sequence Data Type (Minimal Changes)
 ```
-Add to existing Feature type:
-- description (text)
-- workspace (Workspace) - if not already linked
+Sequence:
+- Label (text) - existing
+- description (text) - ADD THIS
+- from_container (text) - ADD THIS - container name within diagram
+- to_container (text) - ADD THIS - container name within diagram
+- FromContainer (Container) - REMOVE THIS FIELD
+- ToContainer (Container) - REMOVE THIS FIELD
+- Workflow (Workflow) - existing
+- action_type (text) - ADD THIS
+- order_index (number) - ADD THIS
+- is_dashed (yes/no) - ADD THIS
 ```
 
 ## Step 2: Create Bubble Plugin

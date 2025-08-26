@@ -84,7 +84,7 @@
         return true;
     }
 
-    // Get Bubble context and properties (updated for Bubble property access patterns)
+    // Get Bubble context and properties (Container & Sequence data types)
     function getBubbleContext() {
         try {
             // Check if Bubble context is available
@@ -92,7 +92,7 @@
                 return { success: false, error: 'Bubble properties not available' };
             }
 
-            // Get feature from properties (following storymap pattern)
+            // Get feature from properties (using correct field access)
             if (!properties.feature) {
                 return { success: false, error: 'No feature provided in properties' };
             }
@@ -102,24 +102,27 @@
                 feature_id: properties.feature.get('_id'),
                 name_text: properties.feature.get('name'),
                 description_text: properties.feature.get('description') || '',
-                workspace_id: properties.feature.get('workspace') ? properties.feature.get('workspace').get('_id') : null
+                project_id: properties.feature.get('project') ? properties.feature.get('project').get('_id') : null
             };
 
-            // Get containers data
+            // Get containers data (vertical lines) - using existing schema
             const containerCount = properties.containers ? properties.containers.length() : 0;
             const allContainers = containerCount > 0 ? properties.containers.get(0, containerCount) : [];
             const containers = allContainers.map(container => ({
                 container_id: container.get('_id'),
                 name_text: container.get('name'),
-                type_text: container.get('type'),
+                type_text: container.get('Persona') ? 'Persona' : 'Component',
+                persona_name: container.get('Persona') ? container.get('Persona').get('name') : null,
+                tooltype_name: container.get('ToolType') ? container.get('ToolType').get('name') : null,
                 feature_id: container.get('feature') ? container.get('feature').get('_id') : null,
-                component_url_text: container.get('component_url') || '',
-                description_text: container.get('description') || '',
+                component_url_text: container.get('url') || '',
+                external_id: container.get('externalcomponentid') || '',
+                x_position_number: container.get('x_position') || 0,
                 order_index_number: container.get('order_index') || 0,
                 color_hex_text: container.get('color_hex') || '#3ea50b'
             }));
 
-            // Get sequences data
+            // Get sequences data (horizontal arrows) - using existing schema
             const sequenceCount = properties.sequences ? properties.sequences.length() : 0;
             const allSequences = sequenceCount > 0 ? properties.sequences.get(0, sequenceCount) : [];
             const sequences = allSequences.map(sequence => ({
@@ -128,29 +131,24 @@
                 description_text: sequence.get('description') || '',
                 from_container_id: sequence.get('FromContainer') ? sequence.get('FromContainer').get('_id') : null,
                 to_container_id: sequence.get('ToContainer') ? sequence.get('ToContainer').get('_id') : null,
-                action_type_text: sequence.get('action_type') || 'Data Flow',
-                workflow_id: sequence.get('Workflow') ? sequence.get('Workflow').get('_id') : null,
+                feature_id: sequence.get('Feature') ? sequence.get('Feature').get('_id') : null,
+                action_type_text: sequence.get('SequenceType') ? sequence.get('SequenceType').get('name') : 'Data Flow',
+                workflow_name: sequence.get('Workflow') ? sequence.get('Workflow').get('Label') : '',
                 order_index_number: sequence.get('order_index') || 0,
-                is_dashed_boolean: sequence.get('is_dashed') || false
+                is_dashed_boolean: sequence.get('is_dashed') || false,
+                color_hex_text: sequence.get('color_hex') || '#1976d2'
             }));
 
-            // Get workflows data
-            const workflowCount = properties.workflows ? properties.workflows.length() : 0;
-            const allWorkflows = workflowCount > 0 ? properties.workflows.get(0, workflowCount) : [];
-            const workflows = allWorkflows.map(workflow => ({
-                workflow_id: workflow.get('_id'),
-                name_text: workflow.get('Label'),
-                description_text: workflow.get('description') || '',
-                feature_id: workflow.get('feature') ? workflow.get('feature').get('_id') : null,
-                color_hex_text: workflow.get('color_hex') || '#e3f2fd',
-                order_index_number: workflow.get('order_index') || 0
-            }));
+            // Get view mode and permissions
+            const viewMode = properties.view_mode || 'view';
+            const editPermissions = properties.edit_permissions || false;
 
             const bubbleData = {
                 feature: feature,
                 containers: containers,
                 sequences: sequences,
-                workflows: workflows
+                viewMode: viewMode,
+                editPermissions: editPermissions
             };
 
             return {
