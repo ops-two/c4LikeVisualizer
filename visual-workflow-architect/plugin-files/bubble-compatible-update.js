@@ -50,10 +50,15 @@ function(instance, properties, context) {
         console.log('UPDATE: Available renderer methods:', Object.keys(window.WorkflowArchitectRenderer));
     }
     
-    // 3. Initialize event bridge if available
+    // 3. Initialize event bridges if available
     if (window.WorkflowArchitectEventBridge) {
         window.WorkflowArchitectEventBridge.init(instance);
-        console.log('UPDATE: Event bridge initialized');
+        console.log('UPDATE: WorkflowArchitectEventBridge initialized');
+    }
+    
+    if (window.SequenceDiagramEventBridge) {
+        window.SequenceDiagramEventBridge.init(instance);
+        console.log('UPDATE: SequenceDiagramEventBridge initialized');
     }
     
     // 4. Show success if all scripts loaded but no feature selected
