@@ -2,6 +2,8 @@
 // Centralized state management for Features, Containers, Sequences, and Workflows
 // Based on proven patterns from storymap-grid implementation
 
+console.log('DEBUG: data-store.js script is loading...');
+
 window.WorkflowArchitectDataStore = {
   // Internal data storage
   data: {
@@ -71,7 +73,7 @@ window.WorkflowArchitectDataStore = {
   transformFeature: function(bubbleFeature) {
     return {
       id: bubbleFeature.feature_id || bubbleFeature.id,
-      name: bubbleFeature.name_text || bubbleFeature.name || 'Untitled Feature',
+      name: bubbleFeature.name_text || bubbleFeature.name || 'Untitled Feature', // 'name' field from schema
       description: bubbleFeature.description_text || bubbleFeature.description || '',
       workspaceId: bubbleFeature.workspace_id || '',
       orderIndex: bubbleFeature.order_index_number || bubbleFeature.order_index || 0,
@@ -84,10 +86,10 @@ window.WorkflowArchitectDataStore = {
   transformContainer: function(bubbleContainer) {
     return {
       id: bubbleContainer.container_id || bubbleContainer.id,
-      name: bubbleContainer.name_text || bubbleContainer.name || 'Untitled Container',
-      type: bubbleContainer.type_text || bubbleContainer.type || 'Component',
+      name: bubbleContainer.name_text || 'Untitled Container', // 'name' field from schema
+      type: bubbleContainer.type_text || 'Component',
       featureId: bubbleContainer.feature_id || '',
-      componentUrl: bubbleContainer.component_url_text || bubbleContainer.component_url || '',
+      componentUrl: bubbleContainer.component_url_text || bubbleContainer.url || '',
       description: bubbleContainer.description_text || bubbleContainer.description || '',
       orderIndex: bubbleContainer.order_index_number || bubbleContainer.order_index || 0,
       colorHex: bubbleContainer.color_hex_text || bubbleContainer.color_hex || '#3ea50b',
@@ -100,7 +102,7 @@ window.WorkflowArchitectDataStore = {
   transformSequence: function(bubbleSequence) {
     return {
       id: bubbleSequence.sequence_id || bubbleSequence.id,
-      label: bubbleSequence.label_text || bubbleSequence.label || 'Untitled Sequence',
+      label: bubbleSequence.label_text || 'Untitled Sequence', // 'Label' field from schema
       description: bubbleSequence.description_text || bubbleSequence.description || '',
       fromContainerId: bubbleSequence.from_container_id || '',
       toContainerId: bubbleSequence.to_container_id || '',
@@ -350,3 +352,5 @@ window.WorkflowArchitectDataStore = {
     };
   }
 };
+
+console.log('DEBUG: data-store.js script loaded successfully. WorkflowArchitectDataStore object created:', typeof window.WorkflowArchitectDataStore);

@@ -1,6 +1,8 @@
 // Visual Workflow Architect - Sequence Renderer
 // Based on proven storymap-grid patterns
 
+console.log('DEBUG: sequence-renderer.js script is loading...');
+
 window.WorkflowArchitectRenderer = {
   render: function(containerElement) {
     console.log('WorkflowArchitectRenderer: Starting render');
@@ -83,3 +85,5 @@ window.WorkflowArchitectRenderer = {
     return html;
   }
 };
+
+console.log('DEBUG: sequence-renderer.js script loaded successfully. WorkflowArchitectRenderer object created:', typeof window.WorkflowArchitectRenderer);

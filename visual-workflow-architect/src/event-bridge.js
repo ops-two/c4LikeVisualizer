@@ -2,6 +2,8 @@
 // Bubble communication layer for real-time updates
 // Based on proven patterns from storymap-grid implementation
 
+console.log('DEBUG: event-bridge.js script is loading...');
+
 window.WorkflowArchitectEventBridge = {
   // Bubble instance reference
   bubbleInstance: null,
@@ -402,3 +404,5 @@ window.WorkflowArchitectEventBridge = {
     }
   }
 };
+
+console.log('DEBUG: event-bridge.js script loaded successfully. WorkflowArchitectEventBridge object created:', typeof window.WorkflowArchitectEventBridge);
