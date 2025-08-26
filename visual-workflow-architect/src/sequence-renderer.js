@@ -10,6 +10,8 @@ window.WorkflowArchitectRenderer = {
     console.log('WorkflowArchitectRenderer: Initializing for container:', containerId);
     this.containerId = containerId;
     this.isInitialized = true;
+    this.lastRenderTime = 0;
+    this.renderDebounceMs = 500;
   },
 
   // Main render function
@@ -21,6 +23,20 @@ window.WorkflowArchitectRenderer = {
       return;
     }
 
+    // Debounce rapid render calls
+    const now = Date.now();
+    if (now - this.lastRenderTime < this.renderDebounceMs) {
+      console.log('WorkflowArchitectRenderer: Debouncing render call');
+      return;
+    }
+    this.lastRenderTime = now;
+
+    // Check if target element already has content to prevent re-rendering
+    if (targetElement && targetElement[0] && targetElement[0].hasAttribute('data-sequence-rendered')) {
+      console.log('WorkflowArchitectRenderer: Element already rendered, skipping');
+      return;
+    }
+
     // Clear the target element
     if (targetElement && targetElement.empty) {
       targetElement.empty();
@@ -28,10 +44,14 @@ window.WorkflowArchitectRenderer = {
 
     // Create sequence diagram container
     const containerId = 'sequence-diagram-' + Date.now();
-    const containerHtml = `<div id="${containerId}" style="width: 100%; min-height: 400px;"></div>`;
+    const containerHtml = `<div id="${containerId}" style="width: 100%; min-height: 400px;" data-sequence-rendered="true"></div>`;
     
     if (targetElement && targetElement.html) {
       targetElement.html(containerHtml);
+      // Mark the jQuery element as rendered
+      if (targetElement[0]) {
+        targetElement[0].setAttribute('data-sequence-rendered', 'true');
+      }
     }
 
     // Add CSS styles

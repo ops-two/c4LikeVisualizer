@@ -136,9 +136,18 @@ function(instance, properties, context) {
         // Store feature ID in DOM for persistence
         containerElement.attr('data-feature-id', properties.feature.get('_id'));
         
+        // Check if already rendered to prevent infinite loop
+        if (containerElement.attr('data-diagram-rendered') === 'true') {
+            console.log('UPDATE: Diagram already rendered, skipping to prevent infinite loop');
+            return;
+        }
+        
         // Initialize renderer
         console.log('UPDATE: Initializing renderer...');
         window.WorkflowArchitectRenderer.init(pluginId);
+        
+        // Mark as rendered BEFORE calling render to prevent loops
+        containerElement.attr('data-diagram-rendered', 'true');
         
         // Call renderer with data and target element
         console.log('UPDATE: Calling renderer...');
