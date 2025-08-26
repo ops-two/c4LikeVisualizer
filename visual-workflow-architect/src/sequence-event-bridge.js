@@ -51,7 +51,7 @@ window.SequenceDiagramEventBridge = {
       allData: event.detail.containerData || {}
     };
     
-    this.publishToWorkflow('pending_update', payload, 'container_updated');
+    this.publishToWorkflow('pending_update', payload, 'diagram_layout_changed');
   },
 
   // Handle sequence label updates
@@ -83,7 +83,7 @@ window.SequenceDiagramEventBridge = {
       order_index_number: event.detail.orderIndex || 0
     };
     
-    this.publishToWorkflow('pending_add', payload, 'container_to_be_added');
+    this.publishToWorkflow('pending_add', payload, 'container_added');
   },
 
   // Handle sequence creation
@@ -101,7 +101,7 @@ window.SequenceDiagramEventBridge = {
       order_index_number: event.detail.orderIndex || 0
     };
     
-    this.publishToWorkflow('pending_add', payload, 'sequence_to_be_added');
+    this.publishToWorkflow('pending_add', payload, 'sequence_added');
   },
 
   // Handle container deletion
@@ -114,7 +114,7 @@ window.SequenceDiagramEventBridge = {
       cascadeDelete: event.detail.cascadeSequences || true
     };
     
-    this.publishToWorkflow('pending_delete', payload, 'container_to_be_deleted');
+    this.publishToWorkflow('pending_delete', payload, 'container_deleted');
   },
 
   // Handle sequence deletion
@@ -126,7 +126,7 @@ window.SequenceDiagramEventBridge = {
       entityId: event.detail.sequenceId
     };
     
-    this.publishToWorkflow('pending_delete', payload, 'sequence_to_be_deleted');
+    this.publishToWorkflow('pending_delete', payload, 'sequence_deleted');
   },
 
   // Handle drag-and-drop reordering
