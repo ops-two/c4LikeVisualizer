@@ -56,9 +56,13 @@ function(instance, properties, context) {
         console.log('UPDATE: WorkflowArchitectEventBridge initialized');
     }
     
+    console.log('UPDATE: Checking for SequenceDiagramEventBridge...', typeof window.SequenceDiagramEventBridge);
     if (window.SequenceDiagramEventBridge) {
+        console.log('UPDATE: SequenceDiagramEventBridge found, initializing...');
         window.SequenceDiagramEventBridge.init(instance);
         console.log('UPDATE: SequenceDiagramEventBridge initialized');
+    } else {
+        console.log('UPDATE: SequenceDiagramEventBridge not found!');
     }
     
     // 4. Show success if all scripts loaded but no feature selected

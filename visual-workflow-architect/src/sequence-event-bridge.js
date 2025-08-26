@@ -106,7 +106,7 @@ window.SequenceDiagramEventBridge = {
     
     // Publish to Bubble workflow exactly like storymap-grid
     this.instance.publishState('pending_add', JSON.stringify(payload));
-    this.instance.triggerEvent('container_to_be_added');
+    this.instance.triggerEvent('container_added');
     
     console.log('SequenceDiagramEventBridge: Bubble workflow triggered successfully');
     

@@ -5,11 +5,11 @@
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
 <!-- Plugin core modules -->
-<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@a82e18f/visual-workflow-architect/src/data-store.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@a82e18f/visual-workflow-architect/src/event-bridge.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@a82e18f/visual-workflow-architect/src/sequence-renderer.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@latest/visual-workflow-architect/src/data-store.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@latest/visual-workflow-architect/src/event-bridge.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@latest/visual-workflow-architect/src/sequence-renderer.js"></script>
 
 <!-- Interactive components -->
-<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@a82e18f/visual-workflow-architect/src/sequence-data-store.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@a82e18f/visual-workflow-architect/src/sequence-event-bridge.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@a82e18f/visual-workflow-architect/src/sequence-inline-edit.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@latest/visual-workflow-architect/src/sequence-data-store.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@latest/visual-workflow-architect/src/sequence-event-bridge.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@latest/visual-workflow-architect/src/sequence-inline-edit.js"></script>
