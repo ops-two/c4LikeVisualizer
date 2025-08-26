@@ -60,7 +60,7 @@ function(instance, properties, context) {
         console.log('UPDATE: Processing feature data...');
         
         // Extract feature data - using correct field name from database schema
-        var projectName = properties.feature.get('name') || 'Untitled Feature';
+        var projectName = properties.feature.get('name_text') || properties.feature.get('name') || 'Untitled Feature';
         
         var containerCount = properties.containers ? properties.containers.length() : 0;
         var sequenceCount = properties.sequences ? properties.sequences.length() : 0;
@@ -77,7 +77,7 @@ function(instance, properties, context) {
             var container = allContainers[i];
             containers.push({
                 container_id: container.get('_id'),
-                name_text: container.get('name'), // Correct field name from schema
+                name_text: container.get('name_text') || container.get('name'), // Try both field names
                 type_text: container.get('Persona') ? 'Persona' : 'Component',
                 persona_name: container.get('Persona') ? container.get('Persona').get('name') : null,
                 tooltype_name: container.get('type') ? container.get('type').get('name') : null, // Fixed: 'type' not 'ToolType'
@@ -96,7 +96,7 @@ function(instance, properties, context) {
             var sequence = allSequences[j];
             sequences.push({
                 sequence_id: sequence.get('_id'),
-                label_text: sequence.get('Label'), // Correct field name from schema
+                label_text: sequence.get('Label') || sequence.get('label_text') || sequence.get('label'), // Try multiple field names
                 description_text: sequence.get('description') || '',
                 from_container_id: sequence.get('FromContainer') ? sequence.get('FromContainer').get('_id') : null,
                 to_container_id: sequence.get('ToContainer') ? sequence.get('ToContainer').get('_id') : null,
@@ -126,22 +126,20 @@ function(instance, properties, context) {
             editPermissions: properties.edit_permissions || false
         };
         
-        var initSuccess = window.WorkflowArchitectDataStore.init(bubbleData);
-        console.log('UPDATE: Data store initialization result:', initSuccess);
-        
-        if (!initSuccess) {
-            console.log('UPDATE: Data store initialization failed');
-            containerElement.html('<div style="padding:20px; border: 2px solid #ff4444; border-radius: 8px; background: #fff5f5; color: #cc0000;">🚨 DATA STORE INITIALIZATION FAILED</div>');
-            return;
-        }
-        
-        // Update DOM attributes with current state
-        containerElement.attr('data-last-load', new Date().toISOString());
+        // Store feature ID in DOM for persistence
         containerElement.attr('data-feature-id', properties.feature.get('_id'));
         
-        // Call renderer - pass the specific container element
+        // Initialize renderer
+        console.log('UPDATE: Initializing renderer...');
+        window.WorkflowArchitectRenderer.init(pluginId);
+        
+        // Call renderer with data and target element
         console.log('UPDATE: Calling renderer...');
-        window.WorkflowArchitectRenderer.render(containerElement);
+        window.WorkflowArchitectRenderer.render({
+            feature: { name: projectName },
+            containers: containers,
+            sequences: sequences
+        }, containerElement);
         console.log('UPDATE: Renderer completed successfully');
         
         console.log('=== UPDATE: Completed successfully ===');

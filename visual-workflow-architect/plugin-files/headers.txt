@@ -1,4 +1,10 @@
 <!-- Visual Workflow Architect Plugin - Core Dependencies -->
+<!-- React Flow for sequence diagram visualization -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/reactflow@11/dist/umd/index.js"></script>
+
+<!-- Plugin core modules -->
 <script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@main/visual-workflow-architect/src/data-store.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@main/visual-workflow-architect/src/event-bridge.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@main/visual-workflow-architect/src/sequence-renderer.js"></script>
