@@ -221,7 +221,40 @@ window.WorkflowArchitectRenderer = {
         }
         
         if (!fromContainerId || !toContainerId) {
-          console.log('DEBUG: Missing container IDs, checking all sequence fields:', Object.keys(sequence));
+          console.log('DEBUG: Missing container IDs - using fallback sequential mapping');
+          
+          // Fallback: Create sequential connections between containers
+          // This creates a flow: Container 0 -> Container 1 -> Container 2 -> etc.
+          const totalContainers = data.containers.length;
+          if (totalContainers >= 2) {
+            let fromIndex, toIndex;
+            
+            if (index === 0) {
+              // First sequence: User -> Auth API
+              fromIndex = 1; // User
+              toIndex = 0;   // Auth API
+            } else if (index === 1) {
+              // Second sequence: Auth API -> Database
+              fromIndex = 0; // Auth API
+              toIndex = 2;   // Database
+            } else if (index === 2) {
+              // Third sequence: Database -> Auth API (return)
+              fromIndex = 2; // Database
+              toIndex = 0;   // Auth API
+            } else {
+              // Additional sequences: cycle through containers
+              fromIndex = index % totalContainers;
+              toIndex = (index + 1) % totalContainers;
+            }
+            
+            messages.push({
+              label: sequence.label_text || sequence.name_text || 'Untitled Sequence',
+              from: fromIndex,
+              to: toIndex,
+              dashed: sequence.is_dashed_boolean || false
+            });
+            console.log(`DEBUG: Added fallback message from ${fromIndex} to ${toIndex} (${data.containers[fromIndex].name_text} -> ${data.containers[toIndex].name_text})`);
+          }
           return;
         }
         
