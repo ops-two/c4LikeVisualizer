@@ -10,18 +10,24 @@ window.SequenceDiagramEventBridge = {
 
   // Initialize the event bridge with Bubble instance
   init(instance) {
-    if (this.isInitialized) return;
+    if (this.isInitialized) {
+      console.log('SequenceDiagramEventBridge: Already initialized, skipping');
+      return;
+    }
     
+    console.log('SequenceDiagramEventBridge: Starting initialization...');
     this.instance = instance;
     this.isInitialized = true;
     
-    console.log('SequenceDiagramEventBridge: Initializing with Bubble instance');
+    console.log('SequenceDiagramEventBridge: Bubble instance set:', !!instance);
     this.setupEventListeners();
     console.log('SequenceDiagramEventBridge: Initialization complete');
   },
 
   // Set up custom event listeners for sequence diagram interactions
   setupEventListeners() {
+    console.log('SequenceDiagramEventBridge: Setting up event listeners...');
+    
     // Container operations
     document.addEventListener('sequence:container_updated', this.handleContainerUpdate.bind(this));
     document.addEventListener('sequence:container_added', this.handleContainerAdd.bind(this));
@@ -35,7 +41,8 @@ window.SequenceDiagramEventBridge = {
     // Reordering operations
     document.addEventListener('sequence:reorder', this.handleReorder.bind(this));
     
-    console.log('SequenceDiagramEventBridge: Event listeners registered');
+    console.log('SequenceDiagramEventBridge: Event listeners registered successfully');
+    console.log('SequenceDiagramEventBridge: Listening for sequence:container_added events');
   },
 
   // Handle container name updates
