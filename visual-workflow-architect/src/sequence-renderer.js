@@ -37,10 +37,8 @@ window.WorkflowArchitectRenderer = {
     // Add CSS styles
     this.addSequenceDiagramStyles();
     
-    // Render sequence diagram
-    setTimeout(() => {
-      this.renderSequenceDiagram(containerId, data);
-    }, 100);
+    // Render sequence diagram immediately
+    this.renderSequenceDiagram(containerId, data);
 
     console.log('WorkflowArchitectRenderer: Render complete');
   },
@@ -153,23 +151,33 @@ window.WorkflowArchitectRenderer = {
 
   // Render sequence diagram using React
   renderSequenceDiagram: function(containerId, data) {
-    const container = document.getElementById(containerId);
-    if (!container) {
-      console.error('WorkflowArchitectRenderer: Container not found:', containerId);
-      return;
-    }
+    // Use requestAnimationFrame to ensure DOM is ready
+    requestAnimationFrame(() => {
+      const container = document.getElementById(containerId);
+      if (!container) {
+        console.error('WorkflowArchitectRenderer: Container not found:', containerId);
+        return;
+      }
 
-    // Transform data to sequence diagram format
-    const { actors, messages } = this.transformToSequenceDiagram(data);
-    
-    // Create React components
-    const SequenceDiagram = this.createSequenceDiagramComponent(actors, messages);
-    
-    // Render using ReactDOM
-    const root = ReactDOM.createRoot(container);
-    root.render(React.createElement(SequenceDiagram));
+      // Prevent multiple renders on the same container
+      if (container.hasAttribute('data-rendered')) {
+        console.log('WorkflowArchitectRenderer: Container already rendered, skipping');
+        return;
+      }
+      container.setAttribute('data-rendered', 'true');
 
-    console.log('WorkflowArchitectRenderer: Sequence diagram rendered successfully');
+      // Transform data to sequence diagram format
+      const { actors, messages } = this.transformToSequenceDiagram(data);
+      
+      // Create React components
+      const SequenceDiagram = this.createSequenceDiagramComponent(actors, messages);
+      
+      // Render using ReactDOM
+      const root = ReactDOM.createRoot(container);
+      root.render(React.createElement(SequenceDiagram));
+
+      console.log('WorkflowArchitectRenderer: Sequence diagram rendered successfully');
+    });
   },
 
   // Transform data to sequence diagram format
