@@ -94,12 +94,26 @@ window.WorkflowArchitectRenderer = {
           display: flex;
           flex-direction: column;
           position: relative;
-          max-width: 1000px;
-          margin: auto;
-          padding: 20px;
+          width: 100%;
+          margin: 0;
+          padding: 0;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
           color: #333;
+          background-color: #ffffff;
+        }
+        
+        .actor-header {
           background-color: #f8f9fa;
+          border: 2px solid #e9ecef;
+          border-radius: 6px;
+          padding: 8px 12px;
+          margin-bottom: 20px;
+          font-weight: 600;
+          text-align: center;
+          min-width: 100px;
+          font-size: 14px;
+          color: #495057;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
         .sequence-inline-edit-input {
@@ -165,11 +179,13 @@ window.WorkflowArchitectRenderer = {
         }
         
         .actor-lane {
+          flex: 1;
           display: flex;
           flex-direction: column;
           align-items: center;
-          flex-basis: 25%;
-          height: 100%;
+          position: relative;
+          min-height: 600px;
+          padding: 0 20px;
         }
         
         .actor-lane h3 {
@@ -181,18 +197,25 @@ window.WorkflowArchitectRenderer = {
         }
         
         .lifeline {
+          position: absolute;
+          top: 50px;
+          bottom: 20px;
+          left: 50%;
           width: 2px;
-          height: 100%;
-          background-color: #d3d3d3;
-          z-index: 0;
+          background: linear-gradient(to bottom, #dee2e6 0%, #dee2e6 100%);
+          transform: translateX(-50%);
+          z-index: 1;
         }
         
         .activation-box {
           position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
           width: 10px;
-          height: 28px;
-          z-index: 1;
+          background-color: #28a745;
+          z-index: 3;
           border-radius: 2px;
+          border: 1px solid #1e7e34;
         }
         
         .message {
@@ -200,19 +223,14 @@ window.WorkflowArchitectRenderer = {
           height: 100px;
           display: flex;
           justify-content: center;
-          align-items: center;
-        }
-        
-        .message-label {
-          background-color: white;
-          padding: 8px 12px;
-          border: 1px solid #e0e0e0;
-          border-radius: 5px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
           z-index: 3;
           text-align: center;
           line-height: 1.4;
           max-width: 75%;
+        }
+        
+        .sequence-toolbar {
+          display: none;
         }
         
         .arrow-line {
@@ -232,11 +250,13 @@ window.WorkflowArchitectRenderer = {
         .arrow-line::after {
           content: '';
           position: absolute;
-          right: -1px;
           top: -4px;
-          border-top: 5px solid transparent;
-          border-bottom: 5px solid transparent;
-          border-left: 8px solid #555;
+          right: 0;
+          width: 0;
+          height: 0;
+          border-left: 8px solid #495057;
+          border-top: 4px solid transparent;
+          border-bottom: 4px solid transparent;
         }
         
         .arrow-line.left::after {
@@ -467,82 +487,10 @@ window.WorkflowArchitectRenderer = {
       
       const containerHeight = currentY;
       
-      // Toolbar event handlers
-      const handleAddContainer = () => {
-        console.log('Add Container clicked');
-        const containerName = prompt('Enter container name:');
-        if (containerName && containerName.trim()) {
-          // Get feature ID from DOM or data store
-          const featureId = document.querySelector('[data-feature-id]')?.getAttribute('data-feature-id');
-          
-          // Dispatch container add event
-          if (window.SequenceDiagramEventBridge) {
-            window.SequenceDiagramEventBridge.dispatchContainerAdd(
-              containerName.trim(),
-              'Component',
-              '#3ea50b',
-              featureId,
-              null // Will auto-calculate order index
-            );
-          }
-        }
-      };
-      
-      const handleAddSequence = () => {
-        console.log('Add Sequence clicked');
-        
-        // Get available containers for selection
-        const containers = window.SequenceDiagramDataStore ? 
-          window.SequenceDiagramDataStore.getAllContainers() : [];
-        
-        if (containers.length < 2) {
-          alert('You need at least 2 containers to create a sequence.');
-          return;
-        }
-        
-        const sequenceLabel = prompt('Enter sequence label:');
-        if (sequenceLabel && sequenceLabel.trim()) {
-          // Simple selection for demo - in production, use a proper modal
-          const fromContainer = containers[0];
-          const toContainer = containers[1];
-          const featureId = document.querySelector('[data-feature-id]')?.getAttribute('data-feature-id');
-          
-          // Dispatch sequence add event
-          if (window.SequenceDiagramEventBridge) {
-            window.SequenceDiagramEventBridge.dispatchSequenceAdd(
-              sequenceLabel.trim(),
-              fromContainer.id,
-              toContainer.id,
-              featureId,
-              false, // isDashed
-              '#1976d2', // color
-              null // Will auto-calculate order index
-            );
-          }
-        }
-      };
+      // Toolbar removed - only inline editing supported
       
       return React.createElement('div', 
         { className: 'sequence-diagram-container' },
-        
-        // Toolbar
-        React.createElement('div', 
-          { className: 'sequence-toolbar' },
-          React.createElement('button', 
-            { 
-              className: 'toolbar-button',
-              onClick: handleAddContainer
-            }, 
-            '+ Add Container'
-          ),
-          React.createElement('button', 
-            { 
-              className: 'toolbar-button',
-              onClick: handleAddSequence
-            }, 
-            '+ Add Sequence'
-          )
-        ),
         
         // Diagram content
         React.createElement('div', 
