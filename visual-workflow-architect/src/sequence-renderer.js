@@ -593,26 +593,27 @@ window.WorkflowArchitectRenderer = {
 
       const containerHeight = currentY;
 
-      // Toolbar event handlers
+      // Toolbar event handlers - following storymap-grid pattern (immediate add with default name)
       const handleAddContainer = () => {
         console.log("Add Container clicked");
-        const containerName = prompt("Enter container name:");
-        if (containerName && containerName.trim()) {
-          // Get feature ID from DOM or data store
-          const featureId = document
-            .querySelector("[data-feature-id]")
-            ?.getAttribute("data-feature-id");
+        
+        // Get feature ID from DOM or data store
+        const featureId = document
+          .querySelector("[data-feature-id]")
+          ?.getAttribute("data-feature-id");
 
-          // Dispatch container add event
-          if (window.SequenceDiagramEventBridge) {
-            window.SequenceDiagramEventBridge.dispatchContainerAdd(
-              containerName.trim(),
-              "Component",
-              "#3ea50b",
-              featureId,
-              null // Will auto-calculate order index
-            );
-          }
+        // Create container immediately with default name (like storymap-grid)
+        const defaultName = "New Container";
+        
+        // Dispatch container add event immediately
+        if (window.SequenceDiagramEventBridge) {
+          window.SequenceDiagramEventBridge.dispatchContainerAdd(
+            defaultName,
+            "Component",
+            "#3ea50b",
+            featureId,
+            null // Will auto-calculate order index
+          );
         }
       };
 
@@ -625,31 +626,31 @@ window.WorkflowArchitectRenderer = {
           : [];
 
         if (containers.length < 2) {
-          alert("You need at least 2 containers to create a sequence.");
+          console.log("Need at least 2 containers to create a sequence");
           return;
         }
 
-        const sequenceLabel = prompt("Enter sequence label:");
-        if (sequenceLabel && sequenceLabel.trim()) {
-          // Simple selection for demo - in production, use a proper modal
-          const fromContainer = containers[0];
-          const toContainer = containers[1];
-          const featureId = document
-            .querySelector("[data-feature-id]")
-            ?.getAttribute("data-feature-id");
+        // Create sequence immediately with default name (like storymap-grid)
+        const defaultLabel = "New Sequence";
+        
+        // Simple selection for demo - use first two containers
+        const fromContainer = containers[0];
+        const toContainer = containers[1];
+        const featureId = document
+          .querySelector("[data-feature-id]")
+          ?.getAttribute("data-feature-id");
 
-          // Dispatch sequence add event
-          if (window.SequenceDiagramEventBridge) {
-            window.SequenceDiagramEventBridge.dispatchSequenceAdd(
-              sequenceLabel.trim(),
-              fromContainer.id,
-              toContainer.id,
-              featureId,
-              false, // isDashed
-              "#1976d2", // color
-              null // Will auto-calculate order index
-            );
-          }
+        // Dispatch sequence add event immediately
+        if (window.SequenceDiagramEventBridge) {
+          window.SequenceDiagramEventBridge.dispatchSequenceAdd(
+            defaultLabel,
+            fromContainer.id,
+            toContainer.id,
+            featureId,
+            false, // isDashed
+            "#1976d2", // color
+            null // Will auto-calculate order index
+          );
         }
       };
 
