@@ -22,6 +22,12 @@ window.SequenceDiagramDataStore = {
     console.log('SequenceDiagramDataStore: Initialization complete');
   },
 
+  // Update feature info without reinitializing everything
+  updateFeature(featureData) {
+    console.log('SequenceDiagramDataStore: Updating feature info only');
+    this.feature = featureData;
+  },
+
   // Load initial data from Bubble
   loadData(featureData, containersData, sequencesData) {
     // Store feature context

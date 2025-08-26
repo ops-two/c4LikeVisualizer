@@ -137,10 +137,16 @@ function(instance, properties, context) {
             editPermissions: properties.edit_permissions || false
         };
         
-        // Initialize sequence data store with bubble data
-        if (window.SequenceDiagramDataStore && !window.SequenceDiagramDataStore.isInitialized) {
-            console.log('UPDATE: Initializing sequence data store...');
-            window.SequenceDiagramDataStore.init(bubbleData.feature, containers, sequences);
+        // Initialize sequence data store with bubble data - only if not already initialized
+        if (window.SequenceDiagramDataStore) {
+            if (!window.SequenceDiagramDataStore.isInitialized) {
+                console.log('UPDATE: Initializing sequence data store for the first time...');
+                window.SequenceDiagramDataStore.init(bubbleData.feature, containers, sequences);
+            } else {
+                console.log('UPDATE: Data store already initialized, preserving existing data');
+                // Just update the feature info but keep existing containers/sequences
+                window.SequenceDiagramDataStore.updateFeature(bubbleData.feature);
+            }
         }
         
         // Store bubble instance globally for event bridge
