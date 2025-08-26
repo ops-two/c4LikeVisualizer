@@ -45,6 +45,15 @@ window.SequenceDiagramEventBridge = {
     
     console.log('SequenceDiagramEventBridge: Event listeners registered successfully');
     console.log('SequenceDiagramEventBridge: Listening for sequence:container_added events');
+    
+    // Test event listener immediately after registration
+    setTimeout(() => {
+      console.log('SequenceDiagramEventBridge: Testing event listener...');
+      const testEvent = new CustomEvent('sequence:container_added', {
+        detail: { name: 'TEST', type: 'TEST', color: '#test', featureId: 'test', orderIndex: 0 }
+      });
+      document.dispatchEvent(testEvent);
+    }, 1000);
   },
 
   // Handle container name updates
