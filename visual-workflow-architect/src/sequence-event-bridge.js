@@ -229,8 +229,8 @@ window.SequenceDiagramEventBridge = {
         const featureId = mainCanvas.getAttribute('data-feature-id');
         
         if (featureId && window.SequenceDiagramDataStore) {
-          // Re-render with current data
-          const currentData = window.SequenceDiagramDataStore.getAllData();
+          // Re-render with current data using correct method name
+          const currentData = window.SequenceDiagramDataStore.getSequenceDiagramData();
           window.WorkflowArchitectRenderer.render(currentData, mainCanvas);
         }
       } else {
