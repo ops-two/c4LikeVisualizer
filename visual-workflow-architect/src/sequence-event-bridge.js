@@ -68,11 +68,17 @@ window.SequenceDiagramEventBridge = {
     };
     
     this.publishToWorkflow('pending_update', payload, 'sequence_updated');
+    
+    // Re-render UI after successful operation
+    this.reRenderDiagram();
   },
 
   // Handle container creation
   handleContainerAdd(event) {
     console.log('SequenceDiagramEventBridge: Handling container add:', event.detail);
+    
+    // Calculate next order_index intelligently (like storymap-grid does)
+    const nextOrderIndex = this.getNextOrderIndex('container', event.detail.featureId);
     
     const payload = {
       entityType: 'container',
@@ -80,15 +86,21 @@ window.SequenceDiagramEventBridge = {
       type_text: event.detail.type || 'Component',
       color_hex_text: event.detail.color || '#3ea50b',
       feature_id: event.detail.featureId,
-      order_index_number: event.detail.orderIndex || 0
+      order_index_number: event.detail.orderIndex || nextOrderIndex
     };
     
     this.publishToWorkflow('pending_add', payload, 'container_added');
+    
+    // Re-render UI after successful operation (like storymap-grid does)
+    this.reRenderDiagram();
   },
 
   // Handle sequence creation
   handleSequenceAdd(event) {
     console.log('SequenceDiagramEventBridge: Handling sequence add:', event.detail);
+    
+    // Calculate next order_index intelligently for sequences
+    const nextOrderIndex = this.getNextOrderIndex('sequence', event.detail.featureId);
     
     const payload = {
       entityType: 'sequence',
@@ -98,10 +110,13 @@ window.SequenceDiagramEventBridge = {
       feature_id: event.detail.featureId,
       is_dashed_boolean: event.detail.isDashed || false,
       color_hex_text: event.detail.color || '#1976d2',
-      order_index_number: event.detail.orderIndex || 0
+      order_index_number: event.detail.orderIndex || nextOrderIndex
     };
     
     this.publishToWorkflow('pending_add', payload, 'sequence_added');
+    
+    // Re-render UI after successful operation
+    this.reRenderDiagram();
   },
 
   // Handle container deletion
@@ -115,6 +130,9 @@ window.SequenceDiagramEventBridge = {
     };
     
     this.publishToWorkflow('pending_delete', payload, 'container_deleted');
+    
+    // Re-render UI after successful operation
+    this.reRenderDiagram();
   },
 
   // Handle sequence deletion
@@ -127,6 +145,9 @@ window.SequenceDiagramEventBridge = {
     };
     
     this.publishToWorkflow('pending_delete', payload, 'sequence_deleted');
+    
+    // Re-render UI after successful operation
+    this.reRenderDiagram();
   },
 
   // Handle drag-and-drop reordering
@@ -163,7 +184,57 @@ window.SequenceDiagramEventBridge = {
       this.instance.triggerEvent(eventName);
       
     } catch (error) {
-      console.error('SequenceDiagramEventBridge: Error publishing to workflow:', error);
+      console.error('SequenceDiagramEventBridge: Error in publishToWorkflow:', error);
+    }
+  },
+
+  // Calculate next order_index intelligently (like storymap-grid does)
+  getNextOrderIndex(entityType, featureId) {
+    if (!window.SequenceDiagramDataStore) {
+      console.warn('SequenceDiagramEventBridge: Data store not available, using fallback order_index');
+      return 0;
+    }
+
+    try {
+      const entities = entityType === 'container' 
+        ? window.SequenceDiagramDataStore.getAllContainers()
+        : window.SequenceDiagramDataStore.getAllSequences();
+      
+      // Filter by feature and get max order
+      const featureEntities = entities.filter(e => e.featureId === featureId);
+      const maxOrder = Math.max(...featureEntities.map(e => e.orderIndex), -1);
+      const nextOrder = maxOrder + 1;
+      
+      console.log(`SequenceDiagramEventBridge: Calculated next ${entityType} order_index: ${nextOrder}`);
+      return nextOrder;
+    } catch (error) {
+      console.error('SequenceDiagramEventBridge: Error calculating order_index:', error);
+      return 0;
+    }
+  },
+
+  // Re-render the diagram after successful operations (like storymap-grid does)
+  reRenderDiagram() {
+    try {
+      // Find the main plugin container (similar to storymap-grid pattern)
+      const mainCanvas = document.querySelector('.sequence-diagram-container[data-plugin-id]');
+      
+      if (mainCanvas && window.WorkflowArchitectRenderer) {
+        console.log('SequenceDiagramEventBridge: Re-rendering diagram after operation');
+        
+        // Get the current feature data from DOM attributes
+        const featureId = mainCanvas.getAttribute('data-feature-id');
+        
+        if (featureId && window.SequenceDiagramDataStore) {
+          // Re-render with current data
+          const currentData = window.SequenceDiagramDataStore.getAllData();
+          window.WorkflowArchitectRenderer.render(currentData, mainCanvas);
+        }
+      } else {
+        console.warn('SequenceDiagramEventBridge: Cannot re-render - missing container or renderer');
+      }
+    } catch (error) {
+      console.error('SequenceDiagramEventBridge: Error re-rendering diagram:', error);
     }
   },
 
