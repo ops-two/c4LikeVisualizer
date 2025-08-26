@@ -25,49 +25,19 @@ window.WorkflowArchitectRenderer = {
       return;
     }
 
-    // Debounce rapid render calls
-    const now = Date.now();
-    if (now - this.lastRenderTime < this.renderDebounceMs) {
-      console.log("WorkflowArchitectRenderer: Debouncing render call");
-      return;
-    }
-    this.lastRenderTime = now;
-
-    // Check if target element already has content to prevent re-rendering
-    if (
-      targetElement &&
-      targetElement[0] &&
-      targetElement[0].hasAttribute("data-sequence-rendered")
-    ) {
-      console.log(
-        "WorkflowArchitectRenderer: Element already rendered, skipping"
-      );
-      return;
-    }
-
-    // Clear the target element
-    if (targetElement && targetElement.empty) {
-      targetElement.empty();
-    }
-
-    // Create sequence diagram container
-    const containerId = "sequence-diagram-" + Date.now();
-    const containerHtml = `<div id="${containerId}" style="width: 100%; min-height: 400px;" data-sequence-rendered="true"></div>`;
-
+    console.log("WorkflowArchitectRenderer: Starting render with data:", data);
+    
+    // Use consistent container ID (like storymap-grid pattern)
+    const containerId = "sequence-diagram-container";
+    const containerHtml = `<div id="${containerId}" style="width: 100%; min-height: 400px;"></div>`;
+    
+    // Simple HTML replacement like storymap-grid
     if (targetElement && targetElement.html) {
       targetElement.html(containerHtml);
-      // Mark the jQuery element as rendered
-      if (targetElement[0]) {
-        targetElement[0].setAttribute("data-sequence-rendered", "true");
-      }
     }
-
-    // Add CSS styles
+    
     this.addSequenceDiagramStyles();
-
-    // Render sequence diagram immediately
     this.renderSequenceDiagram(containerId, data);
-
     console.log("WorkflowArchitectRenderer: Render complete");
   },
 
@@ -312,13 +282,38 @@ window.WorkflowArchitectRenderer = {
 
   // Render sequence diagram using React
   renderSequenceDiagram: function (containerId, data) {
-    // Use requestAnimationFrame to ensure DOM is ready
-    requestAnimationFrame(() => {
-      this.renderSequenceDiagramContent(data, containerId);
+    console.log(
+      "WorkflowArchitectRenderer: Rendering sequence diagram with data:",
+      data
+    );
 
-      // Initialize interactive systems after rendering
-      this.initializeInteractivity();
-    });
+    const container = document.getElementById(containerId);
+    if (!container) {
+      console.error(
+        "WorkflowArchitectRenderer: Container not found:",
+        containerId
+      );
+      return;
+    }
+    
+    // Always render - no blocking like storymap-grid pattern
+
+    // Transform data to sequence diagram format
+    const { actors, messages } = this.transformToSequenceDiagram(data);
+
+    // Create React components
+    const SequenceDiagram = this.createSequenceDiagramComponent(
+      actors,
+      messages
+    );
+
+    // Render using ReactDOM
+    const root = ReactDOM.createRoot(container);
+    root.render(React.createElement(SequenceDiagram));
+
+    console.log(
+      "WorkflowArchitectRenderer: Sequence diagram rendered successfully"
+    );
   },
 
   // Render sequence diagram content

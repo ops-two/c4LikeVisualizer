@@ -238,41 +238,13 @@ window.SequenceDiagramEventBridge = {
       if (mainCanvas && window.WorkflowArchitectRenderer) {
         console.log('SequenceDiagramEventBridge: Re-rendering diagram after operation');
         
-        // CRITICAL FIX: Clear ALL rendered flags to allow re-rendering
-        mainCanvas.removeAttribute('data-diagram-rendered');
-        mainCanvas.removeAttribute('data-sequence-rendered');
-        
-        // Clear any existing sequence diagram containers
-        const existingDiagrams = mainCanvas.querySelectorAll('[id^="sequence-diagram-"]');
-        existingDiagrams.forEach(diagram => {
-          diagram.removeAttribute('data-rendered');
-          diagram.removeAttribute('data-sequence-rendered');
-        });
-        
-        // Get the current feature data from DOM attributes
-        const featureId = mainCanvas.getAttribute('data-feature-id');
-        
-        if (featureId && window.SequenceDiagramDataStore) {
-          // Re-render with current data using correct method name
+        // Get current data from data store
+        if (window.SequenceDiagramDataStore) {
           const currentData = window.SequenceDiagramDataStore.getSequenceDiagramData();
           console.log('SequenceDiagramEventBridge: Re-rendering with data:', currentData);
           
-          // Force re-render by clearing the container and re-initializing
-          setTimeout(() => {
-            // Clear the container content
-            if (mainCanvas.innerHTML) {
-              mainCanvas.innerHTML = '';
-            }
-            
-            // Re-initialize renderer
-            const pluginId = mainCanvas.getAttribute('data-plugin-id');
-            if (pluginId) {
-              window.WorkflowArchitectRenderer.init(pluginId);
-            }
-            
-            // Render with fresh data
-            window.WorkflowArchitectRenderer.render(currentData, $(mainCanvas));
-          }, 100);
+          // Simple re-render like storymap-grid - just call render directly
+          window.WorkflowArchitectRenderer.render(currentData, $(mainCanvas));
         }
       } else {
         console.warn('SequenceDiagramEventBridge: Cannot re-render - missing container or renderer');
