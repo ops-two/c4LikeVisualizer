@@ -73,37 +73,33 @@ window.SequenceDiagramEventBridge = {
     this.reRenderDiagram();
   },
 
-  // Handle container creation
+  // Handle container creation - following exact storymap-grid pattern
   handleContainerAdd(event) {
     console.log('SequenceDiagramEventBridge: Handling container add:', event.detail);
-    
-    // Add container to local data store immediately for optimistic updates
-    if (window.SequenceDiagramDataStore) {
-      const containerData = {
-        name: event.detail.name,
-        type: event.detail.type || 'Component',
-        color: event.detail.color || '#3ea50b',
-        featureId: event.detail.featureId
-      };
-      window.SequenceDiagramDataStore.addContainer(containerData);
-    }
     
     // Calculate next order_index intelligently (like storymap-grid does)
     const nextOrderIndex = this.getNextOrderIndex('container', event.detail.featureId);
     
+    // Create payload exactly like storymap-grid does
     const payload = {
-      entityType: 'container',
+      addType: 'container',
+      newOrderValue: nextOrderIndex,
+      parentFeatureId: event.detail.featureId,
       name_text: event.detail.name,
       type_text: event.detail.type || 'Component',
-      color_hex_text: event.detail.color || '#3ea50b',
-      feature_id: event.detail.featureId,
-      order_index_number: event.detail.orderIndex || nextOrderIndex
+      color_hex_text: event.detail.color || '#3ea50b'
     };
     
-    this.publishToWorkflow('pending_add', payload, 'container_added');
+    console.log('SequenceDiagramEventBridge: Dispatching container add to Bubble:', payload);
+    
+    // Publish to Bubble workflow exactly like storymap-grid
+    this.instance.publishState('pending_add', JSON.stringify(payload));
+    this.instance.triggerEvent('container_to_be_added');
     
     // Re-render UI after successful operation (like storymap-grid does)
-    this.reRenderDiagram();
+    setTimeout(() => {
+      this.reRenderDiagram();
+    }, 100);
   },
 
   // Handle sequence creation

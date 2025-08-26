@@ -83,15 +83,12 @@ window.WorkflowArchitectRenderer = {
     const styles = `
       <style id="sequence-diagram-styles">
         .sequence-diagram-container {
-          display: flex;
-          flex-direction: column;
+          width: 100vw;
+          height: 100vh;
+          overflow: auto;
+          background: #f8f9fa;
           position: relative;
-          max-width: 1000px;
-          margin: auto;
-          padding: 20px;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-          color: #333;
-          background-color: #f8f9fa;
+          box-sizing: border-box;
         }
         
         .actor-header {
