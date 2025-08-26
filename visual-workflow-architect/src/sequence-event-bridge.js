@@ -222,6 +222,9 @@ window.SequenceDiagramEventBridge = {
       if (mainCanvas && window.WorkflowArchitectRenderer) {
         console.log('SequenceDiagramEventBridge: Re-rendering diagram after operation');
         
+        // CRITICAL FIX: Clear the rendered flag to allow re-rendering
+        mainCanvas.removeAttribute('data-diagram-rendered');
+        
         // Get the current feature data from DOM attributes
         const featureId = mainCanvas.getAttribute('data-feature-id');
         
