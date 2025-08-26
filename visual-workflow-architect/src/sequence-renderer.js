@@ -94,12 +94,12 @@ window.WorkflowArchitectRenderer = {
           display: flex;
           flex-direction: column;
           position: relative;
-          width: 100%;
-          margin: 0;
-          padding: 0;
+          max-width: 1000px;
+          margin: auto;
+          padding: 20px;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
           color: #333;
-          background-color: #ffffff;
+          background-color: #f8f9fa;
         }
         
         .actor-header {
@@ -230,7 +230,14 @@ window.WorkflowArchitectRenderer = {
         }
         
         .sequence-toolbar {
-          display: none;
+          display: flex;
+          gap: 10px;
+          margin-bottom: 20px;
+          padding: 15px;
+          background-color: #ffffff;
+          border: 1px solid #e0e0e0;
+          border-radius: 8px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         .arrow-line {
@@ -487,10 +494,82 @@ window.WorkflowArchitectRenderer = {
       
       const containerHeight = currentY;
       
-      // Toolbar removed - only inline editing supported
+      // Toolbar event handlers
+      const handleAddContainer = () => {
+        console.log('Add Container clicked');
+        const containerName = prompt('Enter container name:');
+        if (containerName && containerName.trim()) {
+          // Get feature ID from DOM or data store
+          const featureId = document.querySelector('[data-feature-id]')?.getAttribute('data-feature-id');
+          
+          // Dispatch container add event
+          if (window.SequenceDiagramEventBridge) {
+            window.SequenceDiagramEventBridge.dispatchContainerAdd(
+              containerName.trim(),
+              'Component',
+              '#3ea50b',
+              featureId,
+              null // Will auto-calculate order index
+            );
+          }
+        }
+      };
+      
+      const handleAddSequence = () => {
+        console.log('Add Sequence clicked');
+        
+        // Get available containers for selection
+        const containers = window.SequenceDiagramDataStore ? 
+          window.SequenceDiagramDataStore.getAllContainers() : [];
+        
+        if (containers.length < 2) {
+          alert('You need at least 2 containers to create a sequence.');
+          return;
+        }
+        
+        const sequenceLabel = prompt('Enter sequence label:');
+        if (sequenceLabel && sequenceLabel.trim()) {
+          // Simple selection for demo - in production, use a proper modal
+          const fromContainer = containers[0];
+          const toContainer = containers[1];
+          const featureId = document.querySelector('[data-feature-id]')?.getAttribute('data-feature-id');
+          
+          // Dispatch sequence add event
+          if (window.SequenceDiagramEventBridge) {
+            window.SequenceDiagramEventBridge.dispatchSequenceAdd(
+              sequenceLabel.trim(),
+              fromContainer.id,
+              toContainer.id,
+              featureId,
+              false, // isDashed
+              '#1976d2', // color
+              null // Will auto-calculate order index
+            );
+          }
+        }
+      };
       
       return React.createElement('div', 
         { className: 'sequence-diagram-container' },
+        
+        // Toolbar
+        React.createElement('div', 
+          { className: 'sequence-toolbar' },
+          React.createElement('button', 
+            { 
+              className: 'toolbar-button',
+              onClick: handleAddContainer
+            }, 
+            '+ Add Container'
+          ),
+          React.createElement('button', 
+            { 
+              className: 'toolbar-button',
+              onClick: handleAddSequence
+            }, 
+            '+ Add Sequence'
+          )
+        ),
         
         // Diagram content
         React.createElement('div', 

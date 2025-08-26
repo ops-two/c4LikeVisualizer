@@ -70,29 +70,78 @@ window.SequenceDiagramEventBridge = {
     this.publishToWorkflow('pending_update', payload, 'sequence_updated');
   },
 
-  // Handle container creation (simplified to use pending_update)
+  // Handle container creation
   handleContainerAdd(event) {
-    console.log('SequenceDiagramEventBridge: Container add not supported - only inline editing available');
+    console.log('SequenceDiagramEventBridge: Handling container add:', event.detail);
+    
+    const payload = {
+      entityType: 'container',
+      name_text: event.detail.name,
+      type_text: event.detail.type || 'Component',
+      color_hex_text: event.detail.color || '#3ea50b',
+      feature_id: event.detail.featureId,
+      order_index_number: event.detail.orderIndex || 0
+    };
+    
+    this.publishToWorkflow('pending_add', payload, 'container_to_be_added');
   },
 
-  // Handle sequence creation (simplified to use pending_update)
+  // Handle sequence creation
   handleSequenceAdd(event) {
-    console.log('SequenceDiagramEventBridge: Sequence add not supported - only inline editing available');
+    console.log('SequenceDiagramEventBridge: Handling sequence add:', event.detail);
+    
+    const payload = {
+      entityType: 'sequence',
+      label_text: event.detail.label,
+      from_container_id: event.detail.fromContainerId,
+      to_container_id: event.detail.toContainerId,
+      feature_id: event.detail.featureId,
+      is_dashed_boolean: event.detail.isDashed || false,
+      color_hex_text: event.detail.color || '#1976d2',
+      order_index_number: event.detail.orderIndex || 0
+    };
+    
+    this.publishToWorkflow('pending_add', payload, 'sequence_to_be_added');
   },
 
-  // Handle container deletion (simplified to use pending_update)
+  // Handle container deletion
   handleContainerDelete(event) {
-    console.log('SequenceDiagramEventBridge: Container delete not supported - only inline editing available');
+    console.log('SequenceDiagramEventBridge: Handling container delete:', event.detail);
+    
+    const payload = {
+      entityType: 'container',
+      entityId: event.detail.containerId,
+      cascadeDelete: event.detail.cascadeSequences || true
+    };
+    
+    this.publishToWorkflow('pending_delete', payload, 'container_to_be_deleted');
   },
 
-  // Handle sequence deletion (simplified to use pending_update)
+  // Handle sequence deletion
   handleSequenceDelete(event) {
-    console.log('SequenceDiagramEventBridge: Sequence delete not supported - only inline editing available');
+    console.log('SequenceDiagramEventBridge: Handling sequence delete:', event.detail);
+    
+    const payload = {
+      entityType: 'sequence',
+      entityId: event.detail.sequenceId
+    };
+    
+    this.publishToWorkflow('pending_delete', payload, 'sequence_to_be_deleted');
   },
 
-  // Handle drag-and-drop reordering (simplified to use pending_update)
+  // Handle drag-and-drop reordering
   handleReorder(event) {
-    console.log('SequenceDiagramEventBridge: Reordering not supported - only inline editing available');
+    console.log('SequenceDiagramEventBridge: Handling reorder:', event.detail);
+    
+    const payload = {
+      entityType: event.detail.entityType,
+      reorderData: event.detail.items.map(item => ({
+        entityId: item.id,
+        order_index_number: item.newOrder
+      }))
+    };
+    
+    this.publishToWorkflow('pending_reorder', payload, `${event.detail.entityType}_reordered`);
   },
 
   // Core function to publish data to Bubble and trigger workflows
