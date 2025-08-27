@@ -5,19 +5,23 @@ console.log("DEBUG: react-flow-renderer-clean.js script is loading...");
 
 // Add rerender event listener (following storymap-grid pattern)
 document.addEventListener('workflow-architect:rerender', function(event) {
-  console.log('Rerender event received:', event.detail);
+  console.log('RERENDER: Event received with data:', event.detail);
   
   // Find the container and re-render
   const container = document.getElementById('sequence-diagram-container');
+  console.log('RERENDER: Container found:', !!container);
+  console.log('RERENDER: SequenceDiagramRenderer available:', !!window.SequenceDiagramRenderer);
+  
   if (container && window.SequenceDiagramRenderer) {
     // Clear existing content
     container.innerHTML = '';
+    console.log('RERENDER: Container cleared, calling render...');
     
     // Re-render with new data
     window.SequenceDiagramRenderer.render(container, event.detail);
-    console.log('UI re-rendered successfully');
+    console.log('RERENDER: UI re-rendered successfully');
   } else {
-    console.warn('Container or renderer not found for rerender');
+    console.warn('RERENDER: Container or renderer not found for rerender');
   }
 });
 

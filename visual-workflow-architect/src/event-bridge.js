@@ -170,6 +170,7 @@ window.WorkflowArchitectEventBridge = {
       
       // Trigger UI re-render after successful addition
       setTimeout(() => {
+        console.log('WorkflowArchitectEventBridge: Triggering reRenderUI after container add');
         this.reRenderUI();
       }, 100);
       
@@ -429,7 +430,7 @@ window.WorkflowArchitectEventBridge = {
         });
         document.dispatchEvent(rerenderEvent);
         
-        console.log('WorkflowArchitectEventBridge: Rerender event dispatched');
+        console.log('WorkflowArchitectEventBridge: Rerender event dispatched with data:', latestData);
       }
     } catch (error) {
       console.error('WorkflowArchitectEventBridge: Failed to re-render UI', error);
