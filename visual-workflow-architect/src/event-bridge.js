@@ -423,21 +423,13 @@ window.WorkflowArchitectEventBridge = {
           feature: window.WorkflowArchitectDataStore.getFeature()
         };
         
-        // Find the sequence diagram container
-        const diagramContainer = document.getElementById('sequence-diagram-container');
-        if (diagramContainer && window.SequenceDiagramRenderer) {
-          // Clear existing content to prevent React warnings
-          diagramContainer.removeAttribute('data-rendered');
-          
-          // Re-render with latest data
-          window.SequenceDiagramRenderer.render(latestData, { 
-            html: (content) => diagramContainer.innerHTML = content 
-          });
-          
-          console.log('WorkflowArchitectEventBridge: UI re-rendered successfully');
-        } else {
-          console.warn('WorkflowArchitectEventBridge: Sequence diagram container not found for re-render');
-        }
+        // Trigger rerender via custom event (following storymap-grid pattern)
+        const rerenderEvent = new CustomEvent('workflow-architect:rerender', {
+          detail: latestData
+        });
+        document.dispatchEvent(rerenderEvent);
+        
+        console.log('WorkflowArchitectEventBridge: Rerender event dispatched');
       }
     } catch (error) {
       console.error('WorkflowArchitectEventBridge: Failed to re-render UI', error);

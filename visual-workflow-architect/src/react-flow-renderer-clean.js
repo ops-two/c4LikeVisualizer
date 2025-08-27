@@ -1,7 +1,25 @@
 // Visual Workflow Architect - Proper Sequence Diagram Renderer
 // Based on SequenceFlow.html structure using React + CSS positioning (NOT React Flow)
 
-console.log("DEBUG: sequence-diagram-renderer.js script is loading...");
+console.log("DEBUG: react-flow-renderer-clean.js script is loading...");
+
+// Add rerender event listener (following storymap-grid pattern)
+document.addEventListener('workflow-architect:rerender', function(event) {
+  console.log('Rerender event received:', event.detail);
+  
+  // Find the container and re-render
+  const container = document.getElementById('sequence-diagram-container');
+  if (container && window.SequenceDiagramRenderer) {
+    // Clear existing content
+    container.innerHTML = '';
+    
+    // Re-render with new data
+    window.SequenceDiagramRenderer.render(container, event.detail);
+    console.log('UI re-rendered successfully');
+  } else {
+    console.warn('Container or renderer not found for rerender');
+  }
+});
 
 // Import inline editing functionality from legacy reference
 window.InlineEditSystem = {
