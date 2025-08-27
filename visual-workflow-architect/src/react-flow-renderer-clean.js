@@ -137,7 +137,8 @@ window.InlineEditSystem = {
     const oldText = this.currentEdit.originalText;
 
     if (newText !== oldText && newText.length > 0) {
-      this.currentEdit.element.textContent = newText;
+      // Don't update DOM directly - let the re-render handle proper formatting
+      // this.currentEdit.element.textContent = newText;
 
       // Dispatch update event to event bridge
       if (this.currentEdit.entityType === "container") {
@@ -652,7 +653,11 @@ window.SequenceDiagramRenderer = {
         );
 
         const orderIndex = sequence.order_number || sequence.order_index || (index + 1);
-        const labelText = sequence.label_text || sequence.label || "Sequence";
+        let labelText = sequence.label_text || sequence.label || "Sequence";
+        
+        // Strip any existing order index prefix from label text to prevent duplication
+        // Matches patterns like "1. ", "2. ", etc. at the start of the string
+        labelText = labelText.replace(/^\d+\.\s*/, '');
         
         return {
           label: `${orderIndex}. ${labelText}`,
