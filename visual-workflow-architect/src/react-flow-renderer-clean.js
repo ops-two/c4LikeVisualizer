@@ -214,6 +214,18 @@ window.SequenceDiagramRenderer = {
         box-sizing: border-box;
       }
 
+      .diagram-container {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        position: relative;
+        width: 100%;
+        height: 100%;
+        min-height: 600px;
+        overflow-x: auto;
+        overflow-y: visible;
+      }
+
       .actor-lane {
         display: flex;
         flex-direction: column;
