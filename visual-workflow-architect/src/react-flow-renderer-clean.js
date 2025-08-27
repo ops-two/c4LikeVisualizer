@@ -207,7 +207,6 @@ window.SequenceDiagramRenderer = {
         color: #333;
         background-color: #f8f9fa;
         overflow-y: scroll;
-        min-width: 800px;
       }
 
       .actor-lane {
@@ -216,15 +215,21 @@ window.SequenceDiagramRenderer = {
         align-items: center;
         position: relative;
         min-height: 600px;
-        flex-basis: 25%;
-        min-width: 150px;
+        width: 180px;
+        flex-shrink: 0;
       }
 
       .actor-lane h3 {
         margin: 0;
-        padding: 10px;
+        padding: 8px 4px;
         font-weight: 500;
         border-top: 5px solid transparent;
+        max-width: 160px;
+        text-align: center;
+        font-size: 13px;
+        line-height: 1.2;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
       }
 
       .lifeline {
@@ -409,10 +414,10 @@ window.SequenceDiagramRenderer = {
   // Step 2: Create ActivationBox component
   createActivationBox: function () {
     return function ActivationBox({ actorIndex, yPos, color, actorsCount }) {
-      const positionX = actorIndex * (100 / actorsCount) + (100 / (actorsCount * 2));
+      const positionX = actorIndex * 180 + 90; // Fixed spacing: 180px per lane, center at 90px
       const style = {
         top: `${yPos}px`,
-        left: `${positionX}%`,
+        left: `${positionX}px`,
         backgroundColor: color,
         position: "absolute",
         width: "10px",
@@ -442,15 +447,17 @@ window.SequenceDiagramRenderer = {
       const startActor = isLeft ? to : from;
       const endActor = isLeft ? from : to;
 
-      // Calculate positions using SequenceFlow.html formula
-      const start = (isLeft ? to : from) * (100 / actorsCount) + (100 / (actorsCount * 2));
-      const distance = Math.abs(to - from);
-      const width = distance * (100 / actorsCount);
+      // Calculate positions using fixed spacing (180px per lane)
+      const startActorIndex = isLeft ? to : from;
+      const endActorIndex = isLeft ? from : to;
+      const startX = startActorIndex * 180 + 90; // Center of start lane
+      const endX = endActorIndex * 180 + 90; // Center of end lane
+      const width = Math.abs(endX - startX);
 
       const messageStyle = {
         top: `${yPos - 50}px`,
-        left: `${start}%`,
-        width: `${width}%`,
+        left: `${Math.min(startX, endX)}px`,
+        width: `${width}px`,
         position: "absolute",
         height: "100px",
         display: "flex",
@@ -498,10 +505,10 @@ window.SequenceDiagramRenderer = {
       height,
       actorsCount,
     }) {
-      const position = actorIndex * (100 / actorsCount) + (100 / (actorsCount * 2));
+      const position = actorIndex * 180 + 90; // Fixed spacing: 180px per lane, center at 90px
       const style = {
         top: `${yPos}px`,
-        left: `${position}%`,
+        left: `${position}px`,
         height: `${height}px`,
         position: "absolute",
         zIndex: 3,
