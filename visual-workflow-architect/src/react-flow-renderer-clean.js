@@ -3,6 +3,147 @@
 
 console.log('DEBUG: sequence-diagram-renderer.js script is loading...');
 
+// Import inline editing functionality from legacy reference
+window.InlineEditSystem = {
+  currentEdit: null,
+  
+  // Initialize inline editing for sequence diagram elements
+  init() {
+    if (this.isInitialized) return;
+    this.isInitialized = true;
+    this.setupEventListeners();
+  },
+  
+  setupEventListeners() {
+    // Double-click editing for container names and sequence labels
+    document.addEventListener('dblclick', (e) => {
+      if (e.target.classList.contains('container-name')) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.startEdit(e.target, 'container');
+      } else if (e.target.classList.contains('sequence-label')) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.startEdit(e.target, 'sequence');
+      }
+    });
+    
+    // Click outside to save
+    document.addEventListener('click', (e) => {
+      if (this.currentEdit && !this.currentEdit.input.contains(e.target)) {
+        this.saveEdit();
+      }
+    });
+  },
+  
+  startEdit(element, entityType) {
+    if (this.currentEdit) this.cancelEdit();
+    
+    const entityId = element.dataset[entityType + 'Id'];
+    if (!entityId) return;
+    
+    const currentText = element.textContent.trim();
+    this.createEditInput(element, currentText, entityType, entityId);
+  },
+  
+  createEditInput(element, currentText, entityType, entityId) {
+    this.currentEdit = {
+      element, originalText: currentText, entityType, entityId, input: null
+    };
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentText;
+    input.className = 'sequence-inline-edit-input';
+    
+    // Position input over element
+    const rect = element.getBoundingClientRect();
+    input.style.cssText = `
+      position: fixed;
+      left: ${rect.left}px;
+      top: ${rect.top}px;
+      width: ${Math.max(rect.width, 100)}px;
+      height: ${rect.height}px;
+      font-size: inherit;
+      font-family: inherit;
+      background: white;
+      border: 2px solid #1976d2;
+      border-radius: 4px;
+      padding: 4px 8px;
+      z-index: 1000;
+      outline: none;
+    `;
+    
+    // Event handlers
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        this.saveEdit();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        this.cancelEdit();
+      }
+    });
+    
+    input.addEventListener('blur', () => {
+      setTimeout(() => this.currentEdit && this.saveEdit(), 100);
+    });
+    
+    element.style.visibility = 'hidden';
+    document.body.appendChild(input);
+    this.currentEdit.input = input;
+    
+    input.focus();
+    input.select();
+  },
+  
+  saveEdit() {
+    if (!this.currentEdit) return;
+    
+    const newText = this.currentEdit.input.value.trim();
+    const oldText = this.currentEdit.originalText;
+    
+    if (newText !== oldText && newText.length > 0) {
+      this.currentEdit.element.textContent = newText;
+      
+      // Dispatch update event to event bridge
+      if (this.currentEdit.entityType === 'container') {
+        this.dispatchContainerUpdate(this.currentEdit.entityId, newText, oldText);
+      } else if (this.currentEdit.entityType === 'sequence') {
+        this.dispatchSequenceUpdate(this.currentEdit.entityId, newText, oldText);
+      }
+    }
+    
+    this.cleanupEdit();
+  },
+  
+  cancelEdit() {
+    this.cleanupEdit();
+  },
+  
+  cleanupEdit() {
+    if (!this.currentEdit) return;
+    
+    this.currentEdit.element.style.visibility = 'visible';
+    if (this.currentEdit.input && this.currentEdit.input.parentNode) {
+      this.currentEdit.input.parentNode.removeChild(this.currentEdit.input);
+    }
+    this.currentEdit = null;
+  },
+  
+  dispatchContainerUpdate(containerId, newName, oldName) {
+    if (window.WorkflowArchitectEventBridge) {
+      window.WorkflowArchitectEventBridge.handleContainerUpdate(containerId, { name: newName });
+    }
+  },
+  
+  dispatchSequenceUpdate(sequenceId, newLabel, oldLabel) {
+    if (window.WorkflowArchitectEventBridge) {
+      window.WorkflowArchitectEventBridge.handleSequenceUpdate(sequenceId, { label: newLabel });
+    }
+  }
+};
+
 window.SequenceDiagramRenderer = {
   // Initialize the renderer
   init: function(containerId) {
@@ -81,6 +222,72 @@ window.SequenceDiagramRenderer = {
         z-index: 3;
         text-align: center;
         line-height: 1.4;
+      }
+
+      .message-label.sequence-label {
+        cursor: pointer;
+        padding: 2px 4px;
+        border-radius: 3px;
+        transition: background-color 0.2s;
+      }
+      
+      .message-label.sequence-label:hover {
+        background-color: rgba(25, 118, 210, 0.1);
+      }
+
+      .sequence-inline-edit-input {
+        position: fixed;
+        z-index: 1000;
+        border: 2px solid #1976d2;
+        border-radius: 4px;
+        padding: 4px 8px;
+        background: white;
+        font-family: inherit;
+        font-size: inherit;
+        outline: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        padding: 15px;
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .toolbar-button {
+        padding: 8px 16px;
+        background-color: #1976d2;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: background-color 0.2s;
+      }
+      
+      .toolbar-button:hover {
+        background-color: #1565c0;
+      }
+      
+      .toolbar-button:active {
+        background-color: #0d47a1;
+      }
+      
+      .container-name {
+        cursor: pointer;
+        padding: 2px 4px;
+        border-radius: 3px;
+        transition: background-color 0.2s;
+      }
+      
+      .container-name:hover {
+        background-color: rgba(25, 118, 210, 0.1);
       }
 
       .arrow-line {
@@ -200,8 +407,10 @@ window.SequenceDiagramRenderer = {
       return React.createElement('div', { className: 'message', style: messageStyle }, [
         React.createElement('div', { 
           key: 'label',
-          className: 'message-label', 
-          style: labelStyle
+          className: 'message-label sequence-label', 
+          style: labelStyle,
+          'data-sequence-id': `sequence_${Math.random().toString(36).substr(2, 9)}`,
+          title: 'Double-click to edit'
         }, label),
         React.createElement('div', { 
           key: 'arrow',
@@ -237,8 +446,10 @@ window.SequenceDiagramRenderer = {
         ]),
         React.createElement('div', { 
           key: 'label',
-          className: 'message-label', 
-          style: { marginLeft: '10px' }
+          className: 'message-label sequence-label', 
+          style: { marginLeft: '10px' },
+          'data-sequence-id': `sequence_${Math.random().toString(36).substr(2, 9)}`,
+          title: 'Double-click to edit'
         }, label)
       ]);
     };
@@ -255,6 +466,11 @@ window.SequenceDiagramRenderer = {
     if (window.WorkflowArchitectDataStore && !window.WorkflowArchitectDataStore.data.isInitialized) {
       console.log('SequenceDiagramRenderer: Initializing data store');
       window.WorkflowArchitectDataStore.init(data);
+    }
+    
+    // Initialize inline editing system
+    if (window.InlineEditSystem && !window.InlineEditSystem.isInitialized) {
+      window.InlineEditSystem.init();
     }
 
     // Get containers and sequences from data store or use provided data
@@ -311,12 +527,102 @@ window.SequenceDiagramRenderer = {
     const Message = this.createMessage();
     const SelfMessage = this.createSelfMessage();
 
+    // Toolbar event handlers
+    const handleAddContainer = () => {
+      console.log('Add Container clicked');
+      
+      // Get feature ID from data store
+      const feature = window.WorkflowArchitectDataStore?.getFeature();
+      const featureId = feature?.id;
+      
+      if (!featureId) {
+        console.error('No feature ID available for new container');
+        return;
+      }
+      
+      // Create container with default values
+      const newContainerData = {
+        name: 'New Container',
+        type: 'Component',
+        colorHex: '#3ea50b',
+        featureId: featureId
+      };
+      
+      // Use event bridge to handle the addition
+      if (window.WorkflowArchitectEventBridge) {
+        const tempId = window.WorkflowArchitectEventBridge.handleEntityAdd('container', newContainerData);
+        console.log('Container add initiated with temp ID:', tempId);
+      } else {
+        console.error('WorkflowArchitectEventBridge not available');
+      }
+    };
+    
+    const handleAddSequence = () => {
+      console.log('Add Sequence clicked');
+      
+      // Check if we have at least 2 containers
+      if (actors.length < 2) {
+        console.log('Need at least 2 containers to create a sequence');
+        return;
+      }
+      
+      // Get feature ID from data store
+      const feature = window.WorkflowArchitectDataStore?.getFeature();
+      const featureId = feature?.id;
+      
+      if (!featureId) {
+        console.error('No feature ID available for new sequence');
+        return;
+      }
+      
+      // Create sequence between first two containers
+      const newSequenceData = {
+        label: 'New Sequence',
+        fromContainerId: actors[0].id,
+        toContainerId: actors[1].id,
+        actionType: 'Data Flow',
+        isDashed: false,
+        featureId: featureId
+      };
+      
+      // Use event bridge to handle the addition
+      if (window.WorkflowArchitectEventBridge) {
+        const tempId = window.WorkflowArchitectEventBridge.handleEntityAdd('sequence', newSequenceData);
+        console.log('Sequence add initiated with temp ID:', tempId);
+      } else {
+        console.error('WorkflowArchitectEventBridge not available');
+      }
+    };
+
     // Main sequence diagram component
     const SequenceDiagram = () => {
       return React.createElement('div', {
-        className: 'diagram-container',
-        style: { height: `${containerHeight}px` }
+        style: { width: '100%', height: '100%', padding: '20px' }
       }, [
+        // Toolbar
+        React.createElement('div', {
+          key: 'toolbar',
+          className: 'toolbar'
+        }, [
+          React.createElement('button', {
+            key: 'add-container',
+            className: 'toolbar-button',
+            onClick: handleAddContainer
+          }, '+ Add Container'),
+          React.createElement('button', {
+            key: 'add-sequence', 
+            className: 'toolbar-button',
+            onClick: handleAddSequence,
+            disabled: actors.length < 2
+          }, '+ Add Sequence')
+        ]),
+        
+        // Diagram container
+        React.createElement('div', {
+          key: 'diagram',
+          className: 'diagram-container',
+          style: { height: `${containerHeight}px` }
+        }, [
         // Actor lanes
         ...actors.map(actor => 
           React.createElement('div', {
@@ -326,7 +632,10 @@ window.SequenceDiagramRenderer = {
           }, [
             React.createElement('h3', {
               key: 'title',
-              style: { borderTopColor: actor.color }
+              style: { borderTopColor: actor.color },
+              className: 'container-name',
+              'data-container-id': actor.id,
+              title: 'Double-click to edit'
             }, actor.name),
             React.createElement('div', {
               key: 'lifeline',
@@ -395,6 +704,7 @@ window.SequenceDiagramRenderer = {
             }
           })
         )
+        ])
       ]);
     };
 
