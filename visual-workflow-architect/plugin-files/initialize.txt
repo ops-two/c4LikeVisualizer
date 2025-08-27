@@ -1,0 +1,20 @@
+function(instance, context) {
+    console.log('=== Visual Workflow Architect Initialize Function ===');
+    
+    // Create plugin container with unique ID
+    const pluginId = 'workflow-architect-' + Date.now();
+    const containerHtml = `
+        <div class="sequence-diagram-container" 
+             data-plugin-id="${pluginId}" 
+             data-initialized="true"
+             style="width: 100%; min-height: 400px; background: #f8f9fa; border-radius: 8px; position: relative;">
+            <div style="padding: 20px; text-align: center; color: #666;">
+                🔄 Initializing Visual Workflow Architect...
+            </div>
+        </div>
+    `;
+    
+    instance.canvas.html(containerHtml);
+    
+    console.log('Visual Workflow Architect: Initialize complete with plugin ID:', pluginId);
+}

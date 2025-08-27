@@ -1,100 +1,129 @@
-// Visual Workflow Architect Plugin - Bubble Element Integration
-// Debug version to verify script loading
+// Visual Workflow Architect Plugin - Bubble Update Function
+// Streamlined version following proven storymap-grid patterns
 
-// Immediate debug output
-console.log('🚀 PLUGIN SCRIPT LOADED - Visual Workflow Architect v1.0.0');
-console.log('🔍 Script execution time:', new Date().toISOString());
-console.log('🔍 Window object available:', typeof window);
-console.log('🔍 Document ready state:', document.readyState);
-
-// Test if we can access DOM
-try {
-    const testDiv = document.createElement('div');
-    testDiv.innerHTML = 'Plugin test';
-    console.log('✅ DOM access working');
-} catch (error) {
-    console.error('❌ DOM access failed:', error);
-}
-
-// Add visual indicator that script loaded
-try {
-    const indicator = document.createElement('div');
-    indicator.style.cssText = `
-        position: fixed;
-        top: 10px;
-        left: 10px;
-        background: green;
-        color: white;
-        padding: 5px 10px;
-        border-radius: 4px;
-        z-index: 9999;
-        font-family: Arial, sans-serif;
-        font-size: 12px;
-    `;
-    indicator.textContent = '🚀 Plugin Script Loaded';
-    document.body.appendChild(indicator);
+function(instance, properties, context) {
+    console.log('=== Visual Workflow Architect Update Function ===');
     
-    // Remove after 3 seconds
-    setTimeout(() => {
-        if (indicator.parentNode) {
-            indicator.parentNode.removeChild(indicator);
-        }
-    }, 3000);
+    // Clear container to prevent duplicates (storymap-grid pattern)
+    instance.canvas.empty();
     
-    console.log('✅ Visual indicator added to page');
-} catch (error) {
-    console.error('❌ Failed to add visual indicator:', error);
-}
-
-// Plugin configuration
-const PLUGIN_CONFIG = {
-    name: 'Visual Workflow Architect',
-    version: '1.0.0',
-    debug: true
-};
-
-// Element state storage
-const elementStates = new Map();
-
-// Main update function called by Bubble for each element instance
-function update(instance, context) {
-    console.log('🎯 UPDATE FUNCTION CALLED!');
-    console.log(`🚀 ${PLUGIN_CONFIG.name} v${PLUGIN_CONFIG.version}: Update function called`);
-    console.log('🔍 Bubble context received:', {
-        hasInstance: !!instance,
-        hasContext: !!context,
-        hasProperties: typeof properties !== 'undefined',
-        contextKeys: context ? Object.keys(context) : [],
-        instanceKeys: instance ? Object.keys(instance) : [],
-        propertiesKeys: typeof properties !== 'undefined' ? Object.keys(properties) : []
-    });
-
-    // Immediate render test
     try {
-        renderTestUI(instance);
-    } catch (error) {
-        console.error('❌ Test render failed:', error);
-    }
-
-    // Get or create element state
-    const elementId = instance?.canvas?.id || `element-${Date.now()}`;
-    let elementState = elementStates.get(elementId);
-    
-    if (!elementState) {
-        elementState = {
-            isInitialized: false,
-            currentFeatureId: null,
-            bubbleInstance: instance,
-            bubbleContext: context,
-            elementId: elementId
+        // Check if all required scripts are loaded
+        if (typeof window.WorkflowArchitectDataStore === 'undefined') {
+            instance.canvas.html('<div style="padding:20px; color: red;">❌ Data Store script not loaded</div>');
+            return;
+        }
+        
+        if (typeof window.WorkflowArchitectEventBridge === 'undefined') {
+            instance.canvas.html('<div style="padding:20px; color: red;">❌ Event Bridge script not loaded</div>');
+            return;
+        }
+        
+        if (typeof window.WorkflowArchitectRenderer === 'undefined') {
+            instance.canvas.html('<div style="padding:20px; color: red;">❌ Renderer script not loaded</div>');
+            return;
+        }
+        
+        // Initialize event bridge immediately (critical for storymap-grid pattern)
+        if (!window.WorkflowArchitectEventBridge.bubbleInstance) {
+            window.WorkflowArchitectEventBridge.init(instance);
+        }
+        
+        // Check if feature is provided
+        if (!properties.feature) {
+            instance.canvas.html(`
+                <div style="padding:20px; background: #e8f5e8; border: 2px solid #4caf50; border-radius: 8px;">
+                    <h3>✅ Visual Workflow Architect Ready</h3>
+                    <p>All scripts loaded successfully!</p>
+                    <p><strong>Next step:</strong> Select a feature in the element properties</p>
+                </div>
+            `);
+            return;
+        }
+        
+        // Extract feature data
+        const featureId = properties.feature.get('_id');
+        const featureName = properties.feature.get('name_text') || properties.feature.get('name') || 'Untitled Feature';
+        
+        // Extract containers
+        const containerCount = properties.containers ? properties.containers.length() : 0;
+        const allContainers = containerCount > 0 ? properties.containers.get(0, containerCount) : [];
+        
+        const containers = allContainers.map((container, index) => ({
+            container_id: container.get('_id'),
+            name_text: container.get('name_text') || container.get('name') || `Container ${index + 1}`,
+            type_text: container.get('Persona') ? 'Persona' : 'Component',
+            color_hex_text: container.get('color_hex') || '#3ea50b',
+            order_index_number: container.get('order_index') || index,
+            feature_id: featureId
+        }));
+        
+        // Extract sequences  
+        const sequenceCount = properties.sequences ? properties.sequences.length() : 0;
+        const allSequences = sequenceCount > 0 ? properties.sequences.get(0, sequenceCount) : [];
+        
+        const sequences = allSequences.map((sequence, index) => ({
+            sequence_id: sequence.get('_id'),
+            label_text: sequence.get('Label') || sequence.get('label_text') || `Sequence ${index + 1}`,
+            from_container_id: sequence.get('FromContainer') ? sequence.get('FromContainer').get('_id') : null,
+            to_container_id: sequence.get('ToContainer') ? sequence.get('ToContainer').get('_id') : null,
+            is_dashed_boolean: sequence.get('is_dashed') || false,
+            color_hex_text: sequence.get('color_hex') || '#1976d2',
+            order_index_number: sequence.get('order_index') || index,
+            feature_id: featureId
+        }));
+        
+        console.log(`Processing feature "${featureName}" with ${containers.length} containers and ${sequences.length} sequences`);
+        
+        // Initialize data store
+        const bubbleData = {
+            feature: {
+                feature_id: featureId,
+                name_text: featureName
+            },
+            containers: containers,
+            sequences: sequences
         };
-        elementStates.set(elementId, elementState);
-        console.log(`📋 Created new element state for ${elementId}`);
-    } else {
-        // Update existing state
-        elementState.bubbleInstance = instance;
-        elementState.bubbleContext = context;
-        console.log(`📋 Updated existing element state for ${elementId}`);
+        
+        window.WorkflowArchitectDataStore.init(bubbleData);
+        
+        // Initialize sequence data store if available
+        if (window.SequenceDiagramDataStore) {
+            window.SequenceDiagramDataStore.init(bubbleData.feature, containers, sequences);
+        }
+        
+        // Store feature ID in DOM for event bridge
+        const containerId = 'workflow-architect-container';
+        const containerHtml = `<div id="${containerId}" data-feature-id="${featureId}" style="width: 100%; min-height: 400px;"></div>`;
+        instance.canvas.html(containerHtml);
+        
+        // Initialize view manager with view switching capabilities
+        if (window.WorkflowArchitectViewManager) {
+            window.WorkflowArchitectViewManager.init(containerId, bubbleData);
+        }
+        
+        // Initialize and render (view manager will handle the actual rendering)
+        if (window.WorkflowArchitectRenderer) {
+            window.WorkflowArchitectRenderer.init(containerId);
+            // Let view manager handle initial render in sequence view
+        }
+        
+        console.log('=== Visual Workflow Architect: Render Complete ===');
+        
+    } catch (error) {
+        console.error('Visual Workflow Architect Error:', error);
+        
+        if (error.message === 'not ready') {
+            instance.canvas.html('<div style="padding:20px; text-align:center;">🔄 Loading...</div>');
+            throw error; // Re-throw for Bubble's retry mechanism
+        }
+        
+        instance.canvas.html(`
+            <div style="padding:20px; border: 2px solid #ff4444; border-radius: 8px; background: #fff5f5; color: #cc0000;">
+                ❌ Plugin Error: ${error.message}
+                <br><small>Check console for details</small>
+            </div>
+        `);
     }
 }
 
