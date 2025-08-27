@@ -655,9 +655,23 @@ window.SequenceDiagramRenderer = {
         const orderIndex = sequence.order_number || sequence.order_index || (index + 1);
         let labelText = sequence.label_text || sequence.label || "Sequence";
         
+        // Debug logging to see what's happening
+        console.log("DEBUG - Processing sequence:", {
+          id: sequence.id,
+          raw_label_text: sequence.label_text,
+          raw_label: sequence.label,
+          orderIndex: orderIndex,
+          labelText_before_strip: labelText
+        });
+        
         // Strip any existing order index prefix from label text to prevent duplication
         // Matches patterns like "1. ", "2. ", etc. at the start of the string
         labelText = labelText.replace(/^\d+\.\s*/, '');
+        
+        console.log("DEBUG - After stripping:", {
+          labelText_after_strip: labelText,
+          final_label: `${orderIndex}. ${labelText}`
+        });
         
         return {
           label: `${orderIndex}. ${labelText}`,
