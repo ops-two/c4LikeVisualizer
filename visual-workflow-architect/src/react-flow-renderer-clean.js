@@ -163,9 +163,10 @@ window.SequenceDiagramRenderer = {
     style.textContent = `
       .sequence-diagram-container {
         width: 100%;
-        height: 100vh;
+        height: auto;
+        min-height: 400px;
         overflow-x: auto;
-        overflow-y: auto;
+        overflow-y: visible;
         background: #f8f9fa;
         position: relative;
         box-sizing: border-box;
