@@ -448,6 +448,7 @@ window.SequenceDiagramRenderer = {
       yPos,
       dashed = false,
       actorsCount,
+      sequenceId,
     }) {
       const isLeft = to < from;
       const startActor = isLeft ? to : from;
@@ -485,7 +486,7 @@ window.SequenceDiagramRenderer = {
               key: "label",
               className: "message-label sequence-label",
               style: { maxWidth: "90%", textAlign: "center" },
-              "data-sequence-id": sequence.id,
+              "data-sequence-id": sequenceId,
               title: "Double-click to edit",
             },
             label
@@ -508,6 +509,7 @@ window.SequenceDiagramRenderer = {
       yPos,
       height,
       actorsCount,
+      sequenceId,
     }) {
       const position = actorIndex * 180 + 90; // Fixed spacing: 180px per lane, center at 90px
       const style = {
@@ -551,7 +553,7 @@ window.SequenceDiagramRenderer = {
               key: "label",
               className: "message-label sequence-label",
               style: { marginLeft: "10px" },
-              "data-sequence-id": sequence.id,
+              "data-sequence-id": sequenceId,
               title: "Double-click to edit",
             },
             label
@@ -632,6 +634,7 @@ window.SequenceDiagramRenderer = {
           to: toIndex,
           dashed: sequence.isDashed || sequence.is_dashed_boolean || false,
           self: fromIndex === toIndex,
+          id: sequence.id || sequence.sequence_id,
         };
       })
       .filter((msg) => msg.from >= 0 && msg.to >= 0);
@@ -836,6 +839,7 @@ window.SequenceDiagramRenderer = {
                         yPos: msg.yPos,
                         height: loopHeight,
                         actorsCount: actorsCount,
+                        sequenceId: msg.id,
                       }),
                     ]);
                   } else {
@@ -862,6 +866,7 @@ window.SequenceDiagramRenderer = {
                         yPos: msg.yPos,
                         dashed: !!msg.dashed,
                         actorsCount: actorsCount,
+                        sequenceId: msg.id,
                       }),
                     ]);
                   }
