@@ -166,7 +166,7 @@ window.WorkflowArchitectEventBridge = {
 
       // Send to Bubble
       const eventName = `${entityType}_added`;
-      this.sendToBubble(eventName, bubbleCreateData);
+      this.sendToBubble(eventName, bubbleCreateData, 'pending_add');
       
       return tempId;
 
@@ -308,8 +308,8 @@ window.WorkflowArchitectEventBridge = {
     this.debounceTimer = null;
   },
 
-  // Send data to Bubble (core communication method)
-  sendToBubble: function(eventName, data) {
+  // Send data to Bubble  // Core method to send data to Bubble
+  sendToBubble: function(eventName, data, stateKey = 'pending_update') {
     if (!this.bubbleInstance) {
       console.error('WorkflowArchitectEventBridge: No Bubble instance available for', eventName);
       return false;
@@ -318,8 +318,8 @@ window.WorkflowArchitectEventBridge = {
     try {
       console.log('WorkflowArchitectEventBridge: Sending to Bubble:', eventName, data);
 
-      // Set custom state with the data payload
-      this.bubbleInstance.publishState('pending_update', JSON.stringify(data));
+      // Set custom state with the data payload using the specified state key
+      this.bubbleInstance.publishState(stateKey, JSON.stringify(data));
 
       // Trigger the event
       this.bubbleInstance.triggerEvent(eventName);
