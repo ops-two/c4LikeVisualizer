@@ -319,7 +319,7 @@ window.WorkflowArchitectEventBridge = {
       console.log('WorkflowArchitectEventBridge: Sending to Bubble:', eventName, data);
 
       // Set custom state with the data payload
-      this.bubbleInstance.setCustomState('pending_update', JSON.stringify(data));
+      this.bubbleInstance.publishState('pending_update', JSON.stringify(data));
 
       // Trigger the event
       this.bubbleInstance.triggerEvent(eventName);
