@@ -19,11 +19,12 @@ window.WorkflowArchitectEventBridge = {
   pendingUpdates: [],
 
   // Initialize with Bubble instance
-  init: function (bubbleInstance) {
+  init: function (bubbleInstance, containerElement) {
     console.log(
       "WorkflowArchitectEventBridge: Initializing with Bubble instance"
     );
     this.bubbleInstance = bubbleInstance;
+    this.containerElement = containerElement; // Store container for rerendering
     this.isProcessing = false;
     this.pendingUpdates = [];
 
@@ -557,14 +558,33 @@ window.WorkflowArchitectEventBridge = {
     console.log("WorkflowArchitectEventBridge: Re-rendering UI");
 
     try {
-      // Find the workflow architect container
-      const mainCanvas = document.querySelector(
-        '[id^="workflow-architect-container"]'
-      );
+      // Get the container element that was used during initialization
+      // This should be stored when the renderer is first called
+      let mainCanvas = this.containerElement;
+      
+      if (!mainCanvas) {
+        // Fallback: try to find it in the DOM
+        console.log("WorkflowArchitectEventBridge: No stored container, searching DOM...");
+        
+        // Try multiple possible selectors
+        mainCanvas = document.querySelector('[id^="workflow-architect-container"]');
+        if (!mainCanvas) {
+          mainCanvas = document.querySelector('[class*="workflow-architect"]');
+        }
+        if (!mainCanvas) {
+          mainCanvas = document.querySelector('[id*="workflow"]');
+        }
+        if (!mainCanvas) {
+          mainCanvas = document.querySelector('[id^="bubble-r-box"]');
+        }
+      }
+      
       if (!mainCanvas) {
         console.error("WorkflowArchitectEventBridge: Main canvas not found");
         return;
       }
+      
+      console.log("WorkflowArchitectEventBridge: Using container for rerender");
 
       // Get latest data from data store
       if (

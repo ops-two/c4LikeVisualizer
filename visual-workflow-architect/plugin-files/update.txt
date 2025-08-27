@@ -36,7 +36,7 @@ function(instance, properties, context) {
     console.log('UPDATE: Checking for WorkflowArchitectEventBridge...', typeof window.WorkflowArchitectEventBridge);
     if (window.WorkflowArchitectEventBridge) {
         console.log('UPDATE: WorkflowArchitectEventBridge found, initializing...');
-        window.WorkflowArchitectEventBridge.init(instance);
+        window.WorkflowArchitectEventBridge.init(instance, containerElement);
         console.log('UPDATE: WorkflowArchitectEventBridge initialized');
     }
     
