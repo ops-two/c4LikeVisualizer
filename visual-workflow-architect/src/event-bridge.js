@@ -641,11 +641,21 @@ window.WorkflowArchitectEventBridge = {
         
         // Trigger Bubble workflow to show sequence creation popup
         // This will populate the container dropdowns and show the popup
-        this.bubbleInstance.trigger('show_sequence_creation_popup', {
-          featureId: eventData.featureId,
-          containers: eventData.availableContainers,
-          timestamp: eventData.timestamp
-        });
+        if (this.bubbleInstance.triggerEvent) {
+          this.bubbleInstance.triggerEvent('show_sequence_creation_popup', {
+            featureId: eventData.featureId,
+            containers: eventData.availableContainers,
+            timestamp: eventData.timestamp
+          });
+        } else if (window.bubble_fn_trigger) {
+          window.bubble_fn_trigger('show_sequence_creation_popup', {
+            featureId: eventData.featureId,
+            containers: eventData.availableContainers,
+            timestamp: eventData.timestamp
+          });
+        } else {
+          console.error("No Bubble trigger method available");
+        }
       }
 
       return true;
