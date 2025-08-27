@@ -635,27 +635,23 @@ window.WorkflowArchitectEventBridge = {
     }
 
     try {
-      // Set the available containers data in Bubble
-      if (eventData.availableContainers) {
-        console.log("Setting available containers for popup:", eventData.availableContainers);
-        
-        // Trigger Bubble workflow to show sequence creation popup
-        // This will populate the container dropdowns and show the popup
-        if (this.bubbleInstance.triggerEvent) {
-          this.bubbleInstance.triggerEvent('show_sequence_creation_popup', {
-            featureId: eventData.featureId,
-            containers: eventData.availableContainers,
-            timestamp: eventData.timestamp
-          });
-        } else if (window.bubble_fn_trigger) {
-          window.bubble_fn_trigger('show_sequence_creation_popup', {
-            featureId: eventData.featureId,
-            containers: eventData.availableContainers,
-            timestamp: eventData.timestamp
-          });
-        } else {
-          console.error("No Bubble trigger method available");
-        }
+      // Trigger Bubble workflow to show sequence creation popup
+      console.log("Triggering sequence creation popup with order index:", eventData.nextOrderIndex);
+      
+      if (this.bubbleInstance.triggerEvent) {
+        this.bubbleInstance.triggerEvent('show_sequence_creation_popup', {
+          featureId: eventData.featureId,
+          nextOrderIndex: eventData.nextOrderIndex,
+          timestamp: eventData.timestamp
+        });
+      } else if (window.bubble_fn_trigger) {
+        window.bubble_fn_trigger('show_sequence_creation_popup', {
+          featureId: eventData.featureId,
+          nextOrderIndex: eventData.nextOrderIndex,
+          timestamp: eventData.timestamp
+        });
+      } else {
+        console.error("No Bubble trigger method available");
       }
 
       return true;
