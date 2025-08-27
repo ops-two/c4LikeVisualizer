@@ -161,6 +161,25 @@ window.SequenceDiagramRenderer = {
     const style = document.createElement('style');
     style.id = styleId;
     style.textContent = `
+      .sequence-diagram-content {
+        display: flex;
+        justify-content: flex-start;
+        position: relative;
+        padding: 30px 20px 50px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        min-width: 100%;
+        width: max-content;
+      }
+      .sequence-diagram-container {
+        width: 100%;
+        height: 100vh;
+        overflow-x: auto;
+        overflow-y: auto;
+        background: #f8f9fa;
+        position: relative;
+        box-sizing: border-box;
+      }
       .diagram-container {
         display: flex;
         justify-content: space-around;
@@ -175,11 +194,14 @@ window.SequenceDiagramRenderer = {
       }
 
       .actor-lane {
+        flex: 0 0 200px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        flex-basis: 25%;
-        height: 100%;
+        position: relative;
+        min-height: 600px;
+        padding: 0 20px;
+        margin-right: 40px;
       }
 
       .actor-lane h3 {

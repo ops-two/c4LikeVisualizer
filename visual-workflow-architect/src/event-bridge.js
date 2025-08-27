@@ -168,6 +168,11 @@ window.WorkflowArchitectEventBridge = {
       const eventName = `${entityType}_added`;
       this.sendToBubble(eventName, bubbleCreateData, 'pending_add');
       
+      // Trigger UI re-render after successful addition
+      setTimeout(() => {
+        this.reRenderUI();
+      }, 100);
+      
       return tempId;
 
     } catch (error) {
@@ -401,6 +406,41 @@ window.WorkflowArchitectEventBridge = {
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
       this.processPendingUpdates();
+    }
+  },
+
+  // Re-render UI after data changes
+  reRenderUI: function() {
+    console.log('WorkflowArchitectEventBridge: Re-rendering UI');
+    
+    try {
+      // Get latest data from data store
+      if (window.WorkflowArchitectDataStore && window.WorkflowArchitectDataStore.data.isInitialized) {
+        const latestData = {
+          containers: window.WorkflowArchitectDataStore.getContainersArray(),
+          sequences: window.WorkflowArchitectDataStore.getSequencesArray(),
+          workflows: window.WorkflowArchitectDataStore.getWorkflowsArray(),
+          feature: window.WorkflowArchitectDataStore.getFeature()
+        };
+        
+        // Find the sequence diagram container
+        const diagramContainer = document.getElementById('sequence-diagram-container');
+        if (diagramContainer && window.SequenceDiagramRenderer) {
+          // Clear existing content to prevent React warnings
+          diagramContainer.removeAttribute('data-rendered');
+          
+          // Re-render with latest data
+          window.SequenceDiagramRenderer.render(latestData, { 
+            html: (content) => diagramContainer.innerHTML = content 
+          });
+          
+          console.log('WorkflowArchitectEventBridge: UI re-rendered successfully');
+        } else {
+          console.warn('WorkflowArchitectEventBridge: Sequence diagram container not found for re-render');
+        }
+      }
+    } catch (error) {
+      console.error('WorkflowArchitectEventBridge: Failed to re-render UI', error);
     }
   }
 };

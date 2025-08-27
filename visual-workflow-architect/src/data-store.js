@@ -84,6 +84,14 @@ window.WorkflowArchitectDataStore = {
 
   // Transform Bubble container data to internal format
   transformContainer: function(bubbleContainer) {
+    // Calculate proper order_index for new containers
+    let orderIndex = bubbleContainer.order_index_number || bubbleContainer.order_index;
+    
+    // If no order_index provided, calculate next available index
+    if (orderIndex === undefined || orderIndex === null) {
+      orderIndex = this.getNextOrderIndex('container');
+    }
+    
     return {
       id: bubbleContainer.container_id || bubbleContainer.id,
       name: bubbleContainer.name_text || 'Untitled Container', // 'name' field from schema
@@ -91,7 +99,7 @@ window.WorkflowArchitectDataStore = {
       featureId: bubbleContainer.feature_id || '',
       componentUrl: bubbleContainer.component_url_text || bubbleContainer.url || '',
       description: bubbleContainer.description_text || bubbleContainer.description || '',
-      orderIndex: bubbleContainer.order_index_number || bubbleContainer.order_index || 0,
+      orderIndex: orderIndex,
       colorHex: bubbleContainer.color_hex_text || bubbleContainer.color_hex || '#3ea50b',
       createdDate: bubbleContainer.created_date || new Date(),
       modifiedDate: bubbleContainer.modified_date || new Date()
@@ -280,6 +288,26 @@ window.WorkflowArchitectDataStore = {
     } catch (error) {
       console.error(`Failed to add ${entityType}:`, error);
       return false;
+    }
+  },
+
+  // Calculate next order_index for entities
+  getNextOrderIndex: function(entityType) {
+    try {
+      const entityStore = this.data[entityType + 's'];
+      if (!entityStore || Object.keys(entityStore).length === 0) {
+        return 0; // First item
+      }
+
+      // Find the highest order_index and add 1
+      const maxOrderIndex = Math.max(
+        ...Object.values(entityStore).map(entity => entity.orderIndex || 0)
+      );
+      
+      return maxOrderIndex + 1;
+    } catch (error) {
+      console.error('WorkflowArchitectDataStore: Failed to calculate next order index', error);
+      return 0;
     }
   },
 
