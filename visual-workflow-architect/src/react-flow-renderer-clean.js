@@ -1,61 +1,65 @@
 // Visual Workflow Architect - Proper Sequence Diagram Renderer
 // Based on SequenceFlow.html structure using React + CSS positioning (NOT React Flow)
 
-console.log('DEBUG: sequence-diagram-renderer.js script is loading...');
+console.log("DEBUG: sequence-diagram-renderer.js script is loading...");
 
 // Import inline editing functionality from legacy reference
 window.InlineEditSystem = {
   currentEdit: null,
-  
+
   // Initialize inline editing for sequence diagram elements
   init() {
     if (this.isInitialized) return;
     this.isInitialized = true;
     this.setupEventListeners();
   },
-  
+
   setupEventListeners() {
     // Double-click editing for container names and sequence labels
-    document.addEventListener('dblclick', (e) => {
-      if (e.target.classList.contains('container-name')) {
+    document.addEventListener("dblclick", (e) => {
+      if (e.target.classList.contains("container-name")) {
         e.preventDefault();
         e.stopPropagation();
-        this.startEdit(e.target, 'container');
-      } else if (e.target.classList.contains('sequence-label')) {
+        this.startEdit(e.target, "container");
+      } else if (e.target.classList.contains("sequence-label")) {
         e.preventDefault();
         e.stopPropagation();
-        this.startEdit(e.target, 'sequence');
+        this.startEdit(e.target, "sequence");
       }
     });
-    
+
     // Click outside to save
-    document.addEventListener('click', (e) => {
+    document.addEventListener("click", (e) => {
       if (this.currentEdit && !this.currentEdit.input.contains(e.target)) {
         this.saveEdit();
       }
     });
   },
-  
+
   startEdit(element, entityType) {
     if (this.currentEdit) this.cancelEdit();
-    
-    const entityId = element.dataset[entityType + 'Id'];
+
+    const entityId = element.dataset[entityType + "Id"];
     if (!entityId) return;
-    
+
     const currentText = element.textContent.trim();
     this.createEditInput(element, currentText, entityType, entityId);
   },
-  
+
   createEditInput(element, currentText, entityType, entityId) {
     this.currentEdit = {
-      element, originalText: currentText, entityType, entityId, input: null
+      element,
+      originalText: currentText,
+      entityType,
+      entityId,
+      input: null,
     };
-    
-    const input = document.createElement('input');
-    input.type = 'text';
+
+    const input = document.createElement("input");
+    input.type = "text";
     input.value = currentText;
-    input.className = 'sequence-inline-edit-input';
-    
+    input.className = "sequence-inline-edit-input";
+
     // Position input over element
     const rect = element.getBoundingClientRect();
     input.style.cssText = `
@@ -73,100 +77,114 @@ window.InlineEditSystem = {
       z-index: 1000;
       outline: none;
     `;
-    
+
     // Event handlers
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
         e.preventDefault();
         this.saveEdit();
-      } else if (e.key === 'Escape') {
+      } else if (e.key === "Escape") {
         e.preventDefault();
         this.cancelEdit();
       }
     });
-    
-    input.addEventListener('blur', () => {
+
+    input.addEventListener("blur", () => {
       setTimeout(() => this.currentEdit && this.saveEdit(), 100);
     });
-    
-    element.style.visibility = 'hidden';
+
+    element.style.visibility = "hidden";
     document.body.appendChild(input);
     this.currentEdit.input = input;
-    
+
     input.focus();
     input.select();
   },
-  
+
   saveEdit() {
     if (!this.currentEdit) return;
-    
+
     const newText = this.currentEdit.input.value.trim();
     const oldText = this.currentEdit.originalText;
-    
+
     if (newText !== oldText && newText.length > 0) {
       this.currentEdit.element.textContent = newText;
-      
+
       // Dispatch update event to event bridge
-      if (this.currentEdit.entityType === 'container') {
-        this.dispatchContainerUpdate(this.currentEdit.entityId, newText, oldText);
-      } else if (this.currentEdit.entityType === 'sequence') {
-        this.dispatchSequenceUpdate(this.currentEdit.entityId, newText, oldText);
+      if (this.currentEdit.entityType === "container") {
+        this.dispatchContainerUpdate(
+          this.currentEdit.entityId,
+          newText,
+          oldText
+        );
+      } else if (this.currentEdit.entityType === "sequence") {
+        this.dispatchSequenceUpdate(
+          this.currentEdit.entityId,
+          newText,
+          oldText
+        );
       }
     }
-    
+
     this.cleanupEdit();
   },
-  
+
   cancelEdit() {
     this.cleanupEdit();
   },
-  
+
   cleanupEdit() {
     if (!this.currentEdit) return;
-    
-    this.currentEdit.element.style.visibility = 'visible';
+
+    this.currentEdit.element.style.visibility = "visible";
     if (this.currentEdit.input && this.currentEdit.input.parentNode) {
       this.currentEdit.input.parentNode.removeChild(this.currentEdit.input);
     }
     this.currentEdit = null;
   },
-  
+
   dispatchContainerUpdate(containerId, newName, oldName) {
     if (window.WorkflowArchitectEventBridge) {
-      window.WorkflowArchitectEventBridge.handleContainerUpdate(containerId, { name: newName });
+      window.WorkflowArchitectEventBridge.handleContainerUpdate(containerId, {
+        name: newName,
+      });
     }
   },
-  
+
   dispatchSequenceUpdate(sequenceId, newLabel, oldLabel) {
     if (window.WorkflowArchitectEventBridge) {
-      window.WorkflowArchitectEventBridge.handleSequenceUpdate(sequenceId, { label: newLabel });
+      window.WorkflowArchitectEventBridge.handleSequenceUpdate(sequenceId, {
+        label: newLabel,
+      });
     }
-  }
+  },
 };
 
 window.SequenceDiagramRenderer = {
   // Initialize the renderer
-  init: function(containerId) {
-    console.log('SequenceDiagramRenderer: Initializing for container:', containerId);
+  init: function (containerId) {
+    console.log(
+      "SequenceDiagramRenderer: Initializing for container:",
+      containerId
+    );
     this.containerId = containerId;
     this.isInitialized = true;
     return true;
   },
 
   // Step 1: Add CSS styles to document
-  addStyles: function() {
-    const styleId = 'sequence-diagram-styles';
+  addStyles: function () {
+    const styleId = "sequence-diagram-styles";
     if (document.getElementById(styleId)) return;
 
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.id = styleId;
     style.textContent = `
       .sequence-diagram-container {
-        width: 100%;
-        height: auto;
+       width: 100vw;
+          height: 100vh;
+          overflow: auto;
         min-height: 400px;
-        overflow-x: auto;
-        overflow-y: visible;
         background: #f8f9fa;
         position: relative;
         box-sizing: border-box;
@@ -389,113 +407,170 @@ window.SequenceDiagramRenderer = {
   },
 
   // Step 2: Create ActivationBox component
-  createActivationBox: function() {
+  createActivationBox: function () {
     return function ActivationBox({ actorIndex, yPos, color, actorsCount }) {
       const positionX = (actorIndex + 0.5) * (100 / actorsCount);
-      const style = { 
-        top: `${yPos}px`, 
-        left: `${positionX}%`, 
+      const style = {
+        top: `${yPos}px`,
+        left: `${positionX}%`,
         backgroundColor: color,
-        position: 'absolute',
-        width: '10px',
-        height: '28px',
-        transform: 'translate(-50%, -50%)',
+        position: "absolute",
+        width: "10px",
+        height: "28px",
+        transform: "translate(-50%, -50%)",
         zIndex: 1,
-        borderRadius: '2px'
+        borderRadius: "2px",
       };
-      return React.createElement('div', { className: 'activation-box', style: style });
+      return React.createElement("div", {
+        className: "activation-box",
+        style: style,
+      });
     };
   },
 
   // Step 3: Create Message component
-  createMessage: function() {
-    return function Message({ label, from, to, yPos, dashed = false, actorsCount }) {
+  createMessage: function () {
+    return function Message({
+      label,
+      from,
+      to,
+      yPos,
+      dashed = false,
+      actorsCount,
+    }) {
       const isLeft = to < from;
       const startActor = isLeft ? to : from;
       const endActor = isLeft ? from : to;
-      
+
       // Calculate positions based on actor lanes
       const startX = (startActor + 0.5) * (100 / actorsCount);
       const endX = (endActor + 0.5) * (100 / actorsCount);
       const width = Math.abs(endX - startX);
-      
-      const messageStyle = { 
-        top: `${yPos - 50}px`, 
-        left: `${Math.min(startX, endX)}%`, 
+
+      const messageStyle = {
+        top: `${yPos - 50}px`,
+        left: `${Math.min(startX, endX)}%`,
         width: `${width}%`,
-        position: 'absolute',
-        height: '100px',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center'
+        position: "absolute",
+        height: "100px",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
       };
-      
-      const arrowClass = `arrow-line ${dashed ? 'dashed' : ''} ${isLeft ? 'left' : ''}`;
-      
-      return React.createElement('div', { className: 'message', style: messageStyle }, [
-        React.createElement('div', { 
-          key: 'label',
-          className: 'message-label sequence-label', 
-          style: { maxWidth: '90%', textAlign: 'center' },
-          'data-sequence-id': `sequence_${Math.random().toString(36).substr(2, 9)}`,
-          title: 'Double-click to edit'
-        }, label),
-        React.createElement('div', { 
-          key: 'arrow',
-          className: arrowClass, 
-          style: { width: '100%' }
-        })
-      ]);
+
+      const arrowClass = `arrow-line ${dashed ? "dashed" : ""} ${
+        isLeft ? "left" : ""
+      }`;
+
+      return React.createElement(
+        "div",
+        { className: "message", style: messageStyle },
+        [
+          React.createElement(
+            "div",
+            {
+              key: "label",
+              className: "message-label sequence-label",
+              style: { maxWidth: "90%", textAlign: "center" },
+              "data-sequence-id": `sequence_${Math.random()
+                .toString(36)
+                .substr(2, 9)}`,
+              title: "Double-click to edit",
+            },
+            label
+          ),
+          React.createElement("div", {
+            key: "arrow",
+            className: arrowClass,
+            style: { width: "100%" },
+          }),
+        ]
+      );
     };
   },
 
   // Step 4: Create SelfMessage component
-  createSelfMessage: function() {
-    return function SelfMessage({ label, actorIndex, yPos, height, actorsCount }) {
+  createSelfMessage: function () {
+    return function SelfMessage({
+      label,
+      actorIndex,
+      yPos,
+      height,
+      actorsCount,
+    }) {
       const position = (actorIndex + 0.5) * (100 / actorsCount);
-      const style = { 
-        top: `${yPos}px`, 
-        left: `${position}%`, 
+      const style = {
+        top: `${yPos}px`,
+        left: `${position}%`,
         height: `${height}px`,
-        position: 'absolute',
+        position: "absolute",
         zIndex: 3,
-        display: 'flex',
-        alignItems: 'center'
+        display: "flex",
+        alignItems: "center",
       };
-      
-      return React.createElement('div', { className: 'self-message', style: style }, [
-        React.createElement('div', { 
-          key: 'path',
-          className: 'self-message-path'
-        }, [
-          React.createElement('div', { key: 'top', className: 'self-message-path-top' }),
-          React.createElement('div', { key: 'vertical', className: 'self-message-path-vertical' }),
-          React.createElement('div', { key: 'bottom', className: 'self-message-path-bottom' })
-        ]),
-        React.createElement('div', { 
-          key: 'label',
-          className: 'message-label sequence-label', 
-          style: { marginLeft: '10px' },
-          'data-sequence-id': `sequence_${Math.random().toString(36).substr(2, 9)}`,
-          title: 'Double-click to edit'
-        }, label)
-      ]);
+
+      return React.createElement(
+        "div",
+        { className: "self-message", style: style },
+        [
+          React.createElement(
+            "div",
+            {
+              key: "path",
+              className: "self-message-path",
+            },
+            [
+              React.createElement("div", {
+                key: "top",
+                className: "self-message-path-top",
+              }),
+              React.createElement("div", {
+                key: "vertical",
+                className: "self-message-path-vertical",
+              }),
+              React.createElement("div", {
+                key: "bottom",
+                className: "self-message-path-bottom",
+              }),
+            ]
+          ),
+          React.createElement(
+            "div",
+            {
+              key: "label",
+              className: "message-label sequence-label",
+              style: { marginLeft: "10px" },
+              "data-sequence-id": `sequence_${Math.random()
+                .toString(36)
+                .substr(2, 9)}`,
+              title: "Double-click to edit",
+            },
+            label
+          ),
+        ]
+      );
     };
   },
 
   // Step 5: Main render function
-  render: function(data, targetElement) {
-    console.log('SequenceDiagramRenderer: Rendering proper sequence diagram', data);
-    
+  render: function (data, targetElement) {
+    console.log(
+      "SequenceDiagramRenderer: Rendering proper sequence diagram",
+      data
+    );
+
     // Add CSS styles
     this.addStyles();
-    
+
     // Initialize data store if available
-    if (window.WorkflowArchitectDataStore && !window.WorkflowArchitectDataStore.data.isInitialized) {
-      console.log('SequenceDiagramRenderer: Initializing data store');
+    if (
+      window.WorkflowArchitectDataStore &&
+      !window.WorkflowArchitectDataStore.data.isInitialized
+    ) {
+      console.log("SequenceDiagramRenderer: Initializing data store");
       window.WorkflowArchitectDataStore.init(data);
     }
-    
+
     // Initialize inline editing system
     if (window.InlineEditSystem && !window.InlineEditSystem.isInitialized) {
       window.InlineEditSystem.init();
@@ -503,37 +578,54 @@ window.SequenceDiagramRenderer = {
 
     // Get containers and sequences from data store or use provided data
     let containers, sequences;
-    if (window.WorkflowArchitectDataStore && window.WorkflowArchitectDataStore.data.isInitialized) {
+    if (
+      window.WorkflowArchitectDataStore &&
+      window.WorkflowArchitectDataStore.data.isInitialized
+    ) {
       containers = window.WorkflowArchitectDataStore.getContainersArray();
       sequences = window.WorkflowArchitectDataStore.getSequencesArray();
     } else {
       containers = data.containers || [];
       sequences = data.sequences || [];
     }
-    
-    console.log('SequenceDiagramRenderer: Using containers:', containers.length, 'sequences:', sequences.length);
+
+    console.log(
+      "SequenceDiagramRenderer: Using containers:",
+      containers.length,
+      "sequences:",
+      sequences.length
+    );
 
     // Create actor data from containers
-    const actors = containers.map(container => ({
-      name: container.name || container.name_text || 'Container',
-      className: (container.type || container.type_text || 'component').toLowerCase().replace(/\s+/g, '-'),
-      color: container.colorHex || container.color_hex_text || '#3ea50b',
-      id: container.id || container.container_id
+    const actors = containers.map((container) => ({
+      name: container.name || container.name_text || "Container",
+      className: (container.type || container.type_text || "component")
+        .toLowerCase()
+        .replace(/\s+/g, "-"),
+      color: container.colorHex || container.color_hex_text || "#3ea50b",
+      id: container.id || container.container_id,
     }));
 
     // Create message data from sequences
-    const messages = sequences.map((sequence, index) => {
-      const fromIndex = actors.findIndex(a => a.id === (sequence.fromContainerId || sequence.from_container_id));
-      const toIndex = actors.findIndex(a => a.id === (sequence.toContainerId || sequence.to_container_id));
-      
-      return {
-        label: sequence.label || sequence.label_text || 'Sequence',
-        from: fromIndex,
-        to: toIndex,
-        dashed: sequence.isDashed || sequence.is_dashed_boolean || false,
-        self: fromIndex === toIndex
-      };
-    }).filter(msg => msg.from >= 0 && msg.to >= 0);
+    const messages = sequences
+      .map((sequence, index) => {
+        const fromIndex = actors.findIndex(
+          (a) =>
+            a.id === (sequence.fromContainerId || sequence.from_container_id)
+        );
+        const toIndex = actors.findIndex(
+          (a) => a.id === (sequence.toContainerId || sequence.to_container_id)
+        );
+
+        return {
+          label: sequence.label || sequence.label_text || "Sequence",
+          from: fromIndex,
+          to: toIndex,
+          dashed: sequence.isDashed || sequence.is_dashed_boolean || false,
+          self: fromIndex === toIndex,
+        };
+      })
+      .filter((msg) => msg.from >= 0 && msg.to >= 0);
 
     const actorsCount = actors.length;
 
@@ -543,11 +635,11 @@ window.SequenceDiagramRenderer = {
     let positionedMessages = [];
     let currentY = startY;
 
-    messages.forEach(msg => {
+    messages.forEach((msg) => {
       positionedMessages.push({ ...msg, yPos: currentY });
       currentY += msg.self ? stepY * 1.2 : stepY;
     });
-    
+
     const containerHeight = currentY;
 
     // Create components
@@ -557,214 +649,265 @@ window.SequenceDiagramRenderer = {
 
     // Toolbar event handlers
     const handleAddContainer = () => {
-      console.log('Add Container clicked');
-      
+      console.log("Add Container clicked");
+
       // Get feature ID from data store
       const feature = window.WorkflowArchitectDataStore?.getFeature();
       const featureId = feature?.id;
-      
+
       if (!featureId) {
-        console.error('No feature ID available for new container');
+        console.error("No feature ID available for new container");
         return;
       }
-      
+
       // Create container with default values
       const newContainerData = {
-        name: 'New Container',
-        type: 'Component',
-        colorHex: '#3ea50b',
-        featureId: featureId
+        name: "New Container",
+        type: "Component",
+        colorHex: "#3ea50b",
+        featureId: featureId,
       };
-      
+
       // Use event bridge to handle the addition
       if (window.WorkflowArchitectEventBridge) {
-        const tempId = window.WorkflowArchitectEventBridge.handleEntityAdd('container', newContainerData);
-        console.log('Container add initiated with temp ID:', tempId);
+        const tempId = window.WorkflowArchitectEventBridge.handleEntityAdd(
+          "container",
+          newContainerData
+        );
+        console.log("Container add initiated with temp ID:", tempId);
       } else {
-        console.error('WorkflowArchitectEventBridge not available');
+        console.error("WorkflowArchitectEventBridge not available");
       }
     };
-    
+
     const handleAddSequence = () => {
-      console.log('Add Sequence clicked');
-      
+      console.log("Add Sequence clicked");
+
       // Check if we have at least 2 containers
       if (actors.length < 2) {
-        console.log('Need at least 2 containers to create a sequence');
+        console.log("Need at least 2 containers to create a sequence");
         return;
       }
-      
+
       // Get feature ID from data store
       const feature = window.WorkflowArchitectDataStore?.getFeature();
       const featureId = feature?.id;
-      
+
       if (!featureId) {
-        console.error('No feature ID available for new sequence');
+        console.error("No feature ID available for new sequence");
         return;
       }
-      
+
       // Create sequence between first two containers
       const newSequenceData = {
-        label: 'New Sequence',
+        label: "New Sequence",
         fromContainerId: actors[0].id,
         toContainerId: actors[1].id,
-        actionType: 'Data Flow',
+        actionType: "Data Flow",
         isDashed: false,
-        featureId: featureId
+        featureId: featureId,
       };
-      
+
       // Use event bridge to handle the addition
       if (window.WorkflowArchitectEventBridge) {
-        const tempId = window.WorkflowArchitectEventBridge.handleEntityAdd('sequence', newSequenceData);
-        console.log('Sequence add initiated with temp ID:', tempId);
+        const tempId = window.WorkflowArchitectEventBridge.handleEntityAdd(
+          "sequence",
+          newSequenceData
+        );
+        console.log("Sequence add initiated with temp ID:", tempId);
       } else {
-        console.error('WorkflowArchitectEventBridge not available');
+        console.error("WorkflowArchitectEventBridge not available");
       }
     };
 
     // Main sequence diagram component
     const SequenceDiagram = () => {
-      return React.createElement('div', {
-        style: { width: '100%', height: '100%', padding: '20px' }
-      }, [
-        // Toolbar
-        React.createElement('div', {
-          key: 'toolbar',
-          className: 'toolbar'
-        }, [
-          React.createElement('button', {
-            key: 'add-container',
-            className: 'toolbar-button',
-            onClick: handleAddContainer
-          }, '+ Add Container'),
-          React.createElement('button', {
-            key: 'add-sequence', 
-            className: 'toolbar-button',
-            onClick: handleAddSequence,
-            disabled: actors.length < 2
-          }, '+ Add Sequence')
-        ]),
-        
-        // Diagram container
-        React.createElement('div', {
-          key: 'diagram',
-          className: 'diagram-container',
-          style: { height: `${containerHeight}px` }
-        }, [
-        // Actor lanes
-        ...actors.map(actor => 
-          React.createElement('div', {
-            key: actor.name,
-            className: `actor-lane ${actor.className}`,
-            style: { height: `${containerHeight}px` }
-          }, [
-            React.createElement('h3', {
-              key: 'title',
-              style: { borderTopColor: actor.color },
-              className: 'container-name',
-              'data-container-id': actor.id,
-              title: 'Double-click to edit'
-            }, actor.name),
-            React.createElement('div', {
-              key: 'lifeline',
-              className: 'lifeline'
-            })
-          ])
-        ),
-        
-        // Messages and activation boxes
-        React.createElement(React.Fragment, { key: 'messages' },
-          positionedMessages.map((msg, index) => {
-            const sequencedLabel = `${index + 1}. ${msg.label}`;
-            
-            if (msg.self) {
-              const loopHeight = stepY * 0.8;
-              return React.createElement(React.Fragment, { key: index }, [
-                React.createElement(ActivationBox, {
-                  key: `activation-start-${index}`,
-                  actorIndex: msg.from,
-                  yPos: msg.yPos,
-                  color: actors[msg.from].color,
-                  actorsCount: actorsCount
-                }),
-                React.createElement(ActivationBox, {
-                  key: `activation-end-${index}`,
-                  actorIndex: msg.from,
-                  yPos: msg.yPos + loopHeight,
-                  color: actors[msg.from].color,
-                  actorsCount: actorsCount
-                }),
-                React.createElement(SelfMessage, {
-                  key: `self-message-${index}`,
-                  label: sequencedLabel,
-                  actorIndex: msg.from,
-                  yPos: msg.yPos,
-                  height: loopHeight,
-                  actorsCount: actorsCount
+      return React.createElement(
+        "div",
+        {
+          style: { width: "100%", height: "100%", padding: "20px" },
+        },
+        [
+          // Toolbar
+          React.createElement(
+            "div",
+            {
+              key: "toolbar",
+              className: "toolbar",
+            },
+            [
+              React.createElement(
+                "button",
+                {
+                  key: "add-container",
+                  className: "toolbar-button",
+                  onClick: handleAddContainer,
+                },
+                "+ Add Container"
+              ),
+              React.createElement(
+                "button",
+                {
+                  key: "add-sequence",
+                  className: "toolbar-button",
+                  onClick: handleAddSequence,
+                  disabled: actors.length < 2,
+                },
+                "+ Add Sequence"
+              ),
+            ]
+          ),
+
+          // Diagram container
+          React.createElement(
+            "div",
+            {
+              key: "diagram",
+              className: "diagram-container",
+              style: { height: `${containerHeight}px` },
+            },
+            [
+              // Actor lanes
+              ...actors.map((actor) =>
+                React.createElement(
+                  "div",
+                  {
+                    key: actor.name,
+                    className: `actor-lane ${actor.className}`,
+                    style: { height: `${containerHeight}px` },
+                  },
+                  [
+                    React.createElement(
+                      "h3",
+                      {
+                        key: "title",
+                        style: { borderTopColor: actor.color },
+                        className: "container-name",
+                        "data-container-id": actor.id,
+                        title: "Double-click to edit",
+                      },
+                      actor.name
+                    ),
+                    React.createElement("div", {
+                      key: "lifeline",
+                      className: "lifeline",
+                    }),
+                  ]
+                )
+              ),
+
+              // Messages and activation boxes
+              React.createElement(
+                React.Fragment,
+                { key: "messages" },
+                positionedMessages.map((msg, index) => {
+                  const sequencedLabel = `${index + 1}. ${msg.label}`;
+
+                  if (msg.self) {
+                    const loopHeight = stepY * 0.8;
+                    return React.createElement(React.Fragment, { key: index }, [
+                      React.createElement(ActivationBox, {
+                        key: `activation-start-${index}`,
+                        actorIndex: msg.from,
+                        yPos: msg.yPos,
+                        color: actors[msg.from].color,
+                        actorsCount: actorsCount,
+                      }),
+                      React.createElement(ActivationBox, {
+                        key: `activation-end-${index}`,
+                        actorIndex: msg.from,
+                        yPos: msg.yPos + loopHeight,
+                        color: actors[msg.from].color,
+                        actorsCount: actorsCount,
+                      }),
+                      React.createElement(SelfMessage, {
+                        key: `self-message-${index}`,
+                        label: sequencedLabel,
+                        actorIndex: msg.from,
+                        yPos: msg.yPos,
+                        height: loopHeight,
+                        actorsCount: actorsCount,
+                      }),
+                    ]);
+                  } else {
+                    return React.createElement(React.Fragment, { key: index }, [
+                      React.createElement(ActivationBox, {
+                        key: `activation-from-${index}`,
+                        actorIndex: msg.from,
+                        yPos: msg.yPos,
+                        color: actors[msg.from].color,
+                        actorsCount: actorsCount,
+                      }),
+                      React.createElement(ActivationBox, {
+                        key: `activation-to-${index}`,
+                        actorIndex: msg.to,
+                        yPos: msg.yPos,
+                        color: actors[msg.to].color,
+                        actorsCount: actorsCount,
+                      }),
+                      React.createElement(Message, {
+                        key: `message-${index}`,
+                        label: sequencedLabel,
+                        from: msg.from,
+                        to: msg.to,
+                        yPos: msg.yPos,
+                        dashed: !!msg.dashed,
+                        actorsCount: actorsCount,
+                      }),
+                    ]);
+                  }
                 })
-              ]);
-            } else {
-              return React.createElement(React.Fragment, { key: index }, [
-                React.createElement(ActivationBox, {
-                  key: `activation-from-${index}`,
-                  actorIndex: msg.from,
-                  yPos: msg.yPos,
-                  color: actors[msg.from].color,
-                  actorsCount: actorsCount
-                }),
-                React.createElement(ActivationBox, {
-                  key: `activation-to-${index}`,
-                  actorIndex: msg.to,
-                  yPos: msg.yPos,
-                  color: actors[msg.to].color,
-                  actorsCount: actorsCount
-                }),
-                React.createElement(Message, {
-                  key: `message-${index}`,
-                  label: sequencedLabel,
-                  from: msg.from,
-                  to: msg.to,
-                  yPos: msg.yPos,
-                  dashed: !!msg.dashed,
-                  actorsCount: actorsCount
-                })
-              ]);
-            }
-          })
-        )
-        ])
-      ]);
+              ),
+            ]
+          ),
+        ]
+      );
     };
 
     // Render to target element
     try {
       const container = targetElement[0] || targetElement;
       if (container) {
-        const reactRoot = window.ReactDOM.createRoot ? 
-          window.ReactDOM.createRoot(container) : 
-          null;
-          
+        const reactRoot = window.ReactDOM.createRoot
+          ? window.ReactDOM.createRoot(container)
+          : null;
+
         if (reactRoot) {
           reactRoot.render(React.createElement(SequenceDiagram));
         } else {
-          window.ReactDOM.render(React.createElement(SequenceDiagram), container);
+          window.ReactDOM.render(
+            React.createElement(SequenceDiagram),
+            container
+          );
         }
-        
-        console.log('SequenceDiagramRenderer: Successfully rendered sequence diagram');
+
+        console.log(
+          "SequenceDiagramRenderer: Successfully rendered sequence diagram"
+        );
       } else {
-        console.error('SequenceDiagramRenderer: Target container not found');
+        console.error("SequenceDiagramRenderer: Target container not found");
       }
     } catch (error) {
-      console.error('SequenceDiagramRenderer: Render error:', error);
+      console.error("SequenceDiagramRenderer: Render error:", error);
       if (targetElement && targetElement.html) {
-        targetElement.html('<div style="padding:20px; color: red;">Render error: ' + error.message + '</div>');
+        targetElement.html(
+          '<div style="padding:20px; color: red;">Render error: ' +
+            error.message +
+            "</div>"
+        );
       }
     }
-  }
+  },
 };
 
 // Create alias for backward compatibility
 window.WorkflowArchitectRenderer = window.SequenceDiagramRenderer;
 
-console.log('DEBUG: sequence-diagram-renderer.js script loaded successfully. SequenceDiagramRenderer object created:', typeof window.SequenceDiagramRenderer);
-console.log('DEBUG: WorkflowArchitectRenderer alias created:', typeof window.WorkflowArchitectRenderer);
+console.log(
+  "DEBUG: sequence-diagram-renderer.js script loaded successfully. SequenceDiagramRenderer object created:",
+  typeof window.SequenceDiagramRenderer
+);
+console.log(
+  "DEBUG: WorkflowArchitectRenderer alias created:",
+  typeof window.WorkflowArchitectRenderer
+);
