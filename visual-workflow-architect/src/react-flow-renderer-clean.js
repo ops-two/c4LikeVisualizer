@@ -316,6 +316,7 @@ window.SequenceDiagramRenderer = {
         height: 2px;
         background-color: #555;
         z-index: 2;
+        transform: translateY(-50%);
       }
       
       .arrow-line.dashed {
@@ -328,14 +329,20 @@ window.SequenceDiagramRenderer = {
         content: '';
         position: absolute;
         right: -1px;
-        top: -4px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 0;
+        height: 0;
         border-top: 5px solid transparent;
         border-bottom: 5px solid transparent;
         border-left: 8px solid #555;
       }
       
       .arrow-line.left::after {
-        left: -1px; right: auto; border-left: none; border-right: 8px solid #555;
+        left: -1px; 
+        right: auto; 
+        border-left: none; 
+        border-right: 8px solid #555;
       }
 
       .self-message {
