@@ -2,7 +2,7 @@
 // Centralized state management for Features, Containers, Sequences, and Workflows
 // Based on proven patterns from storymap-grid implementation
 
-console.log('DEBUG: data-store.js script is loading...');
+console.log("DEBUG: data-store.js script is loading...");
 
 window.WorkflowArchitectDataStore = {
   // Internal data storage
@@ -12,13 +12,11 @@ window.WorkflowArchitectDataStore = {
     sequences: {},
     workflows: {},
     isInitialized: false,
-    lastUpdate: null
+    lastUpdate: null,
   },
 
   // Initialize store with Bubble's raw data
-  init: function(bubbleData) {
-    console.log('WorkflowArchitectDataStore: Initializing with data', bubbleData);
-    
+  init: function (bubbleData) {
     try {
       // Reset data structure
       this.data = {
@@ -27,7 +25,7 @@ window.WorkflowArchitectDataStore = {
         sequences: {},
         workflows: {},
         isInitialized: false,
-        lastUpdate: new Date()
+        lastUpdate: new Date(),
       };
 
       // Process feature data
@@ -37,7 +35,7 @@ window.WorkflowArchitectDataStore = {
 
       // Process containers array into indexed object
       if (bubbleData.containers && Array.isArray(bubbleData.containers)) {
-        bubbleData.containers.forEach(container => {
+        bubbleData.containers.forEach((container) => {
           const transformedContainer = this.transformContainer(container);
           this.data.containers[transformedContainer.id] = transformedContainer;
         });
@@ -45,7 +43,7 @@ window.WorkflowArchitectDataStore = {
 
       // Process sequences array into indexed object
       if (bubbleData.sequences && Array.isArray(bubbleData.sequences)) {
-        bubbleData.sequences.forEach(sequence => {
+        bubbleData.sequences.forEach((sequence) => {
           const transformedSequence = this.transformSequence(sequence);
           this.data.sequences[transformedSequence.id] = transformedSequence;
         });
@@ -53,136 +51,157 @@ window.WorkflowArchitectDataStore = {
 
       // Process workflows array into indexed object
       if (bubbleData.workflows && Array.isArray(bubbleData.workflows)) {
-        bubbleData.workflows.forEach(workflow => {
+        bubbleData.workflows.forEach((workflow) => {
           const transformedWorkflow = this.transformWorkflow(workflow);
           this.data.workflows[transformedWorkflow.id] = transformedWorkflow;
         });
       }
 
       this.data.isInitialized = true;
-      console.log('WorkflowArchitectDataStore: Initialization complete', this.data);
       return true;
-
     } catch (error) {
-      console.error('WorkflowArchitectDataStore: Initialization failed', error);
       return false;
     }
   },
 
   // Transform Bubble feature data to internal format
-  transformFeature: function(bubbleFeature) {
+  transformFeature: function (bubbleFeature) {
     return {
       id: bubbleFeature.feature_id || bubbleFeature.id,
-      name: bubbleFeature.name_text || bubbleFeature.name || 'Untitled Feature', // 'name' field from schema
-      description: bubbleFeature.description_text || bubbleFeature.description || '',
-      workspaceId: bubbleFeature.workspace_id || '',
-      orderIndex: bubbleFeature.order_index_number || bubbleFeature.order_index || 0,
+      name: bubbleFeature.name_text || bubbleFeature.name || "Untitled Feature", // 'name' field from schema
+      description:
+        bubbleFeature.description_text || bubbleFeature.description || "",
+      workspaceId: bubbleFeature.workspace_id || "",
+      orderIndex:
+        bubbleFeature.order_index_number || bubbleFeature.order_index || 0,
       createdDate: bubbleFeature.created_date || new Date(),
-      modifiedDate: bubbleFeature.modified_date || new Date()
+      modifiedDate: bubbleFeature.modified_date || new Date(),
     };
   },
 
   // Transform Bubble container data to internal format
-  transformContainer: function(bubbleContainer) {
+  transformContainer: function (bubbleContainer) {
     // Calculate proper order_index for new containers
-    let orderIndex = bubbleContainer.order_index_number || bubbleContainer.order_index;
-    
+    let orderIndex =
+      bubbleContainer.order_index_number || bubbleContainer.order_index;
+
     // If no order_index provided, calculate next available index
     if (orderIndex === undefined || orderIndex === null) {
-      orderIndex = this.getNextOrderIndex('container');
+      orderIndex = this.getNextOrderIndex("container");
     }
-    
+
     return {
       id: bubbleContainer.container_id || bubbleContainer.id,
-      name: bubbleContainer.name_text || 'Untitled Container', // 'name' field from schema
-      type: bubbleContainer.type_text || 'Component',
-      featureId: bubbleContainer.feature_id || '',
-      componentUrl: bubbleContainer.component_url_text || bubbleContainer.url || '',
-      description: bubbleContainer.description_text || bubbleContainer.description || '',
+      name: bubbleContainer.name_text || "Untitled Container", // 'name' field from schema
+      type: bubbleContainer.type_text || "Component",
+      featureId: bubbleContainer.feature_id || "",
+      componentUrl:
+        bubbleContainer.component_url_text || bubbleContainer.url || "",
+      description:
+        bubbleContainer.description_text || bubbleContainer.description || "",
       orderIndex: orderIndex,
-      colorHex: bubbleContainer.color_hex_text || bubbleContainer.color_hex || '#3ea50b',
+      colorHex:
+        bubbleContainer.color_hex_text ||
+        bubbleContainer.color_hex ||
+        "#3ea50b",
       createdDate: bubbleContainer.created_date || new Date(),
-      modifiedDate: bubbleContainer.modified_date || new Date()
+      modifiedDate: bubbleContainer.modified_date || new Date(),
     };
   },
 
   // Transform Bubble sequence data to internal format
-  transformSequence: function(bubbleSequence) {
+  transformSequence: function (bubbleSequence) {
     return {
       id: bubbleSequence.sequence_id || bubbleSequence.id,
-      label: bubbleSequence.label_text || 'Untitled Sequence', // 'Label' field from schema
-      description: bubbleSequence.description_text || bubbleSequence.description || '',
-      fromContainerId: bubbleSequence.from_container_id || '',
-      toContainerId: bubbleSequence.to_container_id || '',
-      actionType: bubbleSequence.action_type_text || bubbleSequence.action_type || 'Data Flow',
-      workflowId: bubbleSequence.workflow_id || '',
-      orderIndex: bubbleSequence.order_index_number || bubbleSequence.order_index || 0,
-      isDashed: bubbleSequence.is_dashed_boolean || bubbleSequence.is_dashed || false,
+      label: bubbleSequence.label_text || "Untitled Sequence", // 'Label' field from schema
+      description:
+        bubbleSequence.description_text || bubbleSequence.description || "",
+      fromContainerId: bubbleSequence.from_container_id || "",
+      toContainerId: bubbleSequence.to_container_id || "",
+      actionType:
+        bubbleSequence.action_type_text ||
+        bubbleSequence.action_type ||
+        "Data Flow",
+      workflowId: bubbleSequence.workflow_id || "",
+      orderIndex:
+        bubbleSequence.order_index_number || bubbleSequence.order_index || 0,
+      isDashed:
+        bubbleSequence.is_dashed_boolean || bubbleSequence.is_dashed || false,
       createdDate: bubbleSequence.created_date || new Date(),
-      modifiedDate: bubbleSequence.modified_date || new Date()
+      modifiedDate: bubbleSequence.modified_date || new Date(),
     };
   },
 
   // Transform Bubble workflow data to internal format
-  transformWorkflow: function(bubbleWorkflow) {
+  transformWorkflow: function (bubbleWorkflow) {
     return {
       id: bubbleWorkflow.workflow_id || bubbleWorkflow.id,
-      name: bubbleWorkflow.name_text || bubbleWorkflow.name || 'Untitled Workflow',
-      description: bubbleWorkflow.description_text || bubbleWorkflow.description || '',
-      featureId: bubbleWorkflow.feature_id || '',
-      colorHex: bubbleWorkflow.color_hex_text || bubbleWorkflow.color_hex || '#e3f2fd',
-      orderIndex: bubbleWorkflow.order_index_number || bubbleWorkflow.order_index || 0,
+      name:
+        bubbleWorkflow.name_text || bubbleWorkflow.name || "Untitled Workflow",
+      description:
+        bubbleWorkflow.description_text || bubbleWorkflow.description || "",
+      featureId: bubbleWorkflow.feature_id || "",
+      colorHex:
+        bubbleWorkflow.color_hex_text || bubbleWorkflow.color_hex || "#e3f2fd",
+      orderIndex:
+        bubbleWorkflow.order_index_number || bubbleWorkflow.order_index || 0,
       createdDate: bubbleWorkflow.created_date || new Date(),
-      modifiedDate: bubbleWorkflow.modified_date || new Date()
+      modifiedDate: bubbleWorkflow.modified_date || new Date(),
     };
   },
 
   // Get feature data
-  getFeature: function() {
+  getFeature: function () {
     return this.data.feature;
   },
 
   // Get all containers as array
-  getContainersArray: function() {
-    return Object.values(this.data.containers).sort((a, b) => a.orderIndex - b.orderIndex);
+  getContainersArray: function () {
+    return Object.values(this.data.containers).sort(
+      (a, b) => a.orderIndex - b.orderIndex
+    );
   },
 
   // Get container by ID
-  getContainer: function(containerId) {
+  getContainer: function (containerId) {
     return this.data.containers[containerId] || null;
   },
 
   // Get all sequences as array
-  getSequencesArray: function() {
-    return Object.values(this.data.sequences).sort((a, b) => a.orderIndex - b.orderIndex);
+  getSequencesArray: function () {
+    return Object.values(this.data.sequences).sort(
+      (a, b) => a.orderIndex - b.orderIndex
+    );
   },
 
   // Get sequences for a specific workflow
-  getSequencesByWorkflow: function(workflowId) {
+  getSequencesByWorkflow: function (workflowId) {
     return Object.values(this.data.sequences)
-      .filter(sequence => sequence.workflowId === workflowId)
+      .filter((sequence) => sequence.workflowId === workflowId)
       .sort((a, b) => a.orderIndex - b.orderIndex);
   },
 
   // Get sequence by ID
-  getSequence: function(sequenceId) {
+  getSequence: function (sequenceId) {
     return this.data.sequences[sequenceId] || null;
   },
 
   // Get all workflows as array
-  getWorkflowsArray: function() {
-    return Object.values(this.data.workflows).sort((a, b) => a.orderIndex - b.orderIndex);
+  getWorkflowsArray: function () {
+    return Object.values(this.data.workflows).sort(
+      (a, b) => a.orderIndex - b.orderIndex
+    );
   },
 
   // Get workflow by ID
-  getWorkflow: function(workflowId) {
+  getWorkflow: function (workflowId) {
     return this.data.workflows[workflowId] || null;
   },
 
   // Update entity locally (before sending to Bubble)
-  updateEntity: function(entityType, entityId, updates) {
+  updateEntity: function (entityType, entityId, updates) {
     try {
-      const entityStore = this.data[entityType + 's']; // containers, sequences, workflows
+      const entityStore = this.data[entityType + "s"]; // containers, sequences, workflows
       if (!entityStore || !entityStore[entityId]) {
         console.error(`Entity not found: ${entityType} ${entityId}`);
         return false;
@@ -190,12 +209,11 @@ window.WorkflowArchitectDataStore = {
 
       // Apply updates
       Object.assign(entityStore[entityId], updates, {
-        modifiedDate: new Date()
+        modifiedDate: new Date(),
       });
 
       console.log(`Updated ${entityType} ${entityId}:`, entityStore[entityId]);
       return true;
-
     } catch (error) {
       console.error(`Failed to update ${entityType} ${entityId}:`, error);
       return false;
@@ -203,9 +221,9 @@ window.WorkflowArchitectDataStore = {
   },
 
   // Get entity data formatted for Bubble updates (following storymap-grid pattern)
-  getEntityForUpdate: function(entityType, entityId) {
+  getEntityForUpdate: function (entityType, entityId) {
     try {
-      const entity = this.data[entityType + 's'][entityId];
+      const entity = this.data[entityType + "s"][entityId];
       if (!entity) {
         console.error(`Entity not found for update: ${entityType} ${entityId}`);
         return null;
@@ -215,19 +233,19 @@ window.WorkflowArchitectDataStore = {
       const updateData = {
         entityId: entity.id,
         name_text: entity.name,
-        order_index: entity.orderIndex
+        order_index: entity.orderIndex,
       };
 
       // Add entity-specific fields
       switch (entityType) {
-        case 'container':
+        case "container":
           updateData.type_text = entity.type;
           updateData.component_url_text = entity.componentUrl;
           updateData.color_hex_text = entity.colorHex;
           updateData.description_text = entity.description;
           break;
 
-        case 'sequence':
+        case "sequence":
           updateData.from_container_id = entity.fromContainerId;
           updateData.to_container_id = entity.toContainerId;
           updateData.action_type_text = entity.actionType;
@@ -237,7 +255,7 @@ window.WorkflowArchitectDataStore = {
           updateData.label_text = entity.label;
           break;
 
-        case 'workflow':
+        case "workflow":
           updateData.color_hex_text = entity.colorHex;
           updateData.feature_id = entity.featureId;
           updateData.description_text = entity.description;
@@ -245,36 +263,49 @@ window.WorkflowArchitectDataStore = {
       }
 
       return updateData;
-
     } catch (error) {
-      console.error(`Failed to format entity for update: ${entityType} ${entityId}:`, error);
+      console.error(
+        `Failed to format entity for update: ${entityType} ${entityId}:`,
+        error
+      );
       return null;
     }
   },
 
   // Add new entity locally
-  addEntity: function(entityType, entityData) {
+  addEntity: function (entityType, entityData) {
     try {
-      const entityStore = this.data[entityType + 's'];
+      const entityStore = this.data[entityType + "s"];
       if (!entityStore) {
         console.error(`Invalid entity type: ${entityType}`);
         return false;
       }
 
       // Generate temporary ID if not provided
-      const entityId = entityData.id || `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+      const entityId =
+        entityData.id ||
+        `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
       // Transform and store entity
       let transformedEntity;
       switch (entityType) {
-        case 'container':
-          transformedEntity = this.transformContainer({...entityData, id: entityId});
+        case "container":
+          transformedEntity = this.transformContainer({
+            ...entityData,
+            id: entityId,
+          });
           break;
-        case 'sequence':
-          transformedEntity = this.transformSequence({...entityData, id: entityId});
+        case "sequence":
+          transformedEntity = this.transformSequence({
+            ...entityData,
+            id: entityId,
+          });
           break;
-        case 'workflow':
-          transformedEntity = this.transformWorkflow({...entityData, id: entityId});
+        case "workflow":
+          transformedEntity = this.transformWorkflow({
+            ...entityData,
+            id: entityId,
+          });
           break;
         default:
           console.error(`Unknown entity type: ${entityType}`);
@@ -284,7 +315,6 @@ window.WorkflowArchitectDataStore = {
       entityStore[entityId] = transformedEntity;
       console.log(`Added ${entityType} ${entityId}:`, transformedEntity);
       return entityId;
-
     } catch (error) {
       console.error(`Failed to add ${entityType}:`, error);
       return false;
@@ -292,31 +322,36 @@ window.WorkflowArchitectDataStore = {
   },
 
   // Calculate next order_index for entities
-  getNextOrderIndex: function(entityType) {
+  getNextOrderIndex: function (entityType) {
     try {
-      const entityStore = this.data[entityType + 's'];
+      const entityStore = this.data[entityType + "s"];
       if (!entityStore || Object.keys(entityStore).length === 0) {
         return 0; // First item
       }
 
       // Find the highest order_index and add 1
       const maxOrderIndex = Math.max(
-        ...Object.values(entityStore).map(entity => entity.orderIndex || 0)
+        ...Object.values(entityStore).map((entity) => entity.orderIndex || 0)
       );
-      
+
       return maxOrderIndex + 1;
     } catch (error) {
-      console.error('WorkflowArchitectDataStore: Failed to calculate next order index', error);
+      console.error(
+        "WorkflowArchitectDataStore: Failed to calculate next order index",
+        error
+      );
       return 0;
     }
   },
 
   // Remove entity locally
-  removeEntity: function(entityType, entityId) {
+  removeEntity: function (entityType, entityId) {
     try {
-      const entityStore = this.data[entityType + 's'];
+      const entityStore = this.data[entityType + "s"];
       if (!entityStore || !entityStore[entityId]) {
-        console.error(`Entity not found for removal: ${entityType} ${entityId}`);
+        console.error(
+          `Entity not found for removal: ${entityType} ${entityId}`
+        );
         return false;
       }
 
@@ -324,18 +359,20 @@ window.WorkflowArchitectDataStore = {
       console.log(`Removed ${entityType} ${entityId}`);
 
       // Handle cascading deletions
-      if (entityType === 'container') {
+      if (entityType === "container") {
         // Remove sequences that reference this container
-        Object.keys(this.data.sequences).forEach(sequenceId => {
+        Object.keys(this.data.sequences).forEach((sequenceId) => {
           const sequence = this.data.sequences[sequenceId];
-          if (sequence.fromContainerId === entityId || sequence.toContainerId === entityId) {
-            this.removeEntity('sequence', sequenceId);
+          if (
+            sequence.fromContainerId === entityId ||
+            sequence.toContainerId === entityId
+          ) {
+            this.removeEntity("sequence", sequenceId);
           }
         });
       }
 
       return true;
-
     } catch (error) {
       console.error(`Failed to remove ${entityType} ${entityId}:`, error);
       return false;
@@ -343,26 +380,34 @@ window.WorkflowArchitectDataStore = {
   },
 
   // Validate data integrity
-  validateData: function() {
+  validateData: function () {
     const issues = [];
 
     // Check for orphaned sequences
-    Object.values(this.data.sequences).forEach(sequence => {
+    Object.values(this.data.sequences).forEach((sequence) => {
       if (!this.data.containers[sequence.fromContainerId]) {
-        issues.push(`Sequence ${sequence.id} references missing container ${sequence.fromContainerId}`);
+        issues.push(
+          `Sequence ${sequence.id} references missing container ${sequence.fromContainerId}`
+        );
       }
       if (!this.data.containers[sequence.toContainerId]) {
-        issues.push(`Sequence ${sequence.id} references missing container ${sequence.toContainerId}`);
+        issues.push(
+          `Sequence ${sequence.id} references missing container ${sequence.toContainerId}`
+        );
       }
       if (!this.data.workflows[sequence.workflowId]) {
-        issues.push(`Sequence ${sequence.id} references missing workflow ${sequence.workflowId}`);
+        issues.push(
+          `Sequence ${sequence.id} references missing workflow ${sequence.workflowId}`
+        );
       }
     });
 
     // Check for orphaned workflows
-    Object.values(this.data.workflows).forEach(workflow => {
+    Object.values(this.data.workflows).forEach((workflow) => {
       if (this.data.feature && workflow.featureId !== this.data.feature.id) {
-        issues.push(`Workflow ${workflow.id} references different feature ${workflow.featureId}`);
+        issues.push(
+          `Workflow ${workflow.id} references different feature ${workflow.featureId}`
+        );
       }
     });
 
@@ -370,15 +415,18 @@ window.WorkflowArchitectDataStore = {
   },
 
   // Get summary statistics
-  getStats: function() {
+  getStats: function () {
     return {
       containers: Object.keys(this.data.containers).length,
       sequences: Object.keys(this.data.sequences).length,
       workflows: Object.keys(this.data.workflows).length,
       isInitialized: this.data.isInitialized,
-      lastUpdate: this.data.lastUpdate
+      lastUpdate: this.data.lastUpdate,
     };
-  }
+  },
 };
 
-console.log('DEBUG: data-store.js script loaded successfully. WorkflowArchitectDataStore object created:', typeof window.WorkflowArchitectDataStore);
+console.log(
+  "DEBUG: data-store.js script loaded successfully. WorkflowArchitectDataStore object created:",
+  typeof window.WorkflowArchitectDataStore
+);

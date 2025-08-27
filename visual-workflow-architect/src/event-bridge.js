@@ -410,27 +410,35 @@ window.WorkflowArchitectEventBridge = {
     }
   },
 
-  // Re-render UI after data changes
+  // Re-render UI after data changes (following storymap-grid pattern)
   reRenderUI: function() {
     console.log('WorkflowArchitectEventBridge: Re-rendering UI');
     
     try {
+      // Find the main canvas container (following storymap pattern)
+      const mainCanvas = document.querySelector('[id^="bubble-r-box"]');
+      if (!mainCanvas) {
+        console.error('WorkflowArchitectEventBridge: Main canvas not found');
+        return;
+      }
+      
       // Get latest data from data store
       if (window.WorkflowArchitectDataStore && window.WorkflowArchitectDataStore.data.isInitialized) {
         const latestData = {
+          feature: window.WorkflowArchitectDataStore.getFeature(),
           containers: window.WorkflowArchitectDataStore.getContainersArray(),
           sequences: window.WorkflowArchitectDataStore.getSequencesArray(),
-          workflows: window.WorkflowArchitectDataStore.getWorkflowsArray(),
-          feature: window.WorkflowArchitectDataStore.getFeature()
+          workflows: window.WorkflowArchitectDataStore.getWorkflowsArray()
         };
         
-        // Trigger rerender via custom event (following storymap-grid pattern)
-        const rerenderEvent = new CustomEvent('workflow-architect:rerender', {
-          detail: latestData
-        });
-        document.dispatchEvent(rerenderEvent);
-        
-        console.log('WorkflowArchitectEventBridge: Rerender event dispatched with data:', latestData);
+        // Direct renderer call (exactly like storymap-grid pattern)
+        if (window.WorkflowArchitectRenderer) {
+          console.log('WorkflowArchitectEventBridge: Calling renderer directly with data:', latestData);
+          window.WorkflowArchitectRenderer.render(latestData, $(mainCanvas));
+          console.log('WorkflowArchitectEventBridge: Direct render completed');
+        } else {
+          console.error('WorkflowArchitectEventBridge: WorkflowArchitectRenderer not available');
+        }
       }
     } catch (error) {
       console.error('WorkflowArchitectEventBridge: Failed to re-render UI', error);
