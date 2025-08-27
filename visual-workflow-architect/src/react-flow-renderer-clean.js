@@ -64,7 +64,14 @@ window.InlineEditSystem = {
     const entityId = element.dataset[entityType + "Id"];
     if (!entityId) return;
 
-    const currentText = element.textContent.trim();
+    // For sequences, use the pure label text without order index
+    let currentText;
+    if (entityType === "sequence" && element.dataset.labelText) {
+      currentText = element.dataset.labelText.trim();
+    } else {
+      currentText = element.textContent.trim();
+    }
+    
     this.createEditInput(element, currentText, entityType, entityId);
   },
 
@@ -455,6 +462,7 @@ window.SequenceDiagramRenderer = {
   createMessage: function () {
     return function Message({
       label,
+      labelText,
       from,
       to,
       yPos,
@@ -499,6 +507,7 @@ window.SequenceDiagramRenderer = {
               className: "message-label sequence-label",
               style: { maxWidth: "90%", textAlign: "center" },
               "data-sequence-id": sequenceId,
+              "data-label-text": labelText,
               title: "Double-click to edit",
             },
             label
@@ -517,6 +526,7 @@ window.SequenceDiagramRenderer = {
   createSelfMessage: function () {
     return function SelfMessage({
       label,
+      labelText,
       actorIndex,
       yPos,
       height,
@@ -566,6 +576,7 @@ window.SequenceDiagramRenderer = {
               className: "message-label sequence-label",
               style: { marginLeft: "10px" },
               "data-sequence-id": sequenceId,
+              "data-label-text": labelText,
               title: "Double-click to edit",
             },
             label
@@ -640,11 +651,16 @@ window.SequenceDiagramRenderer = {
           (a) => a.id === (sequence.toContainerId || sequence.to_container_id)
         );
 
+        const orderIndex = sequence.order_number || sequence.order_index || (index + 1);
+        const labelText = sequence.label_text || sequence.label || "Sequence";
+        
         return {
-          label: sequence.label || sequence.label_text || "Sequence",
+          label: `${orderIndex}. ${labelText}`,
+          labelText: labelText, // Pure label text for editing
+          orderIndex: orderIndex,
           from: fromIndex,
           to: toIndex,
-          dashed: sequence.isDashed || sequence.is_dashed_boolean || false,
+          dashed: sequence.dashed_text === "true" || sequence.is_dashed_boolean || sequence.isDashed || false,
           self: fromIndex === toIndex,
           id: sequence.id || sequence.sequence_id,
         };
@@ -705,7 +721,7 @@ window.SequenceDiagramRenderer = {
     };
 
     const handleAddSequence = () => {
-      console.log("Add Sequence clicked");
+      console.log("Add Sequence clicked - triggering Bubble workflow");
 
       // Check if we have at least 2 containers
       if (actors.length < 2) {
@@ -722,23 +738,22 @@ window.SequenceDiagramRenderer = {
         return;
       }
 
-      // Create sequence between first two containers
-      const newSequenceData = {
-        label: "New Sequence",
-        fromContainerId: actors[0].id,
-        toContainerId: actors[1].id,
-        actionType: "Data Flow",
-        isDashed: false,
+      // Trigger Bubble workflow event to show sequence creation popup
+      // This follows the StoryMapper pattern where button click triggers workflow
+      const eventData = {
+        type: 'add_sequence_clicked',
         featureId: featureId,
+        availableContainers: actors.map(actor => ({
+          id: actor.id,
+          name: actor.name
+        })),
+        timestamp: Date.now()
       };
 
-      // Use event bridge to handle the addition
+      // Use event bridge to trigger sequence creation popup
       if (window.WorkflowArchitectEventBridge) {
-        const tempId = window.WorkflowArchitectEventBridge.handleEntityAdd(
-          "sequence",
-          newSequenceData
-        );
-        console.log("Sequence add initiated with temp ID:", tempId);
+        console.log("Triggering sequence creation popup via event bridge");
+        window.WorkflowArchitectEventBridge.handleSequenceCreationTrigger(eventData);
       } else {
         console.error("WorkflowArchitectEventBridge not available");
       }
@@ -847,6 +862,7 @@ window.SequenceDiagramRenderer = {
                       React.createElement(SelfMessage, {
                         key: `self-message-${index}`,
                         label: sequencedLabel,
+                        labelText: msg.labelText,
                         actorIndex: msg.from,
                         yPos: msg.yPos,
                         height: loopHeight,
@@ -873,6 +889,7 @@ window.SequenceDiagramRenderer = {
                       React.createElement(Message, {
                         key: `message-${index}`,
                         label: sequencedLabel,
+                        labelText: msg.labelText,
                         from: msg.from,
                         to: msg.to,
                         yPos: msg.yPos,

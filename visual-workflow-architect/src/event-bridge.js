@@ -619,6 +619,44 @@ window.WorkflowArchitectEventBridge = {
       );
     }
   },
+
+  // Handle sequence creation popup trigger
+  handleSequenceCreationTrigger: function (eventData) {
+    console.log(
+      "WorkflowArchitectEventBridge: Sequence creation popup triggered",
+      eventData
+    );
+
+    if (!this.bubbleInstance) {
+      console.error(
+        "WorkflowArchitectEventBridge: No Bubble instance available for sequence creation"
+      );
+      return false;
+    }
+
+    try {
+      // Set the available containers data in Bubble
+      if (eventData.availableContainers) {
+        console.log("Setting available containers for popup:", eventData.availableContainers);
+        
+        // Trigger Bubble workflow to show sequence creation popup
+        // This will populate the container dropdowns and show the popup
+        this.bubbleInstance.trigger('show_sequence_creation_popup', {
+          featureId: eventData.featureId,
+          containers: eventData.availableContainers,
+          timestamp: eventData.timestamp
+        });
+      }
+
+      return true;
+    } catch (error) {
+      console.error(
+        "WorkflowArchitectEventBridge: Failed to trigger sequence creation popup",
+        error
+      );
+      return false;
+    }
+  },
 };
 
 console.log(
