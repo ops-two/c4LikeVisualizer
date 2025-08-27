@@ -1,82 +1,108 @@
-// Visual Workflow Architect Plugin - Bubble Update Function
-// Streamlined version following proven storymap-grid patterns
-
 function(instance, properties, context) {
-    console.log('=== Visual Workflow Architect Update Function ===');
+    console.log('=== UPDATE: Visual Workflow Architect Starting ===');
+    console.log('UPDATE: Instance data from Bubble:', instance.data);
     
-    // Clear container to prevent duplicates (storymap-grid pattern)
-    instance.canvas.empty();
+    // Find the container by looking for our plugin container
+    var containerElement = instance.canvas.find('.workflow-architect-container[data-plugin-id]');
+    
+    if (containerElement.length === 0) {
+        console.log('UPDATE: No initialized container found, plugin may not be initialized');
+        instance.canvas.html('<div style="padding:20px; color: red;">Plugin container not found. Initialize function may have failed.</div>');
+        return;
+    }
+    
+    // Get data from DOM attributes
+    var pluginId = containerElement.attr('data-plugin-id');
+    var isInitialized = containerElement.attr('data-initialized') === 'true';
+    
+    console.log('UPDATE: Found container with plugin ID:', pluginId);
+    console.log('UPDATE: Container initialized:', isInitialized);
+    
+    if (!isInitialized) {
+        console.log('UPDATE: Container not properly initialized');
+        containerElement.html('<div style="padding:20px; color: red;">Container not properly initialized</div>');
+        return;
+    }
+    
+    // Check if required scripts are loaded
+    console.log('UPDATE: Checking for WorkflowArchitectDataStore...');
+    if (typeof window.WorkflowArchitectDataStore === 'undefined') {
+        console.log('UPDATE: Data store script not loaded');
+        containerElement.html('<div style="padding:20px; border: 2px solid #ff4444; border-radius: 8px; background: #fff5f5; color: #cc0000;">Data Store script not loaded<br>Check plugin headers for data-store.js</div>');
+        return;
+    }
+    
+    // Initialize Event Bridge immediately (critical for storymap-grid pattern)
+    console.log('UPDATE: Checking for WorkflowArchitectEventBridge...', typeof window.WorkflowArchitectEventBridge);
+    if (window.WorkflowArchitectEventBridge) {
+        console.log('UPDATE: WorkflowArchitectEventBridge found, initializing...');
+        window.WorkflowArchitectEventBridge.init(instance);
+        console.log('UPDATE: WorkflowArchitectEventBridge initialized');
+    }
+    
+    // Initialize sequence event bridge if available
+    if (window.SequenceDiagramEventBridge) {
+        console.log('UPDATE: SequenceDiagramEventBridge found, initializing...');
+        window.SequenceDiagramEventBridge.init(instance);
+        console.log('UPDATE: SequenceDiagramEventBridge initialized');
+    }
+    
+    // Show success if all scripts loaded but no feature selected
+    if (!properties.feature) {
+        console.log('UPDATE: No feature selected');
+        containerElement.html('<div style="padding:20px; background: #e8f5e8; border: 2px solid #4caf50; border-radius: 8px; color: #2e7d32;"><h3>Visual Workflow Architect Ready</h3><p>All scripts loaded successfully!</p><p><strong>Next step:</strong> Select a feature in the element properties</p><p>Plugin ID: ' + pluginId + '</p></div>');
+        return;
+    }
     
     try {
-        // Check if all required scripts are loaded
-        if (typeof window.WorkflowArchitectDataStore === 'undefined') {
-            instance.canvas.html('<div style="padding:20px; color: red;">❌ Data Store script not loaded</div>');
-            return;
-        }
-        
-        if (typeof window.WorkflowArchitectEventBridge === 'undefined') {
-            instance.canvas.html('<div style="padding:20px; color: red;">❌ Event Bridge script not loaded</div>');
-            return;
-        }
-        
-        if (typeof window.WorkflowArchitectRenderer === 'undefined') {
-            instance.canvas.html('<div style="padding:20px; color: red;">❌ Renderer script not loaded</div>');
-            return;
-        }
-        
-        // Initialize event bridge immediately (critical for storymap-grid pattern)
-        if (!window.WorkflowArchitectEventBridge.bubbleInstance) {
-            window.WorkflowArchitectEventBridge.init(instance);
-        }
-        
-        // Check if feature is provided
-        if (!properties.feature) {
-            instance.canvas.html(`
-                <div style="padding:20px; background: #e8f5e8; border: 2px solid #4caf50; border-radius: 8px;">
-                    <h3>✅ Visual Workflow Architect Ready</h3>
-                    <p>All scripts loaded successfully!</p>
-                    <p><strong>Next step:</strong> Select a feature in the element properties</p>
-                </div>
-            `);
-            return;
-        }
+        console.log('UPDATE: Processing feature data...');
         
         // Extract feature data
-        const featureId = properties.feature.get('_id');
-        const featureName = properties.feature.get('name_text') || properties.feature.get('name') || 'Untitled Feature';
+        var featureId = properties.feature.get('_id');
+        var featureName = properties.feature.get('name_text') || properties.feature.get('name') || 'Untitled Feature';
         
-        // Extract containers
-        const containerCount = properties.containers ? properties.containers.length() : 0;
-        const allContainers = containerCount > 0 ? properties.containers.get(0, containerCount) : [];
+        var containerCount = properties.containers ? properties.containers.length() : 0;
+        var sequenceCount = properties.sequences ? properties.sequences.length() : 0;
         
-        const containers = allContainers.map((container, index) => ({
-            container_id: container.get('_id'),
-            name_text: container.get('name_text') || container.get('name') || `Container ${index + 1}`,
-            type_text: container.get('Persona') ? 'Persona' : 'Component',
-            color_hex_text: container.get('color_hex') || '#3ea50b',
-            order_index_number: container.get('order_index') || index,
-            feature_id: featureId
-        }));
+        console.log('UPDATE: Feature:', featureName, 'Containers:', containerCount, 'Sequences:', sequenceCount);
         
-        // Extract sequences  
-        const sequenceCount = properties.sequences ? properties.sequences.length() : 0;
-        const allSequences = sequenceCount > 0 ? properties.sequences.get(0, sequenceCount) : [];
+        var allContainers = containerCount > 0 ? properties.containers.get(0, containerCount) : [];
+        var allSequences = sequenceCount > 0 ? properties.sequences.get(0, sequenceCount) : [];
         
-        const sequences = allSequences.map((sequence, index) => ({
-            sequence_id: sequence.get('_id'),
-            label_text: sequence.get('Label') || sequence.get('label_text') || `Sequence ${index + 1}`,
-            from_container_id: sequence.get('FromContainer') ? sequence.get('FromContainer').get('_id') : null,
-            to_container_id: sequence.get('ToContainer') ? sequence.get('ToContainer').get('_id') : null,
-            is_dashed_boolean: sequence.get('is_dashed') || false,
-            color_hex_text: sequence.get('color_hex') || '#1976d2',
-            order_index_number: sequence.get('order_index') || index,
-            feature_id: featureId
-        }));
+        // Process containers
+        var containers = [];
+        for (var i = 0; i < allContainers.length; i++) {
+            var container = allContainers[i];
+            containers.push({
+                container_id: container.get('_id'),
+                name_text: container.get('name_text') || container.get('name') || 'Container ' + (i + 1),
+                type_text: container.get('Persona') ? 'Persona' : 'Component',
+                color_hex_text: container.get('color_hex') || '#3ea50b',
+                order_index_number: container.get('order_index') || i,
+                feature_id: featureId
+            });
+        }
         
-        console.log(`Processing feature "${featureName}" with ${containers.length} containers and ${sequences.length} sequences`);
+        // Process sequences
+        var sequences = [];
+        for (var j = 0; j < allSequences.length; j++) {
+            var sequence = allSequences[j];
+            sequences.push({
+                sequence_id: sequence.get('_id'),
+                label_text: sequence.get('Label') || sequence.get('label_text') || 'Sequence ' + (j + 1),
+                from_container_id: sequence.get('FromContainer') ? sequence.get('FromContainer').get('_id') : null,
+                to_container_id: sequence.get('ToContainer') ? sequence.get('ToContainer').get('_id') : null,
+                is_dashed_boolean: sequence.get('is_dashed') || false,
+                color_hex_text: sequence.get('color_hex') || '#1976d2',
+                order_index_number: sequence.get('order_index') || j,
+                feature_id: featureId
+            });
+        }
+        
+        console.log('UPDATE: Processed', containers.length, 'containers and', sequences.length, 'sequences');
         
         // Initialize data store
-        const bubbleData = {
+        var bubbleData = {
             feature: {
                 feature_id: featureId,
                 name_text: featureName
@@ -85,533 +111,63 @@ function(instance, properties, context) {
             sequences: sequences
         };
         
+        // Initialize data stores
         window.WorkflowArchitectDataStore.init(bubbleData);
         
-        // Initialize sequence data store if available
         if (window.SequenceDiagramDataStore) {
-            window.SequenceDiagramDataStore.init(bubbleData.feature, containers, sequences);
-        }
-        
-        // Store feature ID in DOM for event bridge
-        const containerId = 'workflow-architect-container';
-        const containerHtml = `<div id="${containerId}" data-feature-id="${featureId}" style="width: 100%; min-height: 400px;"></div>`;
-        instance.canvas.html(containerHtml);
-        
-        // Initialize view manager with view switching capabilities
-        if (window.WorkflowArchitectViewManager) {
-            window.WorkflowArchitectViewManager.init(containerId, bubbleData);
-        }
-        
-        // Initialize and render (view manager will handle the actual rendering)
-        if (window.WorkflowArchitectRenderer) {
-            window.WorkflowArchitectRenderer.init(containerId);
-            // Let view manager handle initial render in sequence view
-        }
-        
-        console.log('=== Visual Workflow Architect: Render Complete ===');
-        
-    } catch (error) {
-        console.error('Visual Workflow Architect Error:', error);
-        
-        if (error.message === 'not ready') {
-            instance.canvas.html('<div style="padding:20px; text-align:center;">🔄 Loading...</div>');
-            throw error; // Re-throw for Bubble's retry mechanism
-        }
-        
-        instance.canvas.html(`
-            <div style="padding:20px; border: 2px solid #ff4444; border-radius: 8px; background: #fff5f5; color: #cc0000;">
-                ❌ Plugin Error: ${error.message}
-                <br><small>Check console for details</small>
-            </div>
-        `);
-    }
-}
-
-// Simple test render function
-function renderTestUI(instance) {
-    console.log('🔧 renderTestUI: Starting test render...');
-    
-    // Try multiple container strategies
-    let container = null;
-    
-    // Strategy 1: Use instance canvas
-    if (instance && instance.canvas) {
-        container = instance.canvas;
-        console.log('✅ Using instance.canvas');
-    }
-    // Strategy 2: Look for element in DOM
-    else {
-        const elements = document.querySelectorAll('[data-type="SequenceDiagram"]');
-        if (elements.length > 0) {
-            container = elements[0];
-            console.log('✅ Found SequenceDiagram element');
-        }
-    }
-    // Strategy 3: Use body as fallback
-    if (!container) {
-        container = document.body;
-        console.log('⚠️ Using document.body as fallback');
-    }
-    
-    // Create test content
-    const testDiv = document.createElement('div');
-    testDiv.style.cssText = `
-        min-height: 100px;
-        padding: 20px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 8px;
-        margin: 10px;
-        font-family: Arial, sans-serif;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    `;
-    
-    testDiv.innerHTML = `
-        <h3 style="margin: 0 0 10px 0;">🎯 Visual Workflow Architect</h3>
-        <p style="margin: 0 0 5px 0;">✅ Plugin script loaded and running</p>
-        <p style="margin: 0 0 5px 0;">✅ Update function called</p>
-        <p style="margin: 0; font-size: 12px; opacity: 0.8;">Container: ${container === document.body ? 'document.body' : 'element container'}</p>
-    `;
-    
-    // Add to container
-    if (container === document.body) {
-        container.appendChild(testDiv);
-    } else {
-        container.innerHTML = '';
-        container.appendChild(testDiv);
-    }
-    
-    console.log('✅ Test UI rendered successfully');
-}
-
-// Initialize plugin for specific element instance
-function initializePluginElement(elementState) {
-    console.log(`🔧 initializePluginElement: Starting for element ${elementState.elementId}`);
-    
-    try {
-        // Step 1: Check dependencies
-        console.log('📋 Step 1: Checking dependencies...');
-        if (!checkDependencies()) {
-            throw new Error('Required dependencies not loaded');
-        }
-        console.log('✅ Step 1: All dependencies loaded');
-
-        // Step 2: Get Bubble properties and data
-        console.log('📋 Step 2: Getting Bubble properties...');
-        const bubbleData = getBubbleProperties(elementState);
-        if (!bubbleData.success) {
-            throw new Error(bubbleData.error);
-        }
-        console.log('✅ Step 2: Bubble properties retrieved successfully');
-
-        // Step 3: Initialize components
-        console.log('📋 Step 3: Initializing components...');
-        const initResult = initializeComponents(bubbleData.data, elementState);
-        if (!initResult.success) {
-            throw new Error(initResult.error);
-        }
-        console.log('✅ Step 3: Components initialized');
-
-        // Step 4: Render plugin UI
-        console.log('📋 Step 4: Rendering plugin UI...');
-        renderPluginUI(elementState);
-        console.log('✅ Step 4: Plugin UI rendered');
-
-        elementState.isInitialized = true;
-        console.log(`🎉 Element ${elementState.elementId}: Successfully initialized`);
-
-    } catch (error) {
-        console.error(`💥 Element ${elementState.elementId}: Initialization error:`, error);
-        showErrorState(error.message, elementState.bubbleInstance);
-    }
-}
-
-
-// Check if all required dependencies are loaded
-function checkDependencies() {
-    const required = [
-        'React',
-        'ReactDOM', 
-        'ReactFlow',
-        'WorkflowArchitectDataStore',
-        'WorkflowArchitectEventBridge'
-    ];
-
-    for (const dep of required) {
-        if (typeof window[dep] === 'undefined') {
-            console.error(`Missing dependency: ${dep}`);
-            return false;
-        }
-    }
-
-    return true;
-}
-
-// Get Bubble properties and data from element context
-function getBubbleProperties(elementState) {
-    try {
-        console.log('🔍 getBubbleProperties: Starting property extraction...');
-        
-        // In Bubble plugins, properties should be available in the element context
-        if (typeof properties === 'undefined') {
-            console.error('❌ Properties not available in element context');
-            return { success: false, error: 'Bubble properties not available in element context' };
-        }
-
-        console.log('🔍 Properties object available:', properties);
-        console.log('🔍 Properties keys:', Object.keys(properties));
-
-        // Get feature from properties
-        if (!properties.feature) {
-            console.error('❌ No feature field in properties');
-            console.log('🔍 Available property fields:', Object.keys(properties));
-            return { success: false, error: 'No feature provided in properties' };
-        }
-        
-        console.log('✅ Feature found in properties:', properties.feature);
-
-        // Extract feature data with error handling
-        console.log('🔍 Extracting feature data...');
-        let feature;
-        try {
-            feature = {
-                feature_id: properties.feature.get('_id'),
-                name_text: properties.feature.get('name'),
-                description_text: properties.feature.get('description') || '',
-                project_id: properties.feature.get('project') ? properties.feature.get('project').get('_id') : null
-            };
-            console.log('✅ Feature data extracted:', feature);
-        } catch (error) {
-            console.error('❌ Error extracting feature data:', error);
-            return { success: false, error: `Failed to extract feature data: ${error.message}` };
-        }
-
-        // Extract containers data
-        console.log('🔍 Extracting containers data...');
-        let containers = [];
-        try {
-            const containerCount = properties.containers ? properties.containers.length() : 0;
-            console.log(`🔍 Container count: ${containerCount}`);
-            
-            if (containerCount > 0) {
-                const allContainers = properties.containers.get(0, containerCount);
-                containers = allContainers.map(container => ({
-                    container_id: container.get('_id'),
-                    name_text: container.get('name'),
-                    type_text: container.get('Persona') ? 'Persona' : 'Component',
-                    persona_name: container.get('Persona') ? container.get('Persona').get('name') : null,
-                    tooltype_name: container.get('ToolType') ? container.get('ToolType').get('name') : null,
-                    feature_id: container.get('feature') ? container.get('feature').get('_id') : null,
-                    component_url_text: container.get('url') || '',
-                    external_id: container.get('externalcomponentid') || '',
-                    x_position_number: container.get('x_position') || 0,
-                    order_index_number: container.get('order_index') || 0,
-                    color_hex_text: container.get('color_hex') || '#3ea50b'
-                }));
-            }
-            console.log(`✅ Containers extracted: ${containers.length} items`);
-        } catch (error) {
-            console.error('❌ Error extracting containers:', error);
-            // Continue with empty containers array
-        }
-
-        // Extract sequences data
-        console.log('🔍 Extracting sequences data...');
-        let sequences = [];
-        try {
-            const sequenceCount = properties.sequences ? properties.sequences.length() : 0;
-            console.log(`🔍 Sequence count: ${sequenceCount}`);
-            
-            if (sequenceCount > 0) {
-                const allSequences = properties.sequences.get(0, sequenceCount);
-                sequences = allSequences.map(sequence => ({
-                    sequence_id: sequence.get('_id'),
-                    label_text: sequence.get('Label'),
-                    description_text: sequence.get('description') || '',
-                    from_container_id: sequence.get('FromContainer') ? sequence.get('FromContainer').get('_id') : null,
-                    to_container_id: sequence.get('ToContainer') ? sequence.get('ToContainer').get('_id') : null,
-                    feature_id: sequence.get('Feature') ? sequence.get('Feature').get('_id') : null,
-                    sequence_type_name: sequence.get('SequenceType') ? sequence.get('SequenceType').get('name') : '',
-                    workflow_name: sequence.get('Workflow') ? sequence.get('Workflow').get('Label') : '',
-                    order_index_number: sequence.get('order_index') || 0,
-                    is_dashed_boolean: sequence.get('is_dashed') || false,
-                    color_hex_text: sequence.get('color_hex') || '#1976d2'
-                }));
-            }
-            console.log(`✅ Sequences extracted: ${sequences.length} items`);
-        } catch (error) {
-            console.error('❌ Error extracting sequences:', error);
-            // Continue with empty sequences array
-        }
-
-        // Get view mode and permissions
-        console.log('🔍 Extracting view mode and permissions...');
-        const viewMode = properties.view_mode || 'view';
-        const editPermissions = properties.edit_permissions || false;
-        console.log(`✅ View mode: ${viewMode}, Edit permissions: ${editPermissions}`);
-
-        const bubbleData = {
-            feature: feature,
-            containers: containers,
-            sequences: sequences,
-            viewMode: viewMode,
-            editPermissions: editPermissions
-        };
-
-        console.log('✅ getBubbleProperties: Successfully extracted all data');
-        return {
-            success: true,
-            data: {
-                featureId: feature.feature_id,
-                bubbleData: bubbleData,
-                bubbleInstance: elementState.bubbleInstance
-            }
-        };
-
-    } catch (error) {
-        console.error('❌ getBubbleProperties: Critical error:', error);
-        console.error('❌ Error stack:', error.stack);
-        return { success: false, error: error.message };
-    }
-}
-
-// Initialize plugin components for element
-function initializeComponents(contextData, elementState) {
-    try {
-        console.log('🔧 initializeComponents: Starting component initialization...');
-        console.log('🔍 Context data received:', {
-            featureId: contextData.featureId,
-            hasBubbleInstance: !!contextData.bubbleInstance,
-            containerCount: contextData.bubbleData?.containers?.length || 0,
-            sequenceCount: contextData.bubbleData?.sequences?.length || 0
-        });
-
-        // Store context in element state
-        elementState.bubbleInstance = contextData.bubbleInstance;
-        elementState.currentFeatureId = contextData.featureId;
-        console.log('✅ Element state updated with context data');
-
-        // Initialize data store
-        console.log('🔧 Initializing data store with Bubble data...');
-        if (!window.WorkflowArchitectDataStore) {
-            console.error('❌ WorkflowArchitectDataStore not available');
-            return { success: false, error: 'WorkflowArchitectDataStore not loaded' };
-        }
-
-        const dataStoreInit = window.WorkflowArchitectDataStore.init(contextData.bubbleData);
-        if (!dataStoreInit) {
-            console.error('❌ Data store initialization returned false');
-            return { success: false, error: 'Data store initialization failed' };
-        }
-        console.log('✅ Data store initialized successfully');
-
-        // Initialize event bridge
-        console.log('🔧 Initializing event bridge...');
-        if (!window.WorkflowArchitectEventBridge) {
-            console.error('❌ WorkflowArchitectEventBridge not available');
-            return { success: false, error: 'WorkflowArchitectEventBridge not loaded' };
-        }
-
-        const eventBridgeInit = window.WorkflowArchitectEventBridge.init(contextData.bubbleInstance);
-        if (!eventBridgeInit) {
-            console.error('❌ Event bridge initialization returned false');
-            return { success: false, error: 'Event bridge initialization failed' };
-        }
-        console.log('✅ Event bridge initialized successfully');
-
-        // Validate data integrity
-        console.log('🔧 Validating data integrity...');
-        if (window.WorkflowArchitectDataStore.validateData) {
-            const validationIssues = window.WorkflowArchitectDataStore.validateData();
-            if (validationIssues.length > 0) {
-                console.warn('⚠️ Data validation issues found:', validationIssues);
+            if (!window.SequenceDiagramDataStore.isInitialized) {
+                console.log('UPDATE: Initializing sequence data store for the first time...');
+                window.SequenceDiagramDataStore.init(bubbleData.feature, containers, sequences);
             } else {
-                console.log('✅ Data validation passed');
+                console.log('UPDATE: Refreshing data store with current Bubble data');
+                window.SequenceDiagramDataStore.loadData(bubbleData.feature, containers, sequences);
             }
-        } else {
-            console.log('ℹ️ Data validation method not available, skipping...');
-        }
-
-        console.log('🎉 All components initialized successfully');
-        return { success: true };
-
-    } catch (error) {
-        console.error('💥 initializeComponents: Critical error:', error);
-        console.error('💥 Error stack:', error.stack);
-        return { success: false, error: error.message };
-    }
-}
-
-// Render plugin UI for element
-function renderPluginUI(elementState) {
-    try {
-        console.log('🔧 renderPluginUI: Starting UI render...');
-        
-        // Get the element container from Bubble instance
-        let container = elementState.bubbleInstance?.canvas;
-        
-        // Fallback container selection
-        if (!container) {
-            console.log('🔍 No canvas found, looking for element container...');
-            container = document.querySelector(`[data-element-id="${elementState.elementId}"]`) || 
-                       document.querySelector('.workflow-architect-element') ||
-                       document.body;
-            console.log('🔍 Using container:', container);
         }
         
-        // Create plugin wrapper
-        const pluginWrapper = document.createElement('div');
-        pluginWrapper.id = `workflow-architect-plugin-${elementState.elementId}`;
-        pluginWrapper.className = 'workflow-architect-container';
-        pluginWrapper.style.cssText = `
-            min-height: 200px;
-            padding: 20px;
-            border: 2px solid #3ea50b;
-            border-radius: 8px;
-            background: #f8f9fa;
-            font-family: Arial, sans-serif;
-        `;
+        // Store feature ID in DOM for persistence
+        containerElement.attr('data-feature-id', featureId);
         
-        // Add basic content immediately
-        pluginWrapper.innerHTML = `
-            <div class="plugin-header" style="margin-bottom: 15px;">
-                <h2 style="color: #3ea50b; margin: 0;">🎯 Visual Workflow Architect</h2>
-                <p style="margin: 5px 0; color: #666;">Plugin loaded successfully!</p>
-                <p style="margin: 5px 0; font-size: 12px; color: #999;">Element ID: ${elementState.elementId}</p>
-            </div>
-            <div class="plugin-status" style="background: #e8f5e8; padding: 10px; border-radius: 4px;">
-                <p style="margin: 0;">✅ Plugin script loaded</p>
-                <p style="margin: 5px 0 0 0;">✅ Update function called</p>
-                <p style="margin: 5px 0 0 0;">🔄 Initializing components...</p>
-            </div>
-        `;
-        
-        // Clear container and add plugin
-        container.innerHTML = '';
-        container.appendChild(pluginWrapper);
-
-        // Try to show data if available
-        setTimeout(() => {
-            try {
-                if (window.WorkflowArchitectDataStore && window.WorkflowArchitectDataStore.getFeature) {
-                    showBasicInfo(pluginWrapper);
-                }
-            } catch (error) {
-                console.log('Data store not ready yet:', error);
-            }
-        }, 500);
-
-        console.log('✅ Plugin UI rendered successfully');
-
-    } catch (error) {
-        console.error('💥 Failed to render plugin UI:', error);
-        // Fallback error display
-        try {
-            document.body.innerHTML += `
-                <div style="position: fixed; top: 10px; right: 10px; background: red; color: white; padding: 10px; z-index: 9999;">
-                    Plugin Error: ${error.message}
-                </div>
-            `;
-        } catch (e) {
-            console.error('Failed to show error:', e);
+        // Check if already rendered to prevent infinite loop
+        if (containerElement.attr('data-diagram-rendered') === 'true') {
+            console.log('UPDATE: Diagram already rendered, skipping to prevent infinite loop');
+            return;
         }
-    }
-}
-
-// Show basic plugin info (temporary until view manager is implemented)
-function showBasicInfo(container) {
-    try {
-        const feature = window.WorkflowArchitectDataStore.getFeature();
-        const stats = window.WorkflowArchitectDataStore.getStats();
         
-        container.innerHTML = `
-            <div class="plugin-header">
-                <h2>🎯 Visual Workflow Architect</h2>
-                <p>Feature: ${feature ? feature.name_text : 'Unknown'}</p>
-            </div>
-            <div class="plugin-stats">
-                <div class="stat-item">
-                    <span class="stat-value">${stats.containers}</span>
-                    <span class="stat-label">Containers</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value">${stats.sequences}</span>
-                    <span class="stat-label">Sequences</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value">${stats.workflows}</span>
-                    <span class="stat-label">Workflows</span>
-                </div>
-            </div>
-            <div class="plugin-status">
-                <p>✅ Data Store: Initialized</p>
-                <p>✅ Event Bridge: Connected</p>
-                <p>🔄 React Flow: Coming in Phase 2</p>
-            </div>
-        `;
-    } catch (error) {
-        console.error('Error showing basic info:', error);
-        container.innerHTML = `
-            <div class="error-container">
-                <div class="error-icon">⚠️</div>
-                <div class="error-title">Plugin Info Error</div>
-                <div class="error-message">${error.message}</div>
-            </div>
-        `;
-    }
-}
-
-// Show error state
-function showErrorState(errorMessage, bubbleInstance) {
-    try {
-        const container = bubbleInstance?.canvas || document.body;
-        container.innerHTML = `
-            <div class="error-container">
-                <div class="error-icon">⚠️</div>
-                <div class="error-title">Plugin Load Error</div>
-                <div class="error-message">${errorMessage}</div>
-                <button onclick="location.reload()" class="retry-button">Retry</button>
-            </div>
-        `;
-    } catch (error) {
-        console.error('Failed to show error state:', error);
-    }
-}
-
-// Handle Bubble data refresh for element
-function handleDataRefresh(elementState) {
-    console.log(`Element ${elementState.elementId}: Bubble data refresh detected`);
-    
-    try {
-        const bubbleData = getBubbleProperties(elementState);
-        if (bubbleData.success) {
-            window.WorkflowArchitectEventBridge.handleDataRefresh(bubbleData.data.bubbleData);
+        // Initialize view manager if available
+        if (window.WorkflowArchitectViewManager) {
+            console.log('UPDATE: Initializing view manager...');
+            var fullContainerId = 'workflow-architect-' + pluginId;
+            window.WorkflowArchitectViewManager.init(fullContainerId, bubbleData);
+        }
+        
+        // Initialize renderer if available
+        if (window.WorkflowArchitectRenderer) {
+            console.log('UPDATE: Initializing renderer...');
+            window.WorkflowArchitectRenderer.init(pluginId);
             
-            // Re-render if needed
-            if (elementState.isInitialized) {
-                renderPluginUI(elementState);
-            }
-        }
-    } catch (error) {
-        console.error(`Element ${elementState.elementId}: Failed to handle data refresh:`, error);
-    }
-}
-
-// Plugin cleanup for element
-function cleanup(elementState) {
-    console.log(`Element ${elementState.elementId}: Cleaning up`);
-    
-    try {
-        // Clear any pending updates
-        if (window.WorkflowArchitectEventBridge) {
-            window.WorkflowArchitectEventBridge.flush();
+            // Mark as rendered BEFORE calling render to prevent loops
+            containerElement.attr('data-diagram-rendered', 'true');
+            
+            // Call renderer with data and target element
+            console.log('UPDATE: Calling renderer...');
+            window.WorkflowArchitectRenderer.render(bubbleData, containerElement);
+            console.log('UPDATE: Renderer completed successfully');
+        } else {
+            // Fallback display if renderer not available
+            containerElement.html('<div style="padding:20px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;"><h3>Feature: ' + featureName + '</h3><p>Containers: ' + containers.length + '</p><p>Sequences: ' + sequences.length + '</p><p>Renderer not available - check headers.txt</p></div>');
         }
         
-        // Reset element state
-        elementState.isInitialized = false;
-        elementState.currentFeatureId = null;
-        elementState.bubbleInstance = null;
-    } catch (error) {
-        console.error(`Element ${elementState.elementId}: Cleanup error:`, error);
+        console.log('=== UPDATE: Completed successfully ===');
+
+    } catch (err) {
+        console.error('UPDATE: Error occurred:', err);
+        
+        if (err.message === 'not ready') {
+            console.log('UPDATE: Bubble not ready, showing loading message');
+            containerElement.html('<div style="padding:20px; text-align:center; color: #666;">Loading Visual Workflow Architect...</div>');
+            throw err;
+        }
+        
+        containerElement.html('<div style="padding:20px; border: 2px solid #ff4444; border-radius: 8px; background: #fff5f5; color: #cc0000;">ERROR<br>' + err.message + '<br><small>Check console for details</small></div>');
     }
 }

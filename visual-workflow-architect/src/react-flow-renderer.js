@@ -390,4 +390,8 @@ window.ReactFlowSequenceRenderer = {
   }
 };
 
+// Create alias for backward compatibility
+window.WorkflowArchitectRenderer = window.ReactFlowSequenceRenderer;
+
 console.log('DEBUG: react-flow-renderer.js script loaded successfully. ReactFlowSequenceRenderer object created:', typeof window.ReactFlowSequenceRenderer);
+console.log('DEBUG: WorkflowArchitectRenderer alias created:', typeof window.WorkflowArchitectRenderer);

@@ -1,20 +1,35 @@
 function(instance, context) {
-    console.log('=== Visual Workflow Architect Initialize Function ===');
+    console.log('=== INITIALIZE: Visual Workflow Architect Starting ===');
     
-    // Create plugin container with unique ID
-    const pluginId = 'workflow-architect-' + Date.now();
-    const containerHtml = `
-        <div class="sequence-diagram-container" 
-             data-plugin-id="${pluginId}" 
-             data-initialized="true"
-             style="width: 100%; min-height: 400px; background: #f8f9fa; border-radius: 8px; position: relative;">
-            <div style="padding: 20px; text-align: center; color: #666;">
-                🔄 Initializing Visual Workflow Architect...
-            </div>
-        </div>
-    `;
+    // Generate unique ID for this instance
+    var uniqueId = 'workflow_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     
-    instance.canvas.html(containerHtml);
+    // Clear any existing content
+    instance.canvas.empty();
+    console.log('INITIALIZE: Canvas cleared');
+
+    // Create main container with data attributes to store state
+    var containerHtml = '<div class="workflow-architect-container" ' +
+        'id="workflow-architect-' + uniqueId + '" ' +
+        'data-plugin-id="' + uniqueId + '" ' +
+        'data-initialized="true" ' +
+        'data-last-load="' + new Date().toISOString() + '" ' +
+        'style="min-height: 400px; border: 1px dashed #ccc; padding: 20px; text-align: center; color: #666; background: #f8f9fa; border-radius: 8px;">' +
+        'Waiting for data...</div>';
     
-    console.log('Visual Workflow Architect: Initialize complete with plugin ID:', pluginId);
+    instance.canvas.append(containerHtml);
+    console.log('INITIALIZE: Container created with ID: workflow-architect-' + uniqueId);
+    
+    // Store in instance.data (even though Bubble might clear it)
+    instance.data = {
+        id: uniqueId,
+        isInitialized: true,
+        lastLoadTime: new Date(),
+        currentFeatureId: null,
+        containers: [],
+        sequences: []
+    };
+
+    console.log('INITIALIZE: Plugin initialized successfully. Data stored in DOM attributes.');
+    console.log('INITIALIZE: Update function will be called next.');
 }
