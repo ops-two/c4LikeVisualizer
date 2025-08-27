@@ -859,7 +859,7 @@ window.SequenceDiagramRenderer = {
                 React.Fragment,
                 { key: "messages" },
                 positionedMessages.map((msg, index) => {
-                  const sequencedLabel = `${index + 1}. ${msg.label}`;
+                  const sequencedLabel = msg.label; // Use the already formatted label
 
                   if (msg.self) {
                     const loopHeight = stepY * 0.8;
