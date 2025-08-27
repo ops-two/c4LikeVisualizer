@@ -161,16 +161,6 @@ window.SequenceDiagramRenderer = {
     const style = document.createElement('style');
     style.id = styleId;
     style.textContent = `
-      .sequence-diagram-content {
-        display: flex;
-        justify-content: flex-start;
-        position: relative;
-        padding: 30px 20px 50px;
-        overflow-x: auto;
-        overflow-y: hidden;
-        min-width: 100%;
-        width: max-content;
-      }
       .sequence-diagram-container {
         width: 100%;
         height: 100vh;
@@ -179,6 +169,14 @@ window.SequenceDiagramRenderer = {
         background: #f8f9fa;
         position: relative;
         box-sizing: border-box;
+      }
+      .sequence-diagram-content {
+        display: flex;
+        justify-content: space-around;
+        position: relative;
+        padding: 30px 20px 50px;
+        min-width: max-content;
+        width: max-content;
       }
       .diagram-container {
         display: flex;
@@ -194,14 +192,14 @@ window.SequenceDiagramRenderer = {
       }
 
       .actor-lane {
-        flex: 0 0 200px;
+        flex: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
         position: relative;
         min-height: 600px;
         padding: 0 20px;
-        margin-right: 40px;
+        min-width: 150px;
       }
 
       .actor-lane h3 {
@@ -386,7 +384,7 @@ window.SequenceDiagramRenderer = {
   // Step 2: Create ActivationBox component
   createActivationBox: function() {
     return function ActivationBox({ actorIndex, yPos, color, actorsCount }) {
-      const positionX = actorIndex * (100 / actorsCount) + (100 / (actorsCount * 2));
+      const positionX = (actorIndex + 0.5) * (100 / actorsCount);
       const style = { 
         top: `${yPos}px`, 
         left: `${positionX}%`, 
@@ -406,16 +404,17 @@ window.SequenceDiagramRenderer = {
   createMessage: function() {
     return function Message({ label, from, to, yPos, dashed = false, actorsCount }) {
       const isLeft = to < from;
-      const start = (isLeft ? to : from) * (100 / actorsCount) + (100 / (actorsCount * 2));
-      const distance = Math.abs(to - from);
-      const width = distance * (100 / actorsCount);
+      const startActor = isLeft ? to : from;
+      const endActor = isLeft ? from : to;
       
-      const maxWidthPercentage = distance === 1 ? 75 : 90;
-      const labelStyle = { maxWidth: `${maxWidthPercentage}%` };
-
+      // Calculate positions based on actor lanes
+      const startX = (startActor + 0.5) * (100 / actorsCount);
+      const endX = (endActor + 0.5) * (100 / actorsCount);
+      const width = Math.abs(endX - startX);
+      
       const messageStyle = { 
         top: `${yPos - 50}px`, 
-        left: `${start}%`, 
+        left: `${Math.min(startX, endX)}%`, 
         width: `${width}%`,
         position: 'absolute',
         height: '100px',
@@ -430,7 +429,7 @@ window.SequenceDiagramRenderer = {
         React.createElement('div', { 
           key: 'label',
           className: 'message-label sequence-label', 
-          style: labelStyle,
+          style: { maxWidth: '90%', textAlign: 'center' },
           'data-sequence-id': `sequence_${Math.random().toString(36).substr(2, 9)}`,
           title: 'Double-click to edit'
         }, label),
@@ -446,7 +445,7 @@ window.SequenceDiagramRenderer = {
   // Step 4: Create SelfMessage component
   createSelfMessage: function() {
     return function SelfMessage({ label, actorIndex, yPos, height, actorsCount }) {
-      const position = actorIndex * (100 / actorsCount) + (100 / (actorsCount * 2));
+      const position = (actorIndex + 0.5) * (100 / actorsCount);
       const style = { 
         top: `${yPos}px`, 
         left: `${position}%`, 
