@@ -53,7 +53,7 @@ window.SequenceDiagramRenderer = {
       .sequence-diagram-container {
         width: 100%;
         height: 100vh;
-        max-height: 800px;
+        max-height: none;
         overflow-y: auto;
         overflow-x: auto;
         min-height: 400px;
@@ -68,7 +68,7 @@ window.SequenceDiagramRenderer = {
         align-items: flex-start;
         position: relative;
         width: 100%;
-        height: 100%;
+        height: auto;
         min-height: 600px;
         overflow-x: auto;
         overflow-y: visible;
