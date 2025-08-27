@@ -203,32 +203,15 @@ window.SequenceDiagramRenderer = {
     style.id = styleId;
     style.textContent = `
       .sequence-diagram-container {
-       width: 100vw;
-          height: 100vh;
-          overflow: auto;
+        width: 100%;
+        height: 100vh;
+        max-height: 800px;
+        overflow-y: auto;
+        overflow-x: auto;
         min-height: 400px;
         background: #f8f9fa;
         position: relative;
         box-sizing: border-box;
-      }
-      .sequence-diagram-content {
-        display: flex;
-        justify-content: space-around;
-        position: relative;
-        padding: 30px 20px 50px;
-        min-width: max-content;
-        width: max-content;
-      }
-      .diagram-container {
-        display: flex;
-        position: relative;
-        margin: auto;
-        padding-top: 30px;
-        padding-bottom: 50px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        color: #333;
-        background-color: #f8f9fa;
-        overflow-y: scroll;
       }
 
       .actor-lane {
@@ -257,6 +240,7 @@ window.SequenceDiagramRenderer = {
       .lifeline {
         width: 2px;
         height: 100%;
+        min-height: 600px;
         background-color: #d3d3d3;
         z-index: 0;
       }
@@ -501,9 +485,7 @@ window.SequenceDiagramRenderer = {
               key: "label",
               className: "message-label sequence-label",
               style: { maxWidth: "90%", textAlign: "center" },
-              "data-sequence-id": `sequence_${Math.random()
-                .toString(36)
-                .substr(2, 9)}`,
+              "data-sequence-id": sequence.id,
               title: "Double-click to edit",
             },
             label
@@ -569,9 +551,7 @@ window.SequenceDiagramRenderer = {
               key: "label",
               className: "message-label sequence-label",
               style: { marginLeft: "10px" },
-              "data-sequence-id": `sequence_${Math.random()
-                .toString(36)
-                .substr(2, 9)}`,
+              "data-sequence-id": sequence.id,
               title: "Double-click to edit",
             },
             label
