@@ -199,7 +199,6 @@ window.SequenceDiagramRenderer = {
       }
       .diagram-container {
         display: flex;
-        justify-content: space-around;
         position: relative;
         margin: auto;
         padding-top: 30px;
@@ -207,16 +206,17 @@ window.SequenceDiagramRenderer = {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         color: #333;
         background-color: #f8f9fa;
+        overflow-y: scroll;
+        min-width: 800px;
       }
 
       .actor-lane {
-        flex: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
         position: relative;
         min-height: 600px;
-        padding: 0 20px;
+        flex-basis: 25%;
         min-width: 150px;
       }
 
@@ -409,7 +409,7 @@ window.SequenceDiagramRenderer = {
   // Step 2: Create ActivationBox component
   createActivationBox: function () {
     return function ActivationBox({ actorIndex, yPos, color, actorsCount }) {
-      const positionX = (actorIndex + 0.5) * (100 / actorsCount);
+      const positionX = actorIndex * (100 / actorsCount) + (100 / (actorsCount * 2));
       const style = {
         top: `${yPos}px`,
         left: `${positionX}%`,
@@ -442,14 +442,14 @@ window.SequenceDiagramRenderer = {
       const startActor = isLeft ? to : from;
       const endActor = isLeft ? from : to;
 
-      // Calculate positions based on actor lanes
-      const startX = (startActor + 0.5) * (100 / actorsCount);
-      const endX = (endActor + 0.5) * (100 / actorsCount);
-      const width = Math.abs(endX - startX);
+      // Calculate positions using SequenceFlow.html formula
+      const start = (isLeft ? to : from) * (100 / actorsCount) + (100 / (actorsCount * 2));
+      const distance = Math.abs(to - from);
+      const width = distance * (100 / actorsCount);
 
       const messageStyle = {
         top: `${yPos - 50}px`,
-        left: `${Math.min(startX, endX)}%`,
+        left: `${start}%`,
         width: `${width}%`,
         position: "absolute",
         height: "100px",
@@ -498,7 +498,7 @@ window.SequenceDiagramRenderer = {
       height,
       actorsCount,
     }) {
-      const position = (actorIndex + 0.5) * (100 / actorsCount);
+      const position = actorIndex * (100 / actorsCount) + (100 / (actorsCount * 2));
       const style = {
         top: `${yPos}px`,
         left: `${position}%`,
