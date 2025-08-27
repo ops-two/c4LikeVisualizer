@@ -161,16 +161,16 @@ function(instance, properties, context) {
             return;
         }
         
-        // Initialize NEW sequence diagram renderer
-        console.log('UPDATE: Initializing new sequence diagram renderer...');
-        window.SequenceDiagramRenderer.init(pluginId);
+        // Initialize renderer
+        console.log('UPDATE: Initializing renderer...');
+        window.WorkflowArchitectRenderer.init(pluginId);
         
         // Mark as rendered BEFORE calling render to prevent loops
         containerElement.attr('data-diagram-rendered', 'true');
         
-        // Call NEW renderer with data and target element
-        console.log('UPDATE: Calling new sequence diagram renderer...');
-        window.SequenceDiagramRenderer.render({
+        // Call renderer with data and target element
+        console.log('UPDATE: Calling renderer...');
+        window.WorkflowArchitectRenderer.render({
             feature: { name: projectName },
             containers: containers,
             sequences: sequences

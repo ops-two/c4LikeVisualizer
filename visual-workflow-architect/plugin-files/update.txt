@@ -66,46 +66,146 @@ function(instance, properties, context) {
         
         console.log('UPDATE: Feature:', featureName, 'Containers:', containerCount, 'Sequences:', sequenceCount);
         
+        console.log('UPDATE: Feature object keys:', Object.keys(properties.feature._data || {}));
+        
         var allContainers = containerCount > 0 ? properties.containers.get(0, containerCount) : [];
         var allSequences = sequenceCount > 0 ? properties.sequences.get(0, sequenceCount) : [];
+        // Pre-access all fields to ensure data is loaded (following storymap pattern)
+        allContainers.forEach(function(container) {
+            container.get('name_text');
+            container.get('_id');
+            container.get('Persona');
+            container.get('type');
+            container.get('feature');
+            container.get('url');
+            container.get('externalcomponentid');
+            container.get('x_position');
+            container.get('order_index');
+            container.get('color_hex');
+        });
         
-        // Process containers
+        allSequences.forEach(function(sequence) {
+            sequence.get('Label');
+            sequence.get('_id');
+            sequence.get('description');
+            sequence.get('FromContainer');
+            sequence.get('ToContainer');
+            sequence.get('Feature');
+            sequence.get('SequenceType');
+            sequence.get('Workflow');
+            sequence.get('order_index');
+            sequence.get('is_dashed');
+            sequence.get('color_hex');
+        });
+        
+        console.log('UPDATE: Pre-accessed all fields to ensure data loading');
+        
+        // Process containers - using correct field names from database schema
         var containers = [];
         for (var i = 0; i < allContainers.length; i++) {
             var container = allContainers[i];
             containers.push({
                 container_id: container.get('_id'),
-                name_text: container.get('name_text') || container.get('name') || 'Container ' + (i + 1),
+                name_text: container.get('name_text') || container.get('name'), // Try both field names
                 type_text: container.get('Persona') ? 'Persona' : 'Component',
-                color_hex_text: container.get('color_hex') || '#3ea50b',
-                order_index_number: container.get('order_index') || i,
-                feature_id: featureId
+                persona_name: container.get('Persona') ? container.get('Persona').get('name') : null,
+                tooltype_name: container.get('type') ? container.get('type').get('name') : null, // Fixed: 'type' not 'ToolType'
+                feature_id: container.get('feature') ? container.get('feature').get('_id') : null,
+                component_url_text: container.get('url') || '',
+                external_id: container.get('externalcomponentid') || '',
+                x_position_number: container.get('x_position') || 0,
+                order_index_number: container.get('order_index') || 0,
+                color_hex_text: container.get('color_hex') || '#3ea50b'
             });
         }
         
-        // Process sequences
+        // Process sequences - using correct field names from database schema
         var sequences = [];
         for (var j = 0; j < allSequences.length; j++) {
             var sequence = allSequences[j];
+            
+            // Debug logging for this specific sequence
+            console.log('Processing sequence ' + j + ':');
+            console.log('  - Label:', sequence.get('Label'));
+            console.log('  - FromContainer object:', sequence.get('FromContainer'));
+            console.log('  - ToContainer object:', sequence.get('ToContainer'));
+            
+            var fromContainerId = null;
+            var toContainerId = null;
+            
+            // Extract container IDs from full container objects
+            try {
+                var fromContainer = sequence.get('FromContainer');
+                if (fromContainer) {
+                    // Check if it's a full container object with Unique ID
+                    if (fromContainer.get && typeof fromContainer.get === 'function') {
+                        // Try different ID field names
+                        fromContainerId = fromContainer.get('_id') || 
+                                        fromContainer.get('Unique ID') || 
+                                        fromContainer.get('UniqueID') ||
+                                        fromContainer.get('id');
+                        console.log('  - FromContainer ID extracted:', fromContainerId);
+                        console.log('  - FromContainer name:', fromContainer.get('name'));
+                    } else if (typeof fromContainer === 'string') {
+                        // Direct ID string
+                        fromContainerId = fromContainer;
+                        console.log('  - FromContainer direct ID:', fromContainerId);
+                    }
+                }
+            } catch (e) {
+                console.log('  - Error getting FromContainer ID:', e);
+            }
+            
+            try {
+                var toContainer = sequence.get('ToContainer');
+                if (toContainer) {
+                    // Check if it's a full container object with Unique ID
+                    if (toContainer.get && typeof toContainer.get === 'function') {
+                        // Try different ID field names
+                        toContainerId = toContainer.get('_id') || 
+                                      toContainer.get('Unique ID') || 
+                                      toContainer.get('UniqueID') ||
+                                      toContainer.get('id');
+                        console.log('  - ToContainer ID extracted:', toContainerId);
+                        console.log('  - ToContainer name:', toContainer.get('name'));
+                    } else if (typeof toContainer === 'string') {
+                        // Direct ID string
+                        toContainerId = toContainer;
+                        console.log('  - ToContainer direct ID:', toContainerId);
+                    }
+                }
+            } catch (e) {
+                console.log('  - Error getting ToContainer ID:', e);
+            }
+            
             sequences.push({
                 sequence_id: sequence.get('_id'),
-                label_text: sequence.get('Label') || sequence.get('label_text') || 'Sequence ' + (j + 1),
-                from_container_id: sequence.get('FromContainer') ? sequence.get('FromContainer').get('_id') : null,
-                to_container_id: sequence.get('ToContainer') ? sequence.get('ToContainer').get('_id') : null,
+                label_text: sequence.get('Label') || sequence.get('label_text') || sequence.get('label'), // Try multiple field names
+                description_text: sequence.get('description') || '',
+                from_container_id: fromContainerId,
+                to_container_id: toContainerId,
+                feature_id: sequence.get('Feature') ? sequence.get('Feature').get('_id') : null,
+                sequence_type_name: sequence.get('SequenceType') ? sequence.get('SequenceType').get('name') : '',
+                workflow_name: sequence.get('Workflow') ? sequence.get('Workflow').get('Label') : '',
+                order_index_number: sequence.get('order_index') || 0,
                 is_dashed_boolean: sequence.get('is_dashed') || false,
-                color_hex_text: sequence.get('color_hex') || '#1976d2',
-                order_index_number: sequence.get('order_index') || j,
-                feature_id: featureId
+                color_hex_text: sequence.get('color_hex') || '#1976d2'
             });
         }
         
         console.log('UPDATE: Processed', containers.length, 'containers and', sequences.length, 'sequences');
+        console.log('UPDATE: Sequences with container connections:', sequences.filter(function(seq) { 
+            return seq.from_container_id && seq.to_container_id; 
+        }).length);
         
         // Initialize data store
         var bubbleData = {
             feature: {
-                feature_id: featureId,
-                name_text: featureName
+                feature_id: properties.feature.get('_id'),
+                name_text: featureName,
+                description_text: properties.feature.get('description') || 
+                                 properties.feature.get('description_text') || 
+                                 properties.feature.get('Description') || ''
             },
             containers: containers,
             sequences: sequences
