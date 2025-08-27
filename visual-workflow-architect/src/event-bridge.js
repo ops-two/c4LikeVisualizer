@@ -2,161 +2,242 @@
 // Bubble communication layer for real-time updates
 // Based on proven patterns from storymap-grid implementation
 
-console.log('DEBUG: event-bridge.js script is loading...');
+console.log("DEBUG: event-bridge.js script is loading...");
 
 window.WorkflowArchitectEventBridge = {
   // Bubble instance reference
   bubbleInstance: null,
-  
+
   // Processing state to prevent race conditions
   isProcessing: false,
-  
+
   // Debounce timer for batching updates
   debounceTimer: null,
   debounceDelay: 300, // 300ms delay as proven in storymap-grid
-  
+
   // Pending updates queue
   pendingUpdates: [],
 
   // Initialize with Bubble instance
-  init: function(bubbleInstance) {
-    console.log('WorkflowArchitectEventBridge: Initializing with Bubble instance');
+  init: function (bubbleInstance) {
+    console.log(
+      "WorkflowArchitectEventBridge: Initializing with Bubble instance"
+    );
     this.bubbleInstance = bubbleInstance;
     this.isProcessing = false;
     this.pendingUpdates = [];
-    
+
     if (!bubbleInstance) {
-      console.error('WorkflowArchitectEventBridge: No Bubble instance provided');
+      console.error(
+        "WorkflowArchitectEventBridge: No Bubble instance provided"
+      );
       return false;
     }
-    
-    console.log('WorkflowArchitectEventBridge: Initialization complete');
+
+    console.log("WorkflowArchitectEventBridge: Initialization complete");
     return true;
   },
 
   // Handle container updates
-  handleContainerUpdate: function(containerId, updateData) {
-    console.log('WorkflowArchitectEventBridge: Container update requested', containerId, updateData);
-    
+  handleContainerUpdate: function (containerId, updateData) {
+    console.log(
+      "WorkflowArchitectEventBridge: Container update requested",
+      containerId,
+      updateData
+    );
+
     if (!this.bubbleInstance) {
-      console.error('WorkflowArchitectEventBridge: No Bubble instance available');
+      console.error(
+        "WorkflowArchitectEventBridge: No Bubble instance available"
+      );
       return false;
     }
 
     try {
       // Update local data store first
-      const success = window.WorkflowArchitectDataStore.updateEntity('container', containerId, updateData);
+      const success = window.WorkflowArchitectDataStore.updateEntity(
+        "container",
+        containerId,
+        updateData
+      );
       if (!success) {
-        console.error('WorkflowArchitectEventBridge: Failed to update local data store');
+        console.error(
+          "WorkflowArchitectEventBridge: Failed to update local data store"
+        );
         return false;
       }
 
       // Get formatted data for Bubble
-      const bubbleUpdateData = window.WorkflowArchitectDataStore.getEntityForUpdate('container', containerId);
+      const bubbleUpdateData =
+        window.WorkflowArchitectDataStore.getEntityForUpdate(
+          "container",
+          containerId
+        );
       if (!bubbleUpdateData) {
-        console.error('WorkflowArchitectEventBridge: Failed to format update data for Bubble');
+        console.error(
+          "WorkflowArchitectEventBridge: Failed to format update data for Bubble"
+        );
         return false;
       }
 
       // Send to Bubble with debouncing
-      this.debouncedBubbleUpdate('container_updated', bubbleUpdateData);
+      this.debouncedBubbleUpdate("container_updated", bubbleUpdateData);
       return true;
-
     } catch (error) {
-      console.error('WorkflowArchitectEventBridge: Container update failed', error);
+      console.error(
+        "WorkflowArchitectEventBridge: Container update failed",
+        error
+      );
       return false;
     }
   },
 
   // Handle sequence updates
-  handleSequenceUpdate: function(sequenceId, updateData) {
-    console.log('WorkflowArchitectEventBridge: Sequence update requested', sequenceId, updateData);
-    
+  handleSequenceUpdate: function (sequenceId, updateData) {
+    console.log(
+      "WorkflowArchitectEventBridge: Sequence update requested",
+      sequenceId,
+      updateData
+    );
+
     if (!this.bubbleInstance) {
-      console.error('WorkflowArchitectEventBridge: No Bubble instance available');
+      console.error(
+        "WorkflowArchitectEventBridge: No Bubble instance available"
+      );
       return false;
     }
 
     try {
       // Update local data store first
-      const success = window.WorkflowArchitectDataStore.updateEntity('sequence', sequenceId, updateData);
+      const success = window.WorkflowArchitectDataStore.updateEntity(
+        "sequence",
+        sequenceId,
+        updateData
+      );
       if (!success) {
-        console.error('WorkflowArchitectEventBridge: Failed to update local data store');
+        console.error(
+          "WorkflowArchitectEventBridge: Failed to update local data store"
+        );
         return false;
       }
 
       // Get formatted data for Bubble
-      const bubbleUpdateData = window.WorkflowArchitectDataStore.getEntityForUpdate('sequence', sequenceId);
+      const bubbleUpdateData =
+        window.WorkflowArchitectDataStore.getEntityForUpdate(
+          "sequence",
+          sequenceId
+        );
       if (!bubbleUpdateData) {
-        console.error('WorkflowArchitectEventBridge: Failed to format update data for Bubble');
+        console.error(
+          "WorkflowArchitectEventBridge: Failed to format update data for Bubble"
+        );
         return false;
       }
 
       // Send to Bubble with debouncing
-      this.debouncedBubbleUpdate('sequence_updated', bubbleUpdateData);
+      this.debouncedBubbleUpdate("sequence_updated", bubbleUpdateData);
       return true;
-
     } catch (error) {
-      console.error('WorkflowArchitectEventBridge: Sequence update failed', error);
+      console.error(
+        "WorkflowArchitectEventBridge: Sequence update failed",
+        error
+      );
       return false;
     }
   },
 
   // Handle workflow updates
-  handleWorkflowUpdate: function(workflowId, updateData) {
-    console.log('WorkflowArchitectEventBridge: Workflow update requested', workflowId, updateData);
-    
+  handleWorkflowUpdate: function (workflowId, updateData) {
+    console.log(
+      "WorkflowArchitectEventBridge: Workflow update requested",
+      workflowId,
+      updateData
+    );
+
     if (!this.bubbleInstance) {
-      console.error('WorkflowArchitectEventBridge: No Bubble instance available');
+      console.error(
+        "WorkflowArchitectEventBridge: No Bubble instance available"
+      );
       return false;
     }
 
     try {
       // Update local data store first
-      const success = window.WorkflowArchitectDataStore.updateEntity('workflow', workflowId, updateData);
+      const success = window.WorkflowArchitectDataStore.updateEntity(
+        "workflow",
+        workflowId,
+        updateData
+      );
       if (!success) {
-        console.error('WorkflowArchitectEventBridge: Failed to update local data store');
+        console.error(
+          "WorkflowArchitectEventBridge: Failed to update local data store"
+        );
         return false;
       }
 
       // Get formatted data for Bubble
-      const bubbleUpdateData = window.WorkflowArchitectDataStore.getEntityForUpdate('workflow', workflowId);
+      const bubbleUpdateData =
+        window.WorkflowArchitectDataStore.getEntityForUpdate(
+          "workflow",
+          workflowId
+        );
       if (!bubbleUpdateData) {
-        console.error('WorkflowArchitectEventBridge: Failed to format update data for Bubble');
+        console.error(
+          "WorkflowArchitectEventBridge: Failed to format update data for Bubble"
+        );
         return false;
       }
 
       // Send to Bubble with debouncing
-      this.debouncedBubbleUpdate('workflow_updated', bubbleUpdateData);
+      this.debouncedBubbleUpdate("workflow_updated", bubbleUpdateData);
       return true;
-
     } catch (error) {
-      console.error('WorkflowArchitectEventBridge: Workflow update failed', error);
+      console.error(
+        "WorkflowArchitectEventBridge: Workflow update failed",
+        error
+      );
       return false;
     }
   },
 
   // Handle entity creation
-  handleEntityAdd: function(entityType, entityData) {
-    console.log('WorkflowArchitectEventBridge: Entity add requested', entityType, entityData);
-    
+  handleEntityAdd: function (entityType, entityData) {
+    console.log(
+      "WorkflowArchitectEventBridge: Entity add requested",
+      entityType,
+      entityData
+    );
+
     if (!this.bubbleInstance) {
-      console.error('WorkflowArchitectEventBridge: No Bubble instance available');
+      console.error(
+        "WorkflowArchitectEventBridge: No Bubble instance available"
+      );
       return false;
     }
 
     try {
       // Add to local data store first (generates temporary ID)
-      const tempId = window.WorkflowArchitectDataStore.addEntity(entityType, entityData);
+      const tempId = window.WorkflowArchitectDataStore.addEntity(
+        entityType,
+        entityData
+      );
       if (!tempId) {
-        console.error('WorkflowArchitectEventBridge: Failed to add entity to local data store');
+        console.error(
+          "WorkflowArchitectEventBridge: Failed to add entity to local data store"
+        );
         return false;
       }
 
       // Get formatted data for Bubble
-      const bubbleCreateData = window.WorkflowArchitectDataStore.getEntityForUpdate(entityType, tempId);
+      const bubbleCreateData =
+        window.WorkflowArchitectDataStore.getEntityForUpdate(
+          entityType,
+          tempId
+        );
       if (!bubbleCreateData) {
-        console.error('WorkflowArchitectEventBridge: Failed to format create data for Bubble');
+        console.error(
+          "WorkflowArchitectEventBridge: Failed to format create data for Bubble"
+        );
         return false;
       }
 
@@ -166,70 +247,98 @@ window.WorkflowArchitectEventBridge = {
 
       // Send to Bubble
       const eventName = `${entityType}_added`;
-      this.sendToBubble(eventName, bubbleCreateData, 'pending_add');
-      
+      this.sendToBubble(eventName, bubbleCreateData, "pending_add");
+
       // Trigger UI re-render after successful addition
       setTimeout(() => {
-        console.log('WorkflowArchitectEventBridge: Triggering reRenderUI after container add');
+        console.log(
+          "WorkflowArchitectEventBridge: Triggering reRenderUI after container add"
+        );
         this.reRenderUI();
       }, 100);
-      
-      return tempId;
 
+      return tempId;
     } catch (error) {
-      console.error('WorkflowArchitectEventBridge: Entity add failed', error);
+      console.error("WorkflowArchitectEventBridge: Entity add failed", error);
       return false;
     }
   },
 
   // Handle entity deletion
-  handleEntityDelete: function(entityType, entityId) {
-    console.log('WorkflowArchitectEventBridge: Entity delete requested', entityType, entityId);
-    
+  handleEntityDelete: function (entityType, entityId) {
+    console.log(
+      "WorkflowArchitectEventBridge: Entity delete requested",
+      entityType,
+      entityId
+    );
+
     if (!this.bubbleInstance) {
-      console.error('WorkflowArchitectEventBridge: No Bubble instance available');
+      console.error(
+        "WorkflowArchitectEventBridge: No Bubble instance available"
+      );
       return false;
     }
 
     try {
       // Get entity data before deletion for Bubble
-      const entityData = window.WorkflowArchitectDataStore.getEntityForUpdate(entityType, entityId);
+      const entityData = window.WorkflowArchitectDataStore.getEntityForUpdate(
+        entityType,
+        entityId
+      );
       if (!entityData) {
-        console.error('WorkflowArchitectEventBridge: Entity not found for deletion');
+        console.error(
+          "WorkflowArchitectEventBridge: Entity not found for deletion"
+        );
         return false;
       }
 
       // Remove from local data store (includes cascading)
-      const success = window.WorkflowArchitectDataStore.removeEntity(entityType, entityId);
+      const success = window.WorkflowArchitectDataStore.removeEntity(
+        entityType,
+        entityId
+      );
       if (!success) {
-        console.error('WorkflowArchitectEventBridge: Failed to remove entity from local data store');
+        console.error(
+          "WorkflowArchitectEventBridge: Failed to remove entity from local data store"
+        );
         return false;
       }
 
       // Send deletion event to Bubble
       const eventName = `${entityType}_deleted`;
       this.sendToBubble(eventName, { entityId: entityId });
-      
-      return true;
 
+      return true;
     } catch (error) {
-      console.error('WorkflowArchitectEventBridge: Entity delete failed', error);
+      console.error(
+        "WorkflowArchitectEventBridge: Entity delete failed",
+        error
+      );
       return false;
     }
   },
 
   // Handle drag-and-drop reordering
-  handleReorder: function(entityType, entityId, newOrderIndex) {
-    console.log('WorkflowArchitectEventBridge: Reorder requested', entityType, entityId, newOrderIndex);
-    
+  handleReorder: function (entityType, entityId, newOrderIndex) {
+    console.log(
+      "WorkflowArchitectEventBridge: Reorder requested",
+      entityType,
+      entityId,
+      newOrderIndex
+    );
+
     if (!this.bubbleInstance) {
-      console.error('WorkflowArchitectEventBridge: No Bubble instance available');
+      console.error(
+        "WorkflowArchitectEventBridge: No Bubble instance available"
+      );
       return false;
     }
 
     // Prevent overlapping reorder operations
     if (this.isProcessing) {
-      console.log('WorkflowArchitectEventBridge: Reorder already in progress, skipping');
+      console.log(
+        "WorkflowArchitectEventBridge: Reorder already in progress, skipping"
+      );
       return false;
     }
 
@@ -238,17 +347,29 @@ window.WorkflowArchitectEventBridge = {
 
       // Update order index in local data store
       const updateData = { orderIndex: newOrderIndex };
-      const success = window.WorkflowArchitectDataStore.updateEntity(entityType, entityId, updateData);
+      const success = window.WorkflowArchitectDataStore.updateEntity(
+        entityType,
+        entityId,
+        updateData
+      );
       if (!success) {
-        console.error('WorkflowArchitectEventBridge: Failed to update order in local data store');
+        console.error(
+          "WorkflowArchitectEventBridge: Failed to update order in local data store"
+        );
         this.isProcessing = false;
         return false;
       }
 
       // Get formatted data for Bubble
-      const bubbleUpdateData = window.WorkflowArchitectDataStore.getEntityForUpdate(entityType, entityId);
+      const bubbleUpdateData =
+        window.WorkflowArchitectDataStore.getEntityForUpdate(
+          entityType,
+          entityId
+        );
       if (!bubbleUpdateData) {
-        console.error('WorkflowArchitectEventBridge: Failed to format reorder data for Bubble');
+        console.error(
+          "WorkflowArchitectEventBridge: Failed to format reorder data for Bubble"
+        );
         this.isProcessing = false;
         return false;
       }
@@ -263,16 +384,15 @@ window.WorkflowArchitectEventBridge = {
       }, this.debounceDelay);
 
       return true;
-
     } catch (error) {
-      console.error('WorkflowArchitectEventBridge: Reorder failed', error);
+      console.error("WorkflowArchitectEventBridge: Reorder failed", error);
       this.isProcessing = false;
       return false;
     }
   },
 
   // Debounced update to prevent rapid-fire updates
-  debouncedBubbleUpdate: function(eventName, updateData) {
+  debouncedBubbleUpdate: function (eventName, updateData) {
     // Clear existing timer
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
@@ -288,24 +408,31 @@ window.WorkflowArchitectEventBridge = {
   },
 
   // Process all pending updates
-  processPendingUpdates: function() {
+  processPendingUpdates: function () {
     if (this.pendingUpdates.length === 0) {
       return;
     }
 
-    console.log('WorkflowArchitectEventBridge: Processing', this.pendingUpdates.length, 'pending updates');
+    console.log(
+      "WorkflowArchitectEventBridge: Processing",
+      this.pendingUpdates.length,
+      "pending updates"
+    );
 
     // Group updates by entity to avoid duplicates
     const latestUpdates = {};
-    this.pendingUpdates.forEach(update => {
+    this.pendingUpdates.forEach((update) => {
       const key = `${update.eventName}_${update.updateData.entityId}`;
-      if (!latestUpdates[key] || update.timestamp > latestUpdates[key].timestamp) {
+      if (
+        !latestUpdates[key] ||
+        update.timestamp > latestUpdates[key].timestamp
+      ) {
         latestUpdates[key] = update;
       }
     });
 
     // Send latest updates to Bubble
-    Object.values(latestUpdates).forEach(update => {
+    Object.values(latestUpdates).forEach((update) => {
       this.sendToBubble(update.eventName, update.updateData);
     });
 
@@ -315,14 +442,21 @@ window.WorkflowArchitectEventBridge = {
   },
 
   // Send data to Bubble  // Core method to send data to Bubble
-  sendToBubble: function(eventName, data, stateKey = 'pending_update') {
+  sendToBubble: function (eventName, data, stateKey = "pending_update") {
     if (!this.bubbleInstance) {
-      console.error('WorkflowArchitectEventBridge: No Bubble instance available for', eventName);
+      console.error(
+        "WorkflowArchitectEventBridge: No Bubble instance available for",
+        eventName
+      );
       return false;
     }
 
     try {
-      console.log('WorkflowArchitectEventBridge: Sending to Bubble:', eventName, data);
+      console.log(
+        "WorkflowArchitectEventBridge: Sending to Bubble:",
+        eventName,
+        data
+      );
 
       // Set custom state with the data payload using the specified state key
       this.bubbleInstance.publishState(stateKey, JSON.stringify(data));
@@ -330,24 +464,33 @@ window.WorkflowArchitectEventBridge = {
       // Trigger the event
       this.bubbleInstance.triggerEvent(eventName);
 
-      console.log('WorkflowArchitectEventBridge: Successfully sent', eventName, 'to Bubble');
+      console.log(
+        "WorkflowArchitectEventBridge: Successfully sent",
+        eventName,
+        "to Bubble"
+      );
       return true;
-
     } catch (error) {
-      console.error('WorkflowArchitectEventBridge: Failed to send to Bubble:', eventName, error);
+      console.error(
+        "WorkflowArchitectEventBridge: Failed to send to Bubble:",
+        eventName,
+        error
+      );
       return false;
     }
   },
 
   // Handle Bubble data refresh (when data changes externally)
-  handleDataRefresh: function(newBubbleData) {
-    console.log('WorkflowArchitectEventBridge: Data refresh requested');
-    
+  handleDataRefresh: function (newBubbleData) {
+    console.log("WorkflowArchitectEventBridge: Data refresh requested");
+
     try {
       // Re-initialize data store with fresh data
       const success = window.WorkflowArchitectDataStore.init(newBubbleData);
       if (!success) {
-        console.error('WorkflowArchitectEventBridge: Failed to refresh data store');
+        console.error(
+          "WorkflowArchitectEventBridge: Failed to refresh data store"
+        );
         return false;
       }
 
@@ -358,17 +501,16 @@ window.WorkflowArchitectEventBridge = {
         this.debounceTimer = null;
       }
 
-      console.log('WorkflowArchitectEventBridge: Data refresh complete');
+      console.log("WorkflowArchitectEventBridge: Data refresh complete");
       return true;
-
     } catch (error) {
-      console.error('WorkflowArchitectEventBridge: Data refresh failed', error);
+      console.error("WorkflowArchitectEventBridge: Data refresh failed", error);
       return false;
     }
   },
 
   // Calculate precise order index for drag-drop positioning
-  calculateOrderIndex: function(entityType, targetPosition, entities) {
+  calculateOrderIndex: function (entityType, targetPosition, entities) {
     // Use decimal positioning system from storymap-grid
     if (entities.length === 0) {
       return 1.0;
@@ -393,17 +535,17 @@ window.WorkflowArchitectEventBridge = {
   },
 
   // Get current status
-  getStatus: function() {
+  getStatus: function () {
     return {
       isInitialized: !!this.bubbleInstance,
       isProcessing: this.isProcessing,
       pendingUpdates: this.pendingUpdates.length,
-      debounceActive: !!this.debounceTimer
+      debounceActive: !!this.debounceTimer,
     };
   },
 
   // Force flush all pending updates (for testing)
-  flush: function() {
+  flush: function () {
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
       this.processPendingUpdates();
@@ -411,39 +553,55 @@ window.WorkflowArchitectEventBridge = {
   },
 
   // Re-render UI after data changes (following storymap-grid pattern)
-  reRenderUI: function() {
-    console.log('WorkflowArchitectEventBridge: Re-rendering UI');
-    
+  reRenderUI: function () {
+    console.log("WorkflowArchitectEventBridge: Re-rendering UI");
+
     try {
-      // Find the main canvas container (following storymap pattern)
-      const mainCanvas = document.querySelector('[id^="bubble-r-box"]');
+      // Find the workflow architect container
+      const mainCanvas = document.querySelector(
+        '[id^="workflow-architect-container"]'
+      );
       if (!mainCanvas) {
-        console.error('WorkflowArchitectEventBridge: Main canvas not found');
+        console.error("WorkflowArchitectEventBridge: Main canvas not found");
         return;
       }
-      
+
       // Get latest data from data store
-      if (window.WorkflowArchitectDataStore && window.WorkflowArchitectDataStore.data.isInitialized) {
+      if (
+        window.WorkflowArchitectDataStore &&
+        window.WorkflowArchitectDataStore.data.isInitialized
+      ) {
         const latestData = {
           feature: window.WorkflowArchitectDataStore.getFeature(),
           containers: window.WorkflowArchitectDataStore.getContainersArray(),
           sequences: window.WorkflowArchitectDataStore.getSequencesArray(),
-          workflows: window.WorkflowArchitectDataStore.getWorkflowsArray()
+          workflows: window.WorkflowArchitectDataStore.getWorkflowsArray(),
         };
-        
+
         // Direct renderer call (exactly like storymap-grid pattern)
         if (window.WorkflowArchitectRenderer) {
-          console.log('WorkflowArchitectEventBridge: Calling renderer directly with data:', latestData);
+          console.log(
+            "WorkflowArchitectEventBridge: Calling renderer directly with data:",
+            latestData
+          );
           window.WorkflowArchitectRenderer.render(latestData, $(mainCanvas));
-          console.log('WorkflowArchitectEventBridge: Direct render completed');
+          console.log("WorkflowArchitectEventBridge: Direct render completed");
         } else {
-          console.error('WorkflowArchitectEventBridge: WorkflowArchitectRenderer not available');
+          console.error(
+            "WorkflowArchitectEventBridge: WorkflowArchitectRenderer not available"
+          );
         }
       }
     } catch (error) {
-      console.error('WorkflowArchitectEventBridge: Failed to re-render UI', error);
+      console.error(
+        "WorkflowArchitectEventBridge: Failed to re-render UI",
+        error
+      );
     }
-  }
+  },
 };
 
-console.log('DEBUG: event-bridge.js script loaded successfully. WorkflowArchitectEventBridge object created:', typeof window.WorkflowArchitectEventBridge);
+console.log(
+  "DEBUG: event-bridge.js script loaded successfully. WorkflowArchitectEventBridge object created:",
+  typeof window.WorkflowArchitectEventBridge
+);
