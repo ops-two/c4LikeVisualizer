@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proper Sequence Diagram Test - React + CSS</title>
+</head>
+<body>
+    <div style="padding: 20px;">
+        <h1>Proper Sequence Diagram Test</h1>
+        <p>This uses the same React + CSS approach as SequenceFlow.html (NOT React Flow)</p>
+        
+        <div style="margin: 20px 0;">
+            <button onclick="renderDiagram()" style="padding: 10px 20px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Render Proper Sequence Diagram
+            </button>
+        </div>
+        
+        <div id="diagram" style="border: 1px solid #ddd; border-radius: 8px; min-height: 400px; background: white;">
+            <div style="display: flex; align-items: center; justify-content: center; height: 400px; color: #666;">
+                Click "Render Proper Sequence Diagram" to start
+            </div>
+        </div>
+    </div>
+
+    <!-- React Libraries -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Our Sequence Diagram Renderer -->
+    <script src="../src/react-flow-renderer-clean.js"></script>
+
+    <script>
+        // Test data matching the structure from SequenceFlow.html
+        const testData = {
+            containers: [
+                {
+                    container_id: "auth_api",
+                    name_text: "Auth API",
+                    type_text: "API SERVICE",
+                    color_hex_text: "#1976d2"
+                },
+                {
+                    container_id: "user",
+                    name_text: "User",
+                    type_text: "ACTOR",
+                    color_hex_text: "#4caf50"
+                },
+                {
+                    container_id: "database",
+                    name_text: "Database",
+                    type_text: "DATA STORE",
+                    color_hex_text: "#ff9800"
+                }
+            ],
+            sequences: [
+                {
+                    sequence_id: "seq1",
+                    label_text: "Login Request",
+                    from_container_id: "user",
+                    to_container_id: "auth_api",
+                    is_dashed_boolean: false
+                },
+                {
+                    sequence_id: "seq2",
+                    label_text: "Validate Credentials",
+                    from_container_id: "auth_api",
+                    to_container_id: "database",
+                    is_dashed_boolean: false
+                },
+                {
+                    sequence_id: "seq3",
+                    label_text: "Auth Response",
+                    from_container_id: "database",
+                    to_container_id: "auth_api",
+                    is_dashed_boolean: true
+                },
+                {
+                    sequence_id: "seq4",
+                    label_text: "Login Response",
+                    from_container_id: "auth_api",
+                    to_container_id: "user",
+                    is_dashed_boolean: true
+                }
+            ]
+        };
+
+        function renderDiagram() {
+            if (!window.SequenceDiagramRenderer) {
+                alert('SequenceDiagramRenderer not loaded');
+                return;
+            }
+
+            console.log('Rendering with test data:', testData);
+            
+            const container = document.getElementById('diagram');
+            container.innerHTML = '';
+            
+            // Use our proper sequence diagram renderer
+            window.SequenceDiagramRenderer.render(testData, container);
+            
+            console.log('Proper sequence diagram rendered!');
+        }
+
+        // Auto-render when page loads
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                if (window.SequenceDiagramRenderer) {
+                    renderDiagram();
+                } else {
+                    console.error('SequenceDiagramRenderer not available');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -27,11 +27,11 @@ function(instance, properties, context) {
         return;
     }
     
-    // 1. Check if renderer script is loaded
-    console.log('UPDATE: Checking for WorkflowArchitectRenderer...');
-    if (typeof window.WorkflowArchitectRenderer === 'undefined') {
-        console.log('UPDATE: Renderer script not loaded');
-        containerElement.html('<div style="padding:20px; border: 2px solid #ff4444; border-radius: 8px; background: #fff5f5; color: #cc0000;">🚨 RENDERER SCRIPT NOT LOADED<br>Check plugin headers for sequence-renderer.js</div>');
+    // 1. Check if NEW sequence diagram renderer script is loaded
+    console.log('UPDATE: Checking for SequenceDiagramRenderer...');
+    if (typeof window.SequenceDiagramRenderer === 'undefined') {
+        console.log('UPDATE: New sequence diagram renderer script not loaded');
+        containerElement.html('<div style="padding:20px; border: 2px solid #ff4444; border-radius: 8px; background: #fff5f5; color: #cc0000;">🚨 NEW SEQUENCE DIAGRAM RENDERER NOT LOADED<br>Check plugin headers for react-flow-renderer-clean.js</div>');
         return;
     }
     
@@ -161,16 +161,16 @@ function(instance, properties, context) {
             return;
         }
         
-        // Initialize renderer
-        console.log('UPDATE: Initializing renderer...');
-        window.WorkflowArchitectRenderer.init(pluginId);
+        // Initialize NEW sequence diagram renderer
+        console.log('UPDATE: Initializing new sequence diagram renderer...');
+        window.SequenceDiagramRenderer.init(pluginId);
         
         // Mark as rendered BEFORE calling render to prevent loops
         containerElement.attr('data-diagram-rendered', 'true');
         
-        // Call renderer with data and target element
-        console.log('UPDATE: Calling renderer...');
-        window.WorkflowArchitectRenderer.render({
+        // Call NEW renderer with data and target element
+        console.log('UPDATE: Calling new sequence diagram renderer...');
+        window.SequenceDiagramRenderer.render({
             feature: { name: projectName },
             containers: containers,
             sequences: sequences
