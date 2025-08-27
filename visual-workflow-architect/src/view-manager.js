@@ -159,7 +159,7 @@ window.WorkflowArchitectViewManager = {
       border: 1px solid #ddd; 
       border-radius: 8px;
       background: #f8f9fa;
-      overflow: hidden;
+      overflow: visible;
     `;
 
     // Calculate positions for containers in a circle

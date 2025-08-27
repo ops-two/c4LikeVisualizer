@@ -182,7 +182,6 @@ window.SequenceDiagramRenderer = {
         display: flex;
         justify-content: space-around;
         position: relative;
-        max-width: 1000px;
         margin: auto;
         padding-top: 30px;
         padding-bottom: 50px;
