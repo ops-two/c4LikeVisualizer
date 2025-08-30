@@ -11,6 +11,7 @@ window.WorkflowArchitectDataStore = {
     containers: {},
     sequences: {},
     workflows: {},
+    subgroups: {}, // ADD THIS LINE
     isInitialized: false,
     lastUpdate: null,
   },
@@ -24,6 +25,7 @@ window.WorkflowArchitectDataStore = {
         containers: {},
         sequences: {},
         workflows: {},
+        subgroups: {}, // ADD THIS LINE
         isInitialized: false,
         lastUpdate: new Date(),
       };
@@ -57,6 +59,14 @@ window.WorkflowArchitectDataStore = {
         });
       }
 
+      // ADD THIS NEW BLOCK to process subgroups
+      if (bubbleData.subgroups && Array.isArray(bubbleData.subgroups)) {
+        bubbleData.subgroups.forEach((subgroup) => {
+          const transformedSubgroup = this.transformSubgroup(subgroup);
+          this.data.subgroups[transformedSubgroup.id] = transformedSubgroup;
+        });
+      }
+
       this.data.isInitialized = true;
       return true;
     } catch (error) {
@@ -64,73 +74,74 @@ window.WorkflowArchitectDataStore = {
     }
   },
 
+  // ... existing code
   // Transform Bubble feature data to internal format
   transformFeature: function (bubbleFeature) {
+    if (!bubbleFeature || typeof bubbleFeature.get !== "function") return null;
     return {
-      id: bubbleFeature.feature_id || bubbleFeature.id,
-      name: bubbleFeature.name_text || bubbleFeature.name || "Untitled Feature", // 'name' field from schema
-      description:
-        bubbleFeature.description_text || bubbleFeature.description || "",
-      workspaceId: bubbleFeature.workspace_id || "",
-      orderIndex:
-        bubbleFeature.order_index_number || bubbleFeature.order_index || 0,
-      createdDate: bubbleFeature.created_date || new Date(),
-      modifiedDate: bubbleFeature.modified_date || new Date(),
+      id: bubbleFeature.get("_id"),
+      name: bubbleFeature.get("name_text") || "Untitled Feature",
+      description: bubbleFeature.get("description_text") || "",
+      // NOTE: workspaceId is not a standard field, assuming it's a relationship
+      // workspaceId: bubbleFeature.get('workspace_custom_workspace')?.get('_id') || "",
+      orderIndex: bubbleFeature.get("order_index_number") || 0,
+      createdDate: bubbleFeature.get("Created Date") || new Date(),
+      modifiedDate: bubbleFeature.get("Modified Date") || new Date(),
     };
   },
+  // ... existing code
 
+  // ... existing code
   // Transform Bubble container data to internal format
   transformContainer: function (bubbleContainer) {
-    // Calculate proper order_index for new containers
-    let orderIndex =
-      bubbleContainer.order_index_number || bubbleContainer.order_index;
-
-    // If no order_index provided, calculate next available index
-    if (orderIndex === undefined || orderIndex === null) {
-      orderIndex = this.getNextOrderIndex("container");
-    }
+    if (!bubbleContainer || typeof bubbleContainer.get !== "function")
+      return null;
+    const featureRef = bubbleContainer.get("feature_custom_feature3"); // Using confirmed field name
 
     return {
-      id: bubbleContainer.container_id || bubbleContainer.id,
-      name: bubbleContainer.name_text || "Untitled Container", // 'name' field from schema
-      type: bubbleContainer.type_text || "Component",
-      featureId: bubbleContainer.feature_id || "",
-      componentUrl:
-        bubbleContainer.component_url_text || bubbleContainer.url || "",
-      description:
-        bubbleContainer.description_text || bubbleContainer.description || "",
-      orderIndex: orderIndex,
-      colorHex:
-        bubbleContainer.color_hex_text ||
-        bubbleContainer.color_hex ||
-        "#3ea50b",
-      createdDate: bubbleContainer.created_date || new Date(),
-      modifiedDate: bubbleContainer.modified_date || new Date(),
+      id: bubbleContainer.get("_id"),
+      name: bubbleContainer.get("name_text") || "Untitled Container",
+      // NOTE: 'type' is an Option Set or relationship, requires specific handling
+      // type: bubbleContainer.get('type_option_...') || "Component",
+      featureId: featureRef ? featureRef.get("_id") : null,
+      componentUrl: bubbleContainer.get("url") || "",
+      description: bubbleContainer.get("description_text") || "",
+      orderIndex: bubbleContainer.get("order_index_number") || 0,
+      colorHex: bubbleContainer.get("color_hex_text") || "#3ea50b",
+      createdDate: bubbleContainer.get("Created Date") || new Date(),
+      modifiedDate: bubbleContainer.get("Modified Date") || new Date(),
     };
   },
+  // ... existing code
 
+  // ... existing code
   // Transform Bubble sequence data to internal format
   transformSequence: function (bubbleSequence) {
+    if (!bubbleSequence || typeof bubbleSequence.get !== "function")
+      return null;
+
+    const fromContainerRef = bubbleSequence.get(
+      "fromcontainer_custom_component"
+    );
+    const toContainerRef = bubbleSequence.get("tocontainer_custom_component");
+    const workflowRef = bubbleSequence.get("workflow_custom_workflows");
+    const subgroupRef = bubbleSequence.get("subgroup_custom_subgroup");
+
     return {
-      id: bubbleSequence.sequence_id || bubbleSequence.id,
-      label: bubbleSequence.label_text || "Untitled Sequence", // 'Label' field from schema
-      description:
-        bubbleSequence.description_text || bubbleSequence.description || "",
-      fromContainerId: bubbleSequence.from_container_id || "",
-      toContainerId: bubbleSequence.to_container_id || "",
-      actionType:
-        bubbleSequence.action_type_text ||
-        bubbleSequence.action_type ||
-        "Data Flow",
-      workflowId: bubbleSequence.workflow_id || "",
-      orderIndex:
-        bubbleSequence.order_index_number || bubbleSequence.order_index || 0,
-      isDashed:
-        bubbleSequence.is_dashed_boolean || bubbleSequence.is_dashed || false,
-      createdDate: bubbleSequence.created_date || new Date(),
-      modifiedDate: bubbleSequence.modified_date || new Date(),
+      id: bubbleSequence.get("_id"),
+      label: bubbleSequence.get("label_text") || "Untitled Sequence",
+      description: bubbleSequence.get("description_text") || "",
+      fromContainerId: fromContainerRef ? fromContainerRef.get("_id") : null,
+      toContainerId: toContainerRef ? toContainerRef.get("_id") : null,
+      workflowId: workflowRef ? workflowRef.get("_id") : null,
+      subgroupId: subgroupRef ? subgroupRef.get("_id") : null,
+      orderIndex: bubbleSequence.get("order_index_number") || 0,
+      isDashed: bubbleSequence.get("is_dashed_boolean") || false,
+      createdDate: bubbleSequence.get("Created Date") || new Date(),
+      modifiedDate: bubbleSequence.get("Modified Date") || new Date(),
     };
   },
+  // ... existing code
 
   // Transform Bubble workflow data to internal format
   transformWorkflow: function (bubbleWorkflow) {
@@ -149,7 +160,19 @@ window.WorkflowArchitectDataStore = {
       modifiedDate: bubbleWorkflow.modified_date || new Date(),
     };
   },
+  transformSubgroup: function (bubbleSubgroup) {
+    // NOTE: Field names like 'label_text' and 'workflow_custom_workflow' are assumed based on Bubble conventions.
+    // These can be verified by logging the raw bubbleSubgroup object if issues arise.
+    const workflowRef = bubbleSubgroup.get("workflow_custom_workflow");
+    const workflowId = workflowRef ? workflowRef.get("_id") : null;
 
+    return {
+      id: bubbleSubgroup.get("_id"),
+      label: bubbleSubgroup.get("label_text") || "Untitled Subgroup",
+      workflowId: workflowId,
+      orderIndex: bubbleSubgroup.get("order_index_number") || 0,
+    };
+  },
   // Get feature data
   getFeature: function () {
     return this.data.feature;
@@ -193,11 +216,30 @@ window.WorkflowArchitectDataStore = {
     );
   },
 
-  // Get workflow by ID
   getWorkflow: function (workflowId) {
     return this.data.workflows[workflowId] || null;
   },
 
+  // ADD THIS ENTIRE BLOCK OF NEW FUNCTIONS
+  // Get all subgroups as array
+  getSubgroupsArray: function () {
+    return Object.values(this.data.subgroups).sort(
+      (a, b) => a.orderIndex - b.orderIndex
+    );
+  },
+
+  // Get subgroups for a specific workflow
+  getSubgroupsByWorkflow: function (workflowId) {
+    return Object.values(this.data.subgroups)
+      .filter((subgroup) => subgroup.workflowId === workflowId)
+      .sort((a, b) => a.orderIndex - b.orderIndex);
+  },
+
+  // Get subgroup by ID
+  getSubgroup: function (subgroupId) {
+    return this.data.subgroups[subgroupId] || null;
+  },
+  // END OF NEW FUNCTIONS
   // Update entity locally (before sending to Bubble)
   updateEntity: function (entityType, entityId, updates) {
     try {

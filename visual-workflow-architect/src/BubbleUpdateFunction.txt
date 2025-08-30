@@ -1,0 +1,313 @@
+function(instance, properties, context) {
+    console.log('=== UPDATE: Visual Workflow Architect Starting ===');
+    console.log('UPDATE: Instance data from Bubble:', instance.data);
+    
+    // Find the container by looking for our plugin container
+    var containerElement = instance.canvas.find('.workflow-architect-container[data-plugin-id]');
+    
+    if (containerElement.length === 0) {
+        console.log('UPDATE: No initialized container found, plugin may not be initialized');
+        instance.canvas.html('<div style="padding:20px; color: red;">Plugin container not found. Initialize function may have failed.</div>');
+        return;
+    }
+    
+    // Get data from DOM attributes
+    var pluginId = containerElement.attr('data-plugin-id');
+    var isInitialized = containerElement.attr('data-initialized') === 'true';
+    
+    console.log('UPDATE: Found container with plugin ID:', pluginId);
+    console.log('UPDATE: Container initialized:', isInitialized);
+    
+    if (!isInitialized) {
+        console.log('UPDATE: Container not properly initialized');
+        containerElement.html('<div style="padding:20px; color: red;">Container not properly initialized</div>');
+        return;
+    }
+    
+    // Check if required scripts are loaded
+    console.log('UPDATE: Checking for WorkflowArchitectDataStore...');
+    if (typeof window.WorkflowArchitectDataStore === 'undefined') {
+        console.log('UPDATE: Data store script not loaded');
+        containerElement.html('<div style="padding:20px; border: 2px solid #ff4444; border-radius: 8px; background: #fff5f5; color: #cc0000;">Data Store script not loaded<br>Check plugin headers for data-store.js</div>');
+        return;
+    }
+    
+    // Initialize Event Bridge immediately (critical for storymap-grid pattern)
+    console.log('UPDATE: Checking for WorkflowArchitectEventBridge...', typeof window.WorkflowArchitectEventBridge);
+    if (window.WorkflowArchitectEventBridge) {
+        console.log('UPDATE: WorkflowArchitectEventBridge found, initializing...');
+        window.WorkflowArchitectEventBridge.init(instance, containerElement);
+        console.log('UPDATE: WorkflowArchitectEventBridge initialized');
+    }
+    
+    // Initialize sequence event bridge if available
+    if (window.SequenceDiagramEventBridge) {
+        console.log('UPDATE: SequenceDiagramEventBridge found, initializing...');
+        window.SequenceDiagramEventBridge.init(instance);
+        console.log('UPDATE: SequenceDiagramEventBridge initialized');
+    }
+    
+    // Show success if all scripts loaded but no feature selected
+    if (!properties.feature) {
+        console.log('UPDATE: No feature selected');
+        containerElement.html('<div style="padding:20px; background: #e8f5e8; border: 2px solid #4caf50; border-radius: 8px; color: #2e7d32;"><h3>Visual Workflow Architect Ready</h3><p>All scripts loaded successfully!</p><p><strong>Next step:</strong> Select a feature in the element properties</p><p>Plugin ID: ' + pluginId + '</p></div>');
+        return;
+    }
+    
+    try {
+        console.log('UPDATE: Processing feature data...');
+        
+        // Extract feature data
+        var featureId = properties.feature.get('_id');
+        var featureName = properties.feature.get('name_text') || properties.feature.get('name') || 'Untitled Feature';
+        
+        var containerCount = properties.containers ? properties.containers.length() : 0;
+        var sequenceCount = properties.sequences ? properties.sequences.length() : 0;
+        
+        console.log('UPDATE: Feature:', featureName, 'Containers:', containerCount, 'Sequences:', sequenceCount);
+        console.log('UPDATE: Feature object keys:', Object.keys(properties.feature._data || {}));
+        
+        var allContainers = containerCount > 0 ? properties.containers.get(0, containerCount) : [];
+        var allSequences = sequenceCount > 0 ? properties.sequences.get(0, sequenceCount) : [];
+        console.log('UPDATE: Sequences object keys:', Object.keys(properties.sequences._data || {}));
+        allSequences.forEach(s => {
+            console.log("--------------Sequence Label: ", s.get('label_text'));
+            console.log("--------------Sequence ID: ", s.get('_id'));
+            console.log("--------------Sequence Order Index: ", s.get('order_index_number'));
+            console.log("--------------Sequence Type: ", s.get('type_option_storytype'));
+            console.log("--------------Sequence From Container: ", s.get('tocontainer_custom_component') ? s.get('tocontainer_custom_component').get('_id') : null);
+            console.log("--------------Sequence To Container: ", s.get("fromcontainer_custom_component") ? s.get("fromcontainer_custom_component").get('_id') : null);
+            console.log("--------------List Properties: ", s.listProperties());
+        });
+        allContainers.forEach(c => {
+            console.log("--------------Container Label: ", c.get('label_text'));
+            console.log("--------------Container ID: ", c.get('_id'));
+            console.log("--------------Container Order Index: ", c.get('order_index_number'));
+            console.log("--------------Container Type: ", c.get('type_option_storytype'));
+            console.log("--------------Container Feature: ", c.get('feature_custom_feature3'));
+            console.log("--------------Container Persona: ", c.get('Persona'));
+        });
+        if (allSequences.length > 0) {
+            // Show each sequence as parsed JSON string for detailed inspection
+            for (var seqIdx = 0; seqIdx < Math.min(allSequences.length, 5); seqIdx++) {
+                var seq = allSequences[seqIdx];
+                console.log('=== SEQUENCE ' + seqIdx + ' FULL DETAILS ===');
+                
+                // Show raw object structure
+                console.log('Raw sequence object:', seq);
+                console.log('Sequence _data:', seq._data);
+                
+                // Try to stringify the entire sequence object
+                try {
+                    var sequenceAsString = JSON.stringify(seq, null, 2);
+                    console.log('Sequence as JSON string:', sequenceAsString);
+                } catch (e) {
+                    console.log('Cannot stringify sequence object:', e.message);
+                }
+                
+                // Try to stringify _data specifically
+                try {
+                    var dataAsString = JSON.stringify(seq._data, null, 2);
+                    console.log('Sequence._data as JSON string:', dataAsString);
+                } catch (e) {
+                    console.log('Cannot stringify sequence._data:', e.message);
+                }
+                
+                // Show all available properties
+                console.log('Available properties:', Object.keys(seq._data || {}));
+                
+                // Test field access with ACTUAL schema field names
+                console.log('Field access results:');
+                console.log('  - _id:', seq.get('_id'));
+                console.log('  - Label:', seq.get('label_text'));
+                console.log('  - fromContainer:', seq.get('fromContainer2'));
+                console.log('  - toContainer:', seq.get('toContainer2'));
+                console.log('  - Feature:', seq.get('feature_custom_feature3'));
+                console.log('  - SequenceType:', seq.get('type_option_storytype'));
+                console.log('  - description:', seq.get('description'));
+                console.log('  - order_index:', seq.get('order_index'));
+                console.log('---------------------------------------------------',seq.get('fromContainer_custom_container'))
+                console.log('---------------------------------------------------',seq.get('toContainer_custom_container'))
+                
+                // Check FromContainer/ToContainer types with ACTUAL field names
+                var fromContainer = seq.get('fromContainer_custom_container');
+                var toContainer = seq.get('toContainer_custom_container');
+                console.log('FromContainer type:', typeof fromContainer, 'value:', fromContainer);
+                console.log('ToContainer type:', typeof toContainer, 'value:', toContainer);
+                
+                if (fromContainer && typeof fromContainer.get === 'function') {
+                    console.log('FromContainer is Bubble object, _id:', fromContainer.get('_id'));
+                }
+                if (toContainer && typeof toContainer.get === 'function') {
+                    console.log('ToContainer is Bubble object, _id:', toContainer.get('_id'));
+                }
+                
+                console.log('=== END SEQUENCE ' + seqIdx + ' ===');
+            }
+        }
+        console.log('=== END RAW SEQUENCE DEBUG ===');
+        
+        console.log('UPDATE: Pre-accessing container data...');
+        allContainers.forEach(function(container, index) {
+            console.log('Pre-accessing container', index);
+            container.get('name_text');
+            container.get('_id');
+            
+            // Pre-access relationship objects and their nested data
+            var persona = container.get('Persona');
+            if (persona && persona.get) {
+                persona.get('name');
+                persona.get('_id');
+            }
+            
+            var type = container.get('type');
+            if (type && type.get) {
+                type.get('name');
+                type.get('_id');
+            }
+            
+            var feature = container.get('feature');
+            if (feature && feature.get) {
+                feature.get('_id');
+            }
+            
+            container.get('url');
+            container.get('externalcomponentid');
+            container.get('x_position');
+            container.get('order_index');
+            container.get('color_hex');
+        });
+        
+        allSequences.forEach(function(sequence, index) {
+            // Pre-access with correct field names from console output
+            sequence.get('_id');
+            sequence.get('label_text');
+            sequence.get('description_text');
+            sequence.get('fromcontainer_custom_component');
+            sequence.get('tocontainer_custom_component');
+            sequence.get('feature_custom_feature3');
+            sequence.get('sequencetype_option_sequencetype');
+            sequence.get('order_index_number');
+            sequence.get('is_dashed_boolean');
+            sequence.get('color_hex_text');
+        });
+        
+        // Process containers - follow storymap pattern (direct field access)
+        var containers = [];
+        for (var i = 0; i < allContainers.length; i++) {
+            var container = allContainers[i];
+            containers.push({
+                container_id: container.get('_id'),
+                name_text: container.get('name_text') || container.get('name'),
+                type_text: container.get('Persona') ? 'Persona' : 'Component',
+                persona_name: container.get('Persona') || null, // Direct field access like storymap
+                tooltype_name: container.get('type') || null,   // Direct field access like storymap
+                feature_id: container.get('feature') || featureId, // Direct field access like storymap
+                component_url_text: container.get('url') || '',
+                external_id: container.get('externalcomponentid') || '',
+                x_position_number: container.get('x_position') || 0,
+                order_index_number: container.get('order_index') || 0,
+                color_hex_text: container.get('color_hex') || '#3ea50b'
+            });
+        }
+        
+        // Process sequences - use yesterday's working nested object pattern
+        var sequences = [];
+        for (var j = 0; j < allSequences.length; j++) {
+            var sequence = allSequences[j];
+            
+            // Use correct field names from console output
+            var fromContainerRef = sequence.get('fromcontainer_custom_component');
+            var toContainerRef = sequence.get('tocontainer_custom_component');
+            var fromContainerId = fromContainerRef ? fromContainerRef.get('_id') : null;
+            var toContainerId = toContainerRef ? toContainerRef.get('_id') : null;
+            
+            sequences.push({
+                sequence_id: sequence.get('_id'),
+                label_text: sequence.get('label_text') || '',
+                description_text: sequence.get('description_text') || '',
+                from_container_id: fromContainerId,
+                to_container_id: toContainerId,
+                feature_id: featureId,
+                sequence_type_name: sequence.get('sequencetype_option_sequencetype') || '',
+                workflow_name: sequence.get('workflow_custom_workflows') || '',
+                order_index_number: sequence.get('order_index_number') || 0,
+                is_dashed_boolean: sequence.get('is_dashed_boolean') || false,
+                color_hex_text: sequence.get('color_hex_text') || '#1976d2'
+            });
+        }
+        
+        
+        // Initialize data store
+        var bubbleData = {
+            feature: {
+                feature_id: properties.feature.get('_id'),
+                name_text: featureName,
+                description_text: properties.feature.get('description') || 
+                                 properties.feature.get('description_text') || 
+                                 properties.feature.get('Description') || ''
+            },
+            containers: containers,
+            sequences: sequences
+        };
+        
+        // Initialize data stores
+        window.WorkflowArchitectDataStore.init(bubbleData);
+        
+        if (window.SequenceDiagramDataStore) {
+            if (!window.SequenceDiagramDataStore.isInitialized) {
+                console.log('UPDATE: Initializing sequence data store for the first time...');
+                window.SequenceDiagramDataStore.init(bubbleData.feature, containers, sequences);
+            } else {
+                console.log('UPDATE: Refreshing data store with current Bubble data');
+                window.SequenceDiagramDataStore.loadData(bubbleData.feature, containers, sequences);
+            }
+        }
+        
+        // Store feature ID in DOM for persistence
+        containerElement.attr('data-feature-id', featureId);
+        
+        // Check if already rendered to prevent infinite loop
+        if (containerElement.attr('data-diagram-rendered') === 'true') {
+            console.log('UPDATE: Diagram already rendered, skipping to prevent infinite loop');
+            return;
+        }
+        
+        // Initialize view manager if available
+        if (window.WorkflowArchitectViewManager) {
+            console.log('UPDATE: Initializing view manager...');
+            var fullContainerId = 'workflow-architect-' + pluginId;
+            window.WorkflowArchitectViewManager.init(fullContainerId, bubbleData);
+        }
+        
+        // Initialize renderer if available
+        if (window.WorkflowArchitectRenderer) {
+            console.log('UPDATE: Initializing renderer...');
+            window.WorkflowArchitectRenderer.init(pluginId);
+            
+            // Mark as rendered BEFORE calling render to prevent loops
+            containerElement.attr('data-diagram-rendered', 'true');
+            
+            // Call renderer with data and target element
+            console.log('UPDATE: Calling renderer...');
+            window.WorkflowArchitectRenderer.render(bubbleData, containerElement);
+            console.log('UPDATE: Renderer completed successfully');
+        } else {
+            // Fallback display if renderer not available
+            containerElement.html('<div style="padding:20px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;"><h3>Feature: ' + featureName + '</h3><p>Containers: ' + containers.length + '</p><p>Sequences: ' + sequences.length + '</p><p>Renderer not available - check headers.txt</p></div>');
+        }
+        
+        console.log('=== UPDATE: Completed successfully ===');
+
+    } catch (err) {
+        console.error('UPDATE: Error occurred:', err);
+        
+        if (err.message === 'not ready') {
+            console.log('UPDATE: Bubble not ready, showing loading message');
+            containerElement.html('<div style="padding:20px; text-align:center; color: #666;">Loading Visual Workflow Architect...</div>');
+            throw err;
+        }
+        
+        containerElement.html('<div style="padding:20px; border: 2px solid #ff4444; border-radius: 8px; background: #fff5f5; color: #cc0000;">ERROR<br>' + err.message + '<br><small>Check console for details</small></div>');
+    }
+}
