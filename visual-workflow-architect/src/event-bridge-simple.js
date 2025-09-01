@@ -1,4 +1,4 @@
-// Simple event bridge following storymap pattern exactly
+// Simple event bridge following storymap pattern
 window.WorkflowArchitectEventBridge = {
   instance: null,
   isInitialized: false,
@@ -7,7 +7,8 @@ window.WorkflowArchitectEventBridge = {
     if (this.isInitialized) return;
     this.instance = instance;
     this.isInitialized = true;
-    console.log("WorkflowArchitectEventBridge: Initialized with simple event pattern");
+
+    console.log("WorkflowArchitectEventBridge: Initializing with simple event pattern...");
   },
 
   // Handle container creation
