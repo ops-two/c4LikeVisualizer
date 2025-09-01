@@ -126,35 +126,14 @@ window.WorkflowArchitectDataStore = {
     const toContainerRef = bubbleSequence.get("tocontainer_custom_component");
     const workflowRef = bubbleSequence.get("workflow_custom_workflows");
     
-    // Try different possible field names for subgroup relationship
-    let subgroupRef = null;
-    const possibleSubgroupFields = [
-      "subgroup_custom_subgroup",
-      "subgroup_custom_Subgroup", 
-      "subgroup",
-      "Subgroup",
-      "subgroup_text",
-      "subgroup_custom_subgroups"
-    ];
+    // Use the confirmed field name from debug output
+    const subgroupRef = bubbleSequence.get("subgroup_custom_subgroup");
     
-    // Debug: Log all available fields on the first sequence to identify correct field names
-    if (!window.debugSequenceFieldsLogged) {
-      console.log("DEBUG - All available fields on sequence object:", Object.keys(bubbleSequence));
-      console.log("DEBUG - Sequence object methods and properties:", bubbleSequence);
-      window.debugSequenceFieldsLogged = true;
-    }
-    
-    for (const fieldName of possibleSubgroupFields) {
-      try {
-        const ref = bubbleSequence.get(fieldName);
-        if (ref) {
-          console.log(`DEBUG - Found subgroup field "${fieldName}" for sequence:`, bubbleSequence.get("_id"));
-          subgroupRef = ref;
-          break;
-        }
-      } catch (e) {
-        // Field doesn't exist, continue
-      }
+    // Debug log subgroup relationship for each sequence
+    if (subgroupRef) {
+      console.log(`DEBUG - Sequence ${bubbleSequence.get("_id")} has subgroup:`, subgroupRef.get("_id"));
+    } else {
+      console.log(`DEBUG - Sequence ${bubbleSequence.get("_id")} has no subgroup relationship`);
     }
 
     return {
@@ -225,15 +204,15 @@ window.WorkflowArchitectDataStore = {
       };
     }
 
-    // Handle Bubble object with .get() method - using correct field names from schema
-    const workflowRef = bubbleSubgroup.get("Workflow");
+    // Handle Bubble object with .get() method - using correct field names from debug output
+    const workflowRef = bubbleSubgroup.get("workflow_custom_workflows");
     const workflowId = workflowRef ? workflowRef.get("_id") : null;
 
     return {
       id: bubbleSubgroup.get("_id"),
-      label: bubbleSubgroup.get("Label") || "Untitled Subgroup",
+      label: bubbleSubgroup.get("label_text") || "Untitled Subgroup",
       workflowId: workflowId,
-      colorHex: bubbleSubgroup.get("color_Hex") || "#f5f5f5",
+      colorHex: bubbleSubgroup.get("color_hex_text") || "#f5f5f5",
       // No orderIndex field in subgroup schema
       createdDate: bubbleSubgroup.get("Created Date") || new Date(),
       modifiedDate: bubbleSubgroup.get("Modified Date") || new Date(),
