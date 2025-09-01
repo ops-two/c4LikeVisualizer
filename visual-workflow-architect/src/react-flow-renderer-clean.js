@@ -482,22 +482,36 @@ window.SequenceDiagramRenderer = {
     ) {
       containers = window.WorkflowArchitectDataStore.getContainersArray();
       sequences = window.WorkflowArchitectDataStore.getSequencesArray();
-      workflows = window.WorkflowArchitectDataStore.data.workflows;
+      // Use the proper method to get workflows as array, then convert to object for compatibility
+      const workflowsArray = window.WorkflowArchitectDataStore.getWorkflowsArray();
+      workflows = {};
+      workflowsArray.forEach(workflow => {
+        workflows[workflow.id] = workflow;
+      });
+      
+      console.log("DEBUG - Workflows loaded from data store:", {
+        workflowsArrayLength: workflowsArray.length,
+        workflowsObject: workflows,
+        workflowIds: Object.keys(workflows)
+      });
     } else {
       containers = data.containers || [];
       sequences = data.sequences || [];
       workflows = {};
-      
+
       // Transform raw Bubble workflow data if available
       if (data.workflows && Array.isArray(data.workflows)) {
-        data.workflows.forEach(workflow => {
-          if (workflow && typeof workflow.get === 'function') {
+        data.workflows.forEach((workflow) => {
+          if (workflow && typeof workflow.get === "function") {
             const transformedWorkflow = {
-              id: workflow.get('_id'),
-              name: workflow.get('name_text') || workflow.get('label') || 'New Workflow',
-              colorHex: workflow.get('color_hex_text') || '#e3f2fd',
-              description: workflow.get('description_text') || '',
-              orderIndex: workflow.get('order_index_number') || 0
+              id: workflow.get("_id"),
+              name:
+                workflow.get("name_text") ||
+                workflow.get("label") ||
+                "New Workflow",
+              colorHex: workflow.get("color_hex_text") || "#e3f2fd",
+              description: workflow.get("description_text") || "",
+              orderIndex: workflow.get("order_index_number") || 0,
             };
             workflows[transformedWorkflow.id] = transformedWorkflow;
           }
@@ -557,7 +571,10 @@ window.SequenceDiagramRenderer = {
       ungroupedCount: ungroupedSequences.length,
       totalWorkflows: Object.keys(workflows).length,
       workflowData: workflows,
-      sequenceWorkflowIds: sequences.map(s => ({ id: s.id, workflowId: s.workflowId }))
+      sequenceWorkflowIds: sequences.map((s) => ({
+        id: s.id,
+        workflowId: s.workflowId,
+      })),
     });
 
     // Calculate workflow boundaries from sequence positions
@@ -629,7 +646,7 @@ window.SequenceDiagramRenderer = {
           console.warn("DEBUG - Skipping sequence due to missing actors:", {
             sequenceId: sequence.id,
             fromActor: !!fromActor,
-            toActor: !!toActor
+            toActor: !!toActor,
           });
           return null;
         }
@@ -659,8 +676,14 @@ window.SequenceDiagramRenderer = {
     );
 
     console.log("DEBUG - Workflow bounds:", workflowBounds);
-    console.log("DEBUG - Workflow bounds count:", Object.keys(workflowBounds).length);
-    console.log("DEBUG - Positioned messages count:", positionedMessages.length);
+    console.log(
+      "DEBUG - Workflow bounds count:",
+      Object.keys(workflowBounds).length
+    );
+    console.log(
+      "DEBUG - Positioned messages count:",
+      positionedMessages.length
+    );
 
     // Update container height based on content
     const containerHeight = Math.max(

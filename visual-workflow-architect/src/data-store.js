@@ -145,19 +145,32 @@ window.WorkflowArchitectDataStore = {
 
   // Transform Bubble workflow data to internal format
   transformWorkflow: function (bubbleWorkflow) {
+    if (!bubbleWorkflow || typeof bubbleWorkflow.get !== "function") {
+      // Handle non-Bubble object (fallback)
+      return {
+        id: bubbleWorkflow.workflow_id || bubbleWorkflow.id,
+        name: bubbleWorkflow.name_text || bubbleWorkflow.name || "Untitled Workflow",
+        description: bubbleWorkflow.description_text || bubbleWorkflow.description || "",
+        featureId: bubbleWorkflow.feature_id || "",
+        colorHex: bubbleWorkflow.color_hex_text || bubbleWorkflow.color_hex || "#e3f2fd",
+        orderIndex: bubbleWorkflow.order_index_number || bubbleWorkflow.order_index || 0,
+        createdDate: bubbleWorkflow.created_date || new Date(),
+        modifiedDate: bubbleWorkflow.modified_date || new Date(),
+      };
+    }
+
+    // Handle Bubble object with .get() method
+    const featureRef = bubbleWorkflow.get("feature_custom_feature3");
+    
     return {
-      id: bubbleWorkflow.workflow_id || bubbleWorkflow.id,
-      name:
-        bubbleWorkflow.name_text || bubbleWorkflow.name || "Untitled Workflow",
-      description:
-        bubbleWorkflow.description_text || bubbleWorkflow.description || "",
-      featureId: bubbleWorkflow.feature_id || "",
-      colorHex:
-        bubbleWorkflow.color_hex_text || bubbleWorkflow.color_hex || "#e3f2fd",
-      orderIndex:
-        bubbleWorkflow.order_index_number || bubbleWorkflow.order_index || 0,
-      createdDate: bubbleWorkflow.created_date || new Date(),
-      modifiedDate: bubbleWorkflow.modified_date || new Date(),
+      id: bubbleWorkflow.get("_id"),
+      name: bubbleWorkflow.get("name_text") || "Untitled Workflow",
+      description: bubbleWorkflow.get("description_text") || "",
+      featureId: featureRef ? featureRef.get("_id") : null,
+      colorHex: bubbleWorkflow.get("color_hex_text") || "#e3f2fd",
+      orderIndex: bubbleWorkflow.get("order_index_number") || 0,
+      createdDate: bubbleWorkflow.get("Created Date") || new Date(),
+      modifiedDate: bubbleWorkflow.get("Modified Date") || new Date(),
     };
   },
   transformSubgroup: function (bubbleSubgroup) {
