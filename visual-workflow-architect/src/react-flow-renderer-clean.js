@@ -18,7 +18,7 @@ document.addEventListener('workflow-architect:rerender', function(event) {
     console.log('RERENDER: Container cleared, calling render...');
     
     // Re-render with new data
-    window.SequenceDiagramRenderer.render(event.detail, container);
+    window.SequenceDiagramRenderer.render(container, event.detail);
     console.log('RERENDER: UI re-rendered successfully');
   } else {
     console.warn('RERENDER: Container or renderer not found for rerender');
@@ -413,8 +413,6 @@ window.SequenceDiagramRenderer = {
       height,
       actorsCount,
       sequenceId,
-      subgroupId,
-      workflowId,
     }) {
       const position = actorIndex * 180 + 90; // Fixed spacing: 180px per lane, center at 90px
       const style = {
@@ -427,13 +425,9 @@ window.SequenceDiagramRenderer = {
         alignItems: "center",
       };
 
-
       return React.createElement(
         "div",
-        { 
-          className: "self-message", 
-          style: style,
-        },
+        { className: "self-message", style: style },
         [
           React.createElement(
             "div",
@@ -461,9 +455,7 @@ window.SequenceDiagramRenderer = {
             {
               key: "label",
               className: "message-label sequence-label",
-              style: { 
-                marginLeft: "10px",
-              },
+              style: { marginLeft: "10px" },
               "data-sequence-id": sequenceId,
               "data-label-text": labelText,
               title: "Double-click to edit",
