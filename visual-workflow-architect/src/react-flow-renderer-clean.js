@@ -88,9 +88,6 @@ window.SequenceDiagramRenderer = {
       }
 
       .actor-lane h3 {
-        background-color: #e3f2fd;
-        border: 1px solid #90caf9;
-        color: #1e88e5;
         border-radius: 6px;
         padding: 8px 16px;
         margin-top: 20px;
@@ -99,12 +96,12 @@ window.SequenceDiagramRenderer = {
         max-width: 140px;
         text-align: center;
         line-height: 1.3;
-        
-        border-top: none;
-
         transition: all 0.2s ease-in-out;
-      }
 
+        background-color: #e3f2fd; 
+        border: 1px solid #90caf9;
+        color: #1e88e5;
+      }
      .lifeline {
         width: 0px; /* The element itself has no width */
         height: 100%;
@@ -1140,7 +1137,11 @@ window.SequenceDiagramRenderer = {
                       "h3",
                       {
                         key: "title",
-                        style: { borderTopColor: actor.color },
+                        style: {
+                          backgroundColor: actor.color + "20", // Use color with ~12% opacity
+                          borderColor: actor.color,
+                          color: actor.color, // Use the main color for the text
+                        },
                         className: "container-name",
                         "data-container-id": actor.id,
                         title: "Double-click to edit",
