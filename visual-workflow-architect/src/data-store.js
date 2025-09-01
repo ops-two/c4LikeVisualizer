@@ -189,7 +189,7 @@ window.WorkflowArchitectDataStore = {
         label: bubbleSubgroup.label || "Untitled Subgroup",
         workflowId: bubbleSubgroup.workflowId || null,
         colorHex: bubbleSubgroup.colorHex || "#f5f5f5",
-        orderIndex: bubbleSubgroup.orderIndex || 0,
+        // No orderIndex field in subgroup schema
         createdDate: bubbleSubgroup.createdDate || new Date(),
         modifiedDate: bubbleSubgroup.modifiedDate || new Date(),
       };
@@ -204,7 +204,7 @@ window.WorkflowArchitectDataStore = {
       label: bubbleSubgroup.get("Label") || "Untitled Subgroup",
       workflowId: workflowId,
       colorHex: bubbleSubgroup.get("color_Hex") || "#f5f5f5",
-      orderIndex: bubbleSubgroup.get("order_index_number") || 0,
+      // No orderIndex field in subgroup schema
       createdDate: bubbleSubgroup.get("Created Date") || new Date(),
       modifiedDate: bubbleSubgroup.get("Modified Date") || new Date(),
     };
@@ -259,16 +259,13 @@ window.WorkflowArchitectDataStore = {
   // ADD THIS ENTIRE BLOCK OF NEW FUNCTIONS
   // Get all subgroups as array
   getSubgroupsArray: function () {
-    return Object.values(this.data.subgroups).sort(
-      (a, b) => a.orderIndex - b.orderIndex
-    );
+    return Object.values(this.data.subgroups);
   },
 
   // Get subgroups for a specific workflow
   getSubgroupsByWorkflow: function (workflowId) {
     return Object.values(this.data.subgroups)
-      .filter((subgroup) => subgroup.workflowId === workflowId)
-      .sort((a, b) => a.orderIndex - b.orderIndex);
+      .filter((subgroup) => subgroup.workflowId === workflowId);
   },
 
   // Get subgroup by ID

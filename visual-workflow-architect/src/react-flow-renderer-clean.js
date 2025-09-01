@@ -558,7 +558,7 @@ window.SequenceDiagramRenderer = {
               label: subgroup.get("Label") || "New Subgroup",
               colorHex: subgroup.get("color_Hex") || "#f5f5f5",
               workflowId: workflowRef ? workflowRef.get("_id") : null,
-              orderIndex: subgroup.get("order_index_number") || 0,
+              // No orderIndex needed for subgroups
             };
             subgroups[transformedSubgroup.id] = transformedSubgroup;
           }
@@ -633,6 +633,65 @@ window.SequenceDiagramRenderer = {
     // Add margin between workflow groups and subgroups (matching mockup spacing)
     const WORKFLOW_MARGIN = 20;
     const SUBGROUP_MARGIN = 10;
+
+    // Calculate workflow and subgroup boundaries from sequence positions
+    const calculateNestedBounds = (workflowGroups, positionedMessages) => {
+      const workflowBounds = {};
+      const subgroupBounds = {};
+
+      Object.keys(workflowGroups).forEach((workflowId) => {
+        const workflowGroup = workflowGroups[workflowId];
+        let allWorkflowSequences = [...workflowGroup.ungroupedSequences];
+        
+        // Calculate subgroup bounds first
+        Object.keys(workflowGroup.subgroups).forEach((subgroupId) => {
+          const subgroupData = workflowGroup.subgroups[subgroupId];
+          const subgroupSequencePositions = positionedMessages.filter((msg) =>
+            subgroupData.sequences.some((seq) => seq.id === msg.sequenceId)
+          );
+          
+          if (subgroupSequencePositions.length > 0) {
+            const minY = Math.min(...subgroupSequencePositions.map((pos) => pos.yPos));
+            const maxY = Math.max(...subgroupSequencePositions.map((pos) => pos.yPos));
+            const minX = 0;
+            const maxX = actors.length * 180;
+            
+            subgroupBounds[subgroupId] = {
+              x: minX + SUBGROUP_MARGIN,
+              y: minY - 30,
+              width: maxX - (SUBGROUP_MARGIN * 2),
+              height: maxY - minY + 80,
+              subgroup: subgroupData.subgroup,
+            };
+          }
+          
+          // Add subgroup sequences to workflow total
+          allWorkflowSequences = allWorkflowSequences.concat(subgroupData.sequences);
+        });
+        
+        // Calculate workflow bounds encompassing all sequences (grouped and ungrouped)
+        const allWorkflowPositions = positionedMessages.filter((msg) =>
+          allWorkflowSequences.some((seq) => seq.id === msg.sequenceId)
+        );
+        
+        if (allWorkflowPositions.length > 0) {
+          const minY = Math.min(...allWorkflowPositions.map((pos) => pos.yPos));
+          const maxY = Math.max(...allWorkflowPositions.map((pos) => pos.yPos));
+          const minX = 0;
+          const maxX = actors.length * 180;
+
+          workflowBounds[workflowId] = {
+            x: minX,
+            y: minY - 50,
+            width: maxX,
+            height: maxY - minY + 140,
+            workflow: workflowGroup.workflow,
+          };
+        }
+      });
+
+      return { workflowBounds, subgroupBounds };
+    };
 
     console.log("DEBUG - Nested grouping:", {
       workflowGroups: Object.keys(workflowGroups),
@@ -870,7 +929,10 @@ window.SequenceDiagramRenderer = {
                       height: `${workflowBounds[workflowId].height}px`,
                       backgroundColor:
                         (workflowBounds[workflowId].workflow.colorHex ||
-                          "#e3f2fd") + "30",
+                          "#e3f2fd") + "1A", // 0.10 opacity in hex
+                      borderColor:
+                        (workflowBounds[workflowId].workflow.colorHex ||
+                          "#e3f2fd") + "33", // 0.2 opacity in hex
                     },
                   },
                   [
@@ -886,6 +948,42 @@ window.SequenceDiagramRenderer = {
                         },
                       },
                       workflowBounds[workflowId].workflow.name || "Workflow"
+                    ),
+                  ]
+                )
+              ),
+
+              // Subgroup backgrounds (render after workflows, before actor lanes)
+              ...Object.keys(subgroupBounds).map((subgroupId) =>
+                React.createElement(
+                  "div",
+                  {
+                    key: `subgroup-${subgroupId}`,
+                    className: "subgroup-background",
+                    style: {
+                      left: `${subgroupBounds[subgroupId].x}px`,
+                      top: `${subgroupBounds[subgroupId].y}px`,
+                      width: `${subgroupBounds[subgroupId].width}px`,
+                      height: `${subgroupBounds[subgroupId].height}px`,
+                      backgroundColor:
+                        (subgroupBounds[subgroupId].subgroup.colorHex ||
+                          "#f5f5f5") + "26", // 0.15 opacity in hex
+                      borderColor:
+                        (subgroupBounds[subgroupId].subgroup.colorHex ||
+                          "#f5f5f5") + "4D", // 0.3 opacity in hex
+                    },
+                  },
+                  [
+                    React.createElement(
+                      "div",
+                      {
+                        key: "label",
+                        className: "subgroup-label",
+                        style: {
+                          backgroundColor: "#9e9e9e",
+                        },
+                      },
+                      subgroupBounds[subgroupId].subgroup.label || "Subgroup"
                     ),
                   ]
                 )
