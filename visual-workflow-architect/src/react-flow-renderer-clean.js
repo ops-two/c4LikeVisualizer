@@ -483,16 +483,17 @@ window.SequenceDiagramRenderer = {
       containers = window.WorkflowArchitectDataStore.getContainersArray();
       sequences = window.WorkflowArchitectDataStore.getSequencesArray();
       // Use the proper method to get workflows as array, then convert to object for compatibility
-      const workflowsArray = window.WorkflowArchitectDataStore.getWorkflowsArray();
+      const workflowsArray =
+        window.WorkflowArchitectDataStore.getWorkflowsArray();
       workflows = {};
-      workflowsArray.forEach(workflow => {
+      workflowsArray.forEach((workflow) => {
         workflows[workflow.id] = workflow;
       });
-      
+
       console.log("DEBUG - Workflows loaded from data store:", {
         workflowsArrayLength: workflowsArray.length,
         workflowsObject: workflows,
-        workflowIds: Object.keys(workflows)
+        workflowIds: Object.keys(workflows),
       });
     } else {
       containers = data.containers || [];
@@ -506,7 +507,7 @@ window.SequenceDiagramRenderer = {
             const transformedWorkflow = {
               id: workflow.get("_id"),
               name:
-                workflow.get("name_text") ||
+                workflow.get("label_text") ||
                 workflow.get("label") ||
                 "New Workflow",
               colorHex: workflow.get("color_hex_text") || "#e3f2fd",
