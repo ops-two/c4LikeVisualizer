@@ -475,16 +475,34 @@ window.SequenceDiagramRenderer = {
     }
 
     // Get containers and sequences from data store or use provided data
-    let containers, sequences;
+    let containers, sequences, workflows;
     if (
       window.WorkflowArchitectDataStore &&
       window.WorkflowArchitectDataStore.data.isInitialized
     ) {
       containers = window.WorkflowArchitectDataStore.getContainersArray();
       sequences = window.WorkflowArchitectDataStore.getSequencesArray();
+      workflows = window.WorkflowArchitectDataStore.data.workflows;
     } else {
       containers = data.containers || [];
       sequences = data.sequences || [];
+      workflows = {};
+      
+      // Transform raw Bubble workflow data if available
+      if (data.workflows && Array.isArray(data.workflows)) {
+        data.workflows.forEach(workflow => {
+          if (workflow && typeof workflow.get === 'function') {
+            const transformedWorkflow = {
+              id: workflow.get('_id'),
+              name: workflow.get('name_text') || workflow.get('label') || 'New Workflow',
+              colorHex: workflow.get('color_hex_text') || '#e3f2fd',
+              description: workflow.get('description_text') || '',
+              orderIndex: workflow.get('order_index_number') || 0
+            };
+            workflows[transformedWorkflow.id] = transformedWorkflow;
+          }
+        });
+      }
     }
 
     console.log(
@@ -526,10 +544,7 @@ window.SequenceDiagramRenderer = {
       return { workflowGroups, ungroupedSequences };
     };
 
-    // Get workflows from data store
-    const workflows = window.WorkflowArchitectDataStore
-      ? window.WorkflowArchitectDataStore.data.workflows
-      : {};
+    // workflows variable is already declared above in the data loading section
 
     // Group sequences by workflow
     const { workflowGroups, ungroupedSequences } = groupSequencesByWorkflow(
