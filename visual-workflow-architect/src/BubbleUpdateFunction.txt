@@ -60,16 +60,24 @@ function(instance, properties, context) {
         // Extract feature data
         var featureId = properties.feature.get('_id');
         var featureName = properties.feature.get('name_text') || properties.feature.get('name') || 'Untitled Feature';
-        
-        var containerCount = properties.containers ? properties.containers.length() : 0;
+    	 var containerCount = properties.containers ? properties.containers.length() : 0;
         var sequenceCount = properties.sequences ? properties.sequences.length() : 0;
-        
+        var workflowCount = properties.workflows ? properties.workflows.length() : 0;
+        var subgroupCount = properties.subgroups ? properties.subgroups.length() : 0;
+
+       
         console.log('UPDATE: Feature:', featureName, 'Containers:', containerCount, 'Sequences:', sequenceCount);
         console.log('UPDATE: Feature object keys:', Object.keys(properties.feature._data || {}));
-        
-        var allContainers = containerCount > 0 ? properties.containers.get(0, containerCount) : [];
+       var allContainers = containerCount > 0 ? properties.containers.get(0, containerCount) : [];
         var allSequences = sequenceCount > 0 ? properties.sequences.get(0, sequenceCount) : [];
+        var allWorkflows = workflowCount > 0 ? properties.workflows.get(0, workflowCount) : [];
+        var allSubgroups = subgroupCount > 0 ? properties.subgroups.get(0, subgroupCount) : [];
+
         console.log('UPDATE: Sequences object keys:', Object.keys(properties.sequences._data || {}));
+		console.log('UPDATE: Containers object keys:', Object.keys(properties.containers._data || {}));
+        console.log('UPDATE: Workflows object keys:', Object.keys(properties.workflows._data || {}));
+        console.log('UPDATE: SubGroups object keys:', Object.keys(properties.subgroups._data || {}));
+
         allSequences.forEach(s => {
             console.log("--------------Sequence Label: ", s.get('label_text'));
             console.log("--------------Sequence ID: ", s.get('_id'));
@@ -77,8 +85,27 @@ function(instance, properties, context) {
             console.log("--------------Sequence Type: ", s.get('type_option_storytype'));
             console.log("--------------Sequence From Container: ", s.get('tocontainer_custom_component') ? s.get('tocontainer_custom_component').get('_id') : null);
             console.log("--------------Sequence To Container: ", s.get("fromcontainer_custom_component") ? s.get("fromcontainer_custom_component").get('_id') : null);
-            console.log("--------------List Properties: ", s.listProperties());
+            s.get('workflow_custom_workflows');
+            s.get('subgroup_custom_subgroup');
         });
+        
+         allWorkflows.forEach(function(workflow, index) {
+            // Pre-access workflow fields
+            workflow.get('_id');
+            workflow.get('label_text'); 
+            workflow.get('feature_custom_feature3');
+
+        });
+
+        allSubgroups.forEach(function(subgroup, index) {
+            // Pre-access subgroup fields
+            subgroup.get('_id');
+            subgroup.get('label_text'); 
+            // NOTE: Assuming the relationship field to Workflow is named 'workflow_custom_workflow'.
+            // This can be confirmed by logging the subgroup object's properties.
+            subgroup.get('workflow_custom_workflow');
+        });
+        
         allContainers.forEach(c => {
             console.log("--------------Container Label: ", c.get('label_text'));
             console.log("--------------Container ID: ", c.get('_id'));
@@ -193,76 +220,28 @@ function(instance, properties, context) {
         });
         
         // Process containers - follow storymap pattern (direct field access)
-        var containers = [];
-        for (var i = 0; i < allContainers.length; i++) {
-            var container = allContainers[i];
-            containers.push({
-                container_id: container.get('_id'),
-                name_text: container.get('name_text') || container.get('name'),
-                type_text: container.get('Persona') ? 'Persona' : 'Component',
-                persona_name: container.get('Persona') || null, // Direct field access like storymap
-                tooltype_name: container.get('type') || null,   // Direct field access like storymap
-                feature_id: container.get('feature') || featureId, // Direct field access like storymap
-                component_url_text: container.get('url') || '',
-                external_id: container.get('externalcomponentid') || '',
-                x_position_number: container.get('x_position') || 0,
-                order_index_number: container.get('order_index') || 0,
-                color_hex_text: container.get('color_hex') || '#3ea50b'
-            });
-        }
-        
-        // Process sequences - use yesterday's working nested object pattern
-        var sequences = [];
-        for (var j = 0; j < allSequences.length; j++) {
-            var sequence = allSequences[j];
-            
-            // Use correct field names from console output
-            var fromContainerRef = sequence.get('fromcontainer_custom_component');
-            var toContainerRef = sequence.get('tocontainer_custom_component');
-            var fromContainerId = fromContainerRef ? fromContainerRef.get('_id') : null;
-            var toContainerId = toContainerRef ? toContainerRef.get('_id') : null;
-            
-            sequences.push({
-                sequence_id: sequence.get('_id'),
-                label_text: sequence.get('label_text') || '',
-                description_text: sequence.get('description_text') || '',
-                from_container_id: fromContainerId,
-                to_container_id: toContainerId,
-                feature_id: featureId,
-                sequence_type_name: sequence.get('sequencetype_option_sequencetype') || '',
-                workflow_name: sequence.get('workflow_custom_workflows') || '',
-                order_index_number: sequence.get('order_index_number') || 0,
-                is_dashed_boolean: sequence.get('is_dashed_boolean') || false,
-                color_hex_text: sequence.get('color_hex_text') || '#1976d2'
-            });
-        }
-        
-        
-        // Initialize data store
-        var bubbleData = {
-            feature: {
-                feature_id: properties.feature.get('_id'),
-                name_text: featureName,
-                description_text: properties.feature.get('description') || 
-                                 properties.feature.get('description_text') || 
-                                 properties.feature.get('Description') || ''
-            },
-            containers: containers,
-            sequences: sequences
+      var bubbleData = {
+            feature: properties.feature, // Pass the raw feature object
+            containers: allContainers,
+            sequences: allSequences,
+            workflows: allWorkflows,
+            subgroups: allSubgroups
         };
         
         // Initialize data stores
         window.WorkflowArchitectDataStore.init(bubbleData);
         
-        if (window.SequenceDiagramDataStore) {
-            if (!window.SequenceDiagramDataStore.isInitialized) {
-                console.log('UPDATE: Initializing sequence data store for the first time...');
-                window.SequenceDiagramDataStore.init(bubbleData.feature, containers, sequences);
-            } else {
-                console.log('UPDATE: Refreshing data store with current Bubble data');
-                window.SequenceDiagramDataStore.loadData(bubbleData.feature, containers, sequences);
-            }
-        }
+         if (window.SequenceDiagramDataStore) {
+            if (!window.SequenceDiagramDataStore.isInitialized) {
+                console.log('UPDATE: Initializing sequence data store for the first time...');
+                // CORRECTED: Use the raw 'allContainers' and 'allSequences' variables
+                window.SequenceDiagramDataStore.init(bubbleData.feature, allContainers, allSequences);
+            } else {
+                console.log('UPDATE: Refreshing data store with current Bubble data');
+                // CORRECTED: Use the raw 'allContainers' and 'allSequences' variables
+                window.SequenceDiagramDataStore.loadData(bubbleData.feature, allContainers, allSequences);
+            }
+        }
         
         // Store feature ID in DOM for persistence
         containerElement.attr('data-feature-id', featureId);

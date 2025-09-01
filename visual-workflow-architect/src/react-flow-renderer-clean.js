@@ -4,24 +4,27 @@
 console.log("DEBUG: react-flow-renderer-clean.js script is loading...");
 
 // Add rerender event listener (following storymap-grid pattern)
-document.addEventListener('workflow-architect:rerender', function(event) {
-  console.log('RERENDER: Event received with data:', event.detail);
-  
+document.addEventListener("workflow-architect:rerender", function (event) {
+  console.log("RERENDER: Event received with data:", event.detail);
+
   // Find the container and re-render
-  const container = document.getElementById('sequence-diagram-container');
-  console.log('RERENDER: Container found:', !!container);
-  console.log('RERENDER: SequenceDiagramRenderer available:', !!window.SequenceDiagramRenderer);
-  
+  const container = document.getElementById("sequence-diagram-container");
+  console.log("RERENDER: Container found:", !!container);
+  console.log(
+    "RERENDER: SequenceDiagramRenderer available:",
+    !!window.SequenceDiagramRenderer
+  );
+
   if (container && window.SequenceDiagramRenderer) {
     // Clear existing content
-    container.innerHTML = '';
-    console.log('RERENDER: Container cleared, calling render...');
-    
+    container.innerHTML = "";
+    console.log("RERENDER: Container cleared, calling render...");
+
     // Re-render with new data
     window.SequenceDiagramRenderer.render(container, event.detail);
-    console.log('RERENDER: UI re-rendered successfully');
+    console.log("RERENDER: UI re-rendered successfully");
   } else {
-    console.warn('RERENDER: Container or renderer not found for rerender');
+    console.warn("RERENDER: Container or renderer not found for rerender");
   }
 });
 
@@ -198,7 +201,27 @@ window.SequenceDiagramRenderer = {
       .container-name:hover {
         background-color: rgba(25, 118, 210, 0.1);
       }
+      .workflow-background {
+        position: absolute;
+        background: rgba(227, 242, 253, 0.3); /* Light blue with transparency */
+        border: 2px solid #e3f2fd;
+        border-radius: 8px;
+        z-index: -2; /* Behind sequences but above diagram background */
+        pointer-events: none;
+      }
 
+      .workflow-label {
+        position: absolute;
+        background: #4caf50;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        top: -12px;
+        left: 8px;
+        z-index: -1;
+      }
       .arrow-line {
         position: absolute;
         top: 50%;
@@ -481,65 +504,143 @@ window.SequenceDiagramRenderer = {
       id: container.id || container.container_id,
     }));
 
-    // Create message data from sequences
-    const messages = sequences
+    // Group sequences by workflow
+    const groupSequencesByWorkflow = (sequences, workflows) => {
+      const workflowGroups = {};
+      const ungroupedSequences = [];
+
+      sequences.forEach((sequence) => {
+        if (sequence.workflowId && workflows[sequence.workflowId]) {
+          if (!workflowGroups[sequence.workflowId]) {
+            workflowGroups[sequence.workflowId] = {
+              workflow: workflows[sequence.workflowId],
+              sequences: [],
+            };
+          }
+          workflowGroups[sequence.workflowId].sequences.push(sequence);
+        } else {
+          ungroupedSequences.push(sequence);
+        }
+      });
+
+      return { workflowGroups, ungroupedSequences };
+    };
+
+    // Get workflows from data store
+    const workflows = window.WorkflowArchitectDataStore
+      ? window.WorkflowArchitectDataStore.data.workflows
+      : {};
+
+    // Group sequences by workflow
+    const { workflowGroups, ungroupedSequences } = groupSequencesByWorkflow(
+      sequences,
+      workflows
+    );
+
+    console.log("DEBUG - Workflow grouping:", {
+      workflowGroups: Object.keys(workflowGroups),
+      ungroupedCount: ungroupedSequences.length,
+      totalWorkflows: Object.keys(workflows).length,
+    });
+
+    // Calculate workflow boundaries from sequence positions
+    const calculateWorkflowBounds = (workflowGroups, positionedMessages) => {
+      const workflowBounds = {};
+
+      Object.keys(workflowGroups).forEach((workflowId) => {
+        const workflowSequences = workflowGroups[workflowId].sequences;
+        const sequencePositions = positionedMessages.filter((msg) =>
+          workflowSequences.some((seq) => seq.id === msg.id)
+        );
+
+        if (sequencePositions.length > 0) {
+          const minY =
+            Math.min(...sequencePositions.map((pos) => pos.yPos)) - 30;
+          const maxY =
+            Math.max(...sequencePositions.map((pos) => pos.yPos)) + 50;
+          const minX = 0;
+          const maxX = actors.length * 180;
+
+          workflowBounds[workflowId] = {
+            x: minX,
+            y: minY,
+            width: maxX,
+            height: maxY - minY,
+            workflow: workflowGroups[workflowId].workflow,
+          };
+        }
+      });
+
+      return workflowBounds;
+    };
+
+    // Process sequences and create positioned messages
+    const positionedMessages = sequences
       .map((sequence, index) => {
-        const fromIndex = actors.findIndex(
+        const fromActor = actors.find(
           (a) =>
             a.id === (sequence.fromContainerId || sequence.from_container_id)
         );
-        const toIndex = actors.findIndex(
+        const toActor = actors.find(
           (a) => a.id === (sequence.toContainerId || sequence.to_container_id)
         );
 
-        const orderIndex = sequence.order_number || sequence.order_index || (index + 1);
+        const orderIndex =
+          sequence.order_number || sequence.order_index || index + 1;
         let labelText = sequence.label_text || sequence.label || "Sequence";
-        
+
         // Debug logging to see what's happening
         console.log("DEBUG - Processing sequence:", {
           id: sequence.id,
           raw_label_text: sequence.label_text,
           raw_label: sequence.label,
           orderIndex: orderIndex,
-          labelText_before_strip: labelText
+          labelText_before_strip: labelText,
+          workflowId: sequence.workflowId,
         });
-        
+
         // Strip any existing order index prefix from label text to prevent duplication
         // Matches patterns like "1. ", "2. ", etc. at the start of the string
-        labelText = labelText.replace(/^\d+\.\s*/, '');
-        
+        labelText = labelText.replace(/^\d+\.\s*/, "");
+
         console.log("DEBUG - After stripping:", {
           labelText_after_strip: labelText,
-          final_label: `${orderIndex}. ${labelText}`
+          final_label: `${orderIndex}. ${labelText}`,
         });
-        
+
         return {
           label: `${orderIndex}. ${labelText}`,
           labelText: labelText, // Pure label text for editing
-          orderIndex: orderIndex,
-          from: fromIndex,
-          to: toIndex,
-          dashed: sequence.dashed_text === "true" || sequence.is_dashed_boolean || sequence.isDashed || false,
-          self: fromIndex === toIndex,
+          yPos: 130 + index * 150,
+          from: fromActor ? actors.indexOf(fromActor) : -1,
+          to: toActor ? actors.indexOf(toActor) : -1,
+          dashed:
+            sequence.dashed_text === "true" ||
+            sequence.is_dashed_boolean ||
+            sequence.isDashed ||
+            false,
+          self: fromActor && toActor && fromActor.id === toActor.id,
           id: sequence.id || sequence.sequence_id,
+          workflowId: sequence.workflowId, // Add workflow ID to positioned message
         };
       })
-      .filter((msg) => msg.from >= 0 && msg.to >= 0);
+      .filter((msg) => msg !== null);
+
+    // Calculate workflow boundaries
+    const workflowBounds = calculateWorkflowBounds(
+      workflowGroups,
+      positionedMessages
+    );
+
+    console.log("DEBUG - Workflow bounds:", workflowBounds);
+
+    // Update container height based on content
+    const containerHeight = Math.max(
+      600,
+      130 + positionedMessages.length * 150 + 100
+    );
 
     const actorsCount = actors.length;
-
-    // Pre-calculate Y positions
-    const startY = 130;
-    const stepY = 150;
-    let positionedMessages = [];
-    let currentY = startY;
-
-    messages.forEach((msg) => {
-      positionedMessages.push({ ...msg, yPos: currentY });
-      currentY += msg.self ? stepY * 1.2 : stepY;
-    });
-
-    const containerHeight = currentY;
 
     // Create components
     const ActivationBox = this.createActivationBox();
@@ -603,16 +704,18 @@ window.SequenceDiagramRenderer = {
       // Trigger Bubble workflow event to show sequence creation popup
       // This follows the StoryMapper pattern where button click triggers workflow
       const eventData = {
-        type: 'add_sequence_clicked',
+        type: "add_sequence_clicked",
         featureId: featureId,
         nextOrderIndex: nextOrderIndex,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       // Use event bridge to trigger sequence creation popup
       if (window.WorkflowArchitectEventBridge) {
         console.log("Triggering sequence creation popup via event bridge");
-        window.WorkflowArchitectEventBridge.handleSequenceCreationTrigger(eventData);
+        window.WorkflowArchitectEventBridge.handleSequenceCreationTrigger(
+          eventData
+        );
       } else {
         console.error("WorkflowArchitectEventBridge not available");
       }
@@ -665,6 +768,41 @@ window.SequenceDiagramRenderer = {
               style: { height: `${containerHeight}px` },
             },
             [
+              // Workflow backgrounds (render first, behind everything)
+              ...Object.keys(workflowBounds).map((workflowId) =>
+                React.createElement(
+                  "div",
+                  {
+                    key: `workflow-${workflowId}`,
+                    className: "workflow-background",
+                    style: {
+                      left: `${workflowBounds[workflowId].x}px`,
+                      top: `${workflowBounds[workflowId].y}px`,
+                      width: `${workflowBounds[workflowId].width}px`,
+                      height: `${workflowBounds[workflowId].height}px`,
+                      backgroundColor:
+                        (workflowBounds[workflowId].workflow.colorHex ||
+                          "#e3f2fd") + "30",
+                    },
+                  },
+                  [
+                    React.createElement(
+                      "div",
+                      {
+                        key: "label",
+                        className: "workflow-label",
+                        style: {
+                          backgroundColor:
+                            workflowBounds[workflowId].workflow.colorHex ||
+                            "#4caf50",
+                        },
+                      },
+                      workflowBounds[workflowId].workflow.name || "Workflow"
+                    ),
+                  ]
+                )
+              ),
+
               // Actor lanes
               ...actors.map((actor) =>
                 React.createElement(
