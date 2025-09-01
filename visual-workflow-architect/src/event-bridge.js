@@ -18,7 +18,7 @@ window.WorkflowArchitectEventBridge = {
       "WorkflowArchitectEventBridge: Container add requested",
       eventData
     );
-    this.instance.publishState("pending_update", JSON.stringify(eventData));
+    this.instance.publishState("pending_add", JSON.stringify(eventData));
     this.instance.triggerEvent("container_added");
   },
 
