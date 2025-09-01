@@ -889,6 +889,40 @@ window.SequenceDiagramRenderer = {
       }
     };
 
+    const handleAddSubgroup = () => {
+      console.log("Add Subgroup clicked - triggering Bubble workflow");
+
+      // Get feature ID from data store
+      const feature = window.WorkflowArchitectDataStore?.getFeature();
+      const featureId = feature?.id;
+
+      if (!featureId) {
+        console.error("No feature ID available for new subgroup");
+        return;
+      }
+
+      // Prepare event data for subgroup creation
+      const eventData = {
+        type: "subgroup_added",
+        featureId: featureId,
+        availableWorkflows: Object.keys(workflows).map(wId => ({
+          id: wId,
+          name: workflows[wId].name
+        })),
+        timestamp: Date.now(),
+      };
+
+      // Use event bridge to trigger subgroup creation popup
+      if (window.WorkflowArchitectEventBridge) {
+        console.log("Triggering subgroup creation popup via event bridge");
+        window.WorkflowArchitectEventBridge.handleSubgroupCreationTrigger(
+          eventData
+        );
+      } else {
+        console.error("WorkflowArchitectEventBridge not available");
+      }
+    };
+
     // Main sequence diagram component
     const SequenceDiagram = () => {
       return React.createElement(
@@ -923,6 +957,16 @@ window.SequenceDiagramRenderer = {
                   disabled: actors.length < 2,
                 },
                 "+ Add Sequence"
+              ),
+              React.createElement(
+                "button",
+                {
+                  key: "add-subgroup",
+                  className: "toolbar-button",
+                  onClick: handleAddSubgroup,
+                  disabled: Object.keys(workflows).length === 0,
+                },
+                "+ Add Subgroup"
               ),
             ]
           ),
