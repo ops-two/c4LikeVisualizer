@@ -4,24 +4,27 @@
 console.log("DEBUG: react-flow-renderer-clean.js script is loading...");
 
 // Add rerender event listener (following storymap-grid pattern)
-document.addEventListener('workflow-architect:rerender', function(event) {
-  console.log('RERENDER: Event received with data:', event.detail);
-  
+document.addEventListener("workflow-architect:rerender", function (event) {
+  console.log("RERENDER: Event received with data:", event.detail);
+
   // Find the container and re-render
-  const container = document.getElementById('sequence-diagram-container');
-  console.log('RERENDER: Container found:', !!container);
-  console.log('RERENDER: SequenceDiagramRenderer available:', !!window.SequenceDiagramRenderer);
-  
+  const container = document.getElementById("sequence-diagram-container");
+  console.log("RERENDER: Container found:", !!container);
+  console.log(
+    "RERENDER: SequenceDiagramRenderer available:",
+    !!window.SequenceDiagramRenderer
+  );
+
   if (container && window.SequenceDiagramRenderer) {
     // Clear existing content
-    container.innerHTML = '';
-    console.log('RERENDER: Container cleared, calling render...');
-    
+    container.innerHTML = "";
+    console.log("RERENDER: Container cleared, calling render...");
+
     // Re-render with new data
     window.SequenceDiagramRenderer.render(container, event.detail);
-    console.log('RERENDER: UI re-rendered successfully');
+    console.log("RERENDER: UI re-rendered successfully");
   } else {
-    console.warn('RERENDER: Container or renderer not found for rerender');
+    console.warn("RERENDER: Container or renderer not found for rerender");
   }
 });
 
@@ -343,7 +346,6 @@ window.SequenceDiagramRenderer = {
     };
   },
 
-  // Step 3: Create Message component
   createMessage: function () {
     return function Message({
       label,
@@ -356,37 +358,37 @@ window.SequenceDiagramRenderer = {
       sequenceId,
     }) {
       const isLeft = to < from;
-      const start =
-        (isLeft ? to : from) * (100 / actorsCount) + 100 / (actorsCount * 2);
-      const distance = Math.abs(to - from);
-      const width = distance * (100 / actorsCount);
 
-      const maxWidthPercentage = distance === 1 ? 75 : 90;
-      const labelStyle = { maxWidth: `${maxWidthPercentage}%` };
+      // Use the proven, pixel-based positioning system
+      const startX = (isLeft ? to : from) * 180 + 90; // Center of start lane
+      const endX = (isLeft ? from : to) * 180 + 90; // Center of end lane
+      const width = Math.abs(endX - startX);
 
       const messageStyle = {
         top: `${yPos - 50}px`,
-        left: `${start}%`,
-        width: `${width}%`,
+        left: `${Math.min(startX, endX)}px`,
+        width: `${width}px`,
+        position: "absolute",
+        height: "100px",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
       };
+
       const arrowClass = `arrow-line ${dashed ? "dashed" : ""} ${
         isLeft ? "left" : ""
       }`;
 
-
       return React.createElement(
         "div",
-        {
-          className: "message",
-          style: messageStyle,
-        },
+        { className: "message", style: messageStyle },
         [
           React.createElement(
             "div",
             {
               key: "label",
               className: "message-label sequence-label",
-              style: labelStyle,
+              style: { maxWidth: "90%", textAlign: "center" },
               "data-sequence-id": sequenceId,
               "data-label-text": labelText,
               title: "Double-click to edit",
@@ -402,6 +404,7 @@ window.SequenceDiagramRenderer = {
       );
     };
   },
+  // ... existing code
 
   // Step 4: Create SelfMessage component
   createSelfMessage: function () {
@@ -532,34 +535,39 @@ window.SequenceDiagramRenderer = {
           (a) => a.id === (sequence.toContainerId || sequence.to_container_id)
         );
 
-        const orderIndex = sequence.order_number || sequence.order_index || (index + 1);
+        const orderIndex =
+          sequence.order_number || sequence.order_index || index + 1;
         let labelText = sequence.label_text || sequence.label || "Sequence";
-        
+
         // Debug logging to see what's happening
         console.log("DEBUG - Processing sequence:", {
           id: sequence.id,
           raw_label_text: sequence.label_text,
           raw_label: sequence.label,
           orderIndex: orderIndex,
-          labelText_before_strip: labelText
+          labelText_before_strip: labelText,
         });
-        
+
         // Strip any existing order index prefix from label text to prevent duplication
         // Matches patterns like "1. ", "2. ", etc. at the start of the string
-        labelText = labelText.replace(/^\d+\.\s*/, '');
-        
+        labelText = labelText.replace(/^\d+\.\s*/, "");
+
         console.log("DEBUG - After stripping:", {
           labelText_after_strip: labelText,
-          final_label: `${orderIndex}. ${labelText}`
+          final_label: `${orderIndex}. ${labelText}`,
         });
-        
+
         return {
           label: `${orderIndex}. ${labelText}`,
           labelText: labelText, // Pure label text for editing
           orderIndex: orderIndex,
           from: fromIndex,
           to: toIndex,
-          dashed: sequence.dashed_text === "true" || sequence.is_dashed_boolean || sequence.isDashed || false,
+          dashed:
+            sequence.dashed_text === "true" ||
+            sequence.is_dashed_boolean ||
+            sequence.isDashed ||
+            false,
           self: fromIndex === toIndex,
           id: sequence.id || sequence.sequence_id,
         };
@@ -643,16 +651,18 @@ window.SequenceDiagramRenderer = {
       // Trigger Bubble workflow event to show sequence creation popup
       // This follows the StoryMapper pattern where button click triggers workflow
       const eventData = {
-        type: 'add_sequence_clicked',
+        type: "add_sequence_clicked",
         featureId: featureId,
         nextOrderIndex: nextOrderIndex,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       // Use event bridge to trigger sequence creation popup
       if (window.WorkflowArchitectEventBridge) {
         console.log("Triggering sequence creation popup via event bridge");
-        window.WorkflowArchitectEventBridge.handleSequenceCreationTrigger(eventData);
+        window.WorkflowArchitectEventBridge.handleSequenceCreationTrigger(
+          eventData
+        );
       } else {
         console.error("WorkflowArchitectEventBridge not available");
       }
