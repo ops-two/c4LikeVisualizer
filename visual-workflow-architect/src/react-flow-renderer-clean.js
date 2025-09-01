@@ -857,38 +857,24 @@ window.SequenceDiagramRenderer = {
     const SelfMessage = this.createSelfMessage();
 
     // Toolbar event handlers
+    // ... existing code
     const handleAddContainer = () => {
-      console.log("Add Container clicked");
-
-      // Get feature ID from data store
       const feature = window.WorkflowArchitectDataStore?.getFeature();
-      const featureId = feature?.id;
-
-      if (!featureId) {
-        console.error("No feature ID available for new container");
+      if (!feature || !feature.id) {
         return;
       }
-
-      // Create container with default values
       const newContainerData = {
         name: "New Container",
-        type: "Component",
         colorHex: "#3ea50b",
-        featureId: featureId,
+        featureId: feature.id,
       };
-
-      // Use event bridge to handle the addition
       if (window.WorkflowArchitectEventBridge) {
-        const tempId = window.WorkflowArchitectEventBridge.handleEntityAdd(
-          "container",
+        // CORRECTED: Call the specific handleContainerAdd function
+        window.WorkflowArchitectEventBridge.handleContainerAdd(
           newContainerData
         );
-        console.log("Container add initiated with temp ID:", tempId);
-      } else {
-        console.error("WorkflowArchitectEventBridge not available");
       }
     };
-
     const handleAddSequence = () => {
       console.log("Add Sequence clicked - triggering Bubble workflow");
 
@@ -929,7 +915,27 @@ window.SequenceDiagramRenderer = {
         console.error("WorkflowArchitectEventBridge not available");
       }
     };
-
+    const handleAddWorkflow = () => {
+      const feature = window.WorkflowArchitectDataStore?.getFeature();
+      if (!feature || !feature.id) {
+        return;
+      }
+      const nextOrderIndex =
+        workflows.length > 0
+          ? Math.max(...workflows.map((w) => w.orderIndex || 0)) + 10
+          : 10;
+      const newWorkflowData = {
+        name: "New Workflow",
+        featureId: feature.id,
+        orderIndex: nextOrderIndex,
+      };
+      if (window.WorkflowArchitectEventBridge) {
+        window.WorkflowArchitectEventBridge.handleEntityAdd(
+          "workflow",
+          newWorkflowData
+        );
+      }
+    };
     const handleAddSubgroup = () => {
       console.log("Add Subgroup clicked - triggering Bubble workflow");
 
