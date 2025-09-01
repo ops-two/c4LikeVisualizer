@@ -130,10 +130,19 @@ window.WorkflowArchitectDataStore = {
     let subgroupRef = null;
     const possibleSubgroupFields = [
       "subgroup_custom_subgroup",
+      "subgroup_custom_Subgroup", 
       "subgroup",
-      "Subgroup", 
-      "subgroup_custom_Subgroup"
+      "Subgroup",
+      "subgroup_text",
+      "subgroup_custom_subgroups"
     ];
+    
+    // Debug: Log all available fields on the first sequence to identify correct field names
+    if (!window.debugSequenceFieldsLogged) {
+      console.log("DEBUG - All available fields on sequence object:", Object.keys(bubbleSequence));
+      console.log("DEBUG - Sequence object methods and properties:", bubbleSequence);
+      window.debugSequenceFieldsLogged = true;
+    }
     
     for (const fieldName of possibleSubgroupFields) {
       try {

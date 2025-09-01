@@ -528,7 +528,13 @@ window.SequenceDiagramRenderer = {
         rawSubgroupsArray: subgroupsArray,
         subgroupsObject: subgroups,
         sequencesWithSubgroups: sequences.filter(s => s.subgroupId).length,
-        allSequenceSubgroupIds: sequences.map(s => s.subgroupId).filter(Boolean)
+        allSequenceSubgroupIds: sequences.map(s => s.subgroupId).filter(Boolean),
+        firstSequenceDetails: sequences[0] ? {
+          id: sequences[0].id,
+          subgroupId: sequences[0].subgroupId,
+          workflowId: sequences[0].workflowId,
+          allFields: Object.keys(sequences[0])
+        } : null
       });
     } else {
       containers = data.containers || [];
