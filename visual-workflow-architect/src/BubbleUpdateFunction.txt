@@ -246,13 +246,28 @@ function(instance, properties, context) {
         // Store feature ID in DOM for persistence
         containerElement.attr('data-feature-id', featureId);
         
-        // Smart re-render detection - only re-render when data actually changes
+        // Smart re-render detection - detect both count and content changes
+        var contentHash = '';
+        try {
+            // Include content hashes to detect inline edits
+            var containerNames = allContainers.map(c => c.get('name_text') || '').join('|');
+            var sequenceLabels = allSequences.map(s => s.get('label_text') || '').join('|');
+            var workflowNames = allWorkflows.map(w => w.get('label_text') || '').join('|');
+            var subgroupNames = allSubgroups.map(sg => sg.get('label_text') || '').join('|');
+            
+            contentHash = containerNames + '::' + sequenceLabels + '::' + workflowNames + '::' + subgroupNames;
+        } catch (e) {
+            console.log('UPDATE: Content hash generation failed, using timestamp:', e);
+            contentHash = Date.now().toString();
+        }
+        
         var currentDataHash = JSON.stringify({
             containers: containerCount,
             sequences: sequenceCount,
             workflows: workflowCount,
             subgroups: subgroupCount,
-            featureId: featureId
+            featureId: featureId,
+            contentHash: contentHash
         });
         
         var lastDataHash = containerElement.attr('data-last-hash');

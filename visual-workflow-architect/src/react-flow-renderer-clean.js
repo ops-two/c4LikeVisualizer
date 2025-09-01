@@ -102,10 +102,10 @@ window.SequenceDiagramRenderer = {
         border: 1px solid #90caf9;
         color: #1e88e5;
       }
-     .lifeline {
+      .lifeline {
         width: 0px; /* The element itself has no width */
         height: 100%;
-        min-height: 600px;
+        min-height: ${containerHeight}px; /* Dynamic height based on content */
         border-left: 2px dotted #cccccc; /* Create the line using a dotted border */
         z-index: 0;
       }
@@ -831,7 +831,7 @@ window.SequenceDiagramRenderer = {
         return {
           label: `${orderIndex}. ${labelText}`,
           labelText: labelText, // Pure label text for editing
-          yPos: 130 + index * 150,
+          yPos: 130 + (orderIndex - 1) * 150, // Use orderIndex instead of array index
           from: actors.indexOf(fromActor),
           to: actors.indexOf(toActor),
           dashed:
@@ -860,10 +860,17 @@ window.SequenceDiagramRenderer = {
       positionedMessagesCount: positionedMessages.length,
     });
 
-    // Update container height based on content
+    // Update container height based on content - use max orderIndex instead of array length
+    const maxOrderIndex = positionedMessages.length > 0 
+      ? Math.max(...positionedMessages.map(msg => {
+          const orderMatch = msg.label.match(/^(\d+)\./);
+          return orderMatch ? parseInt(orderMatch[1]) : 1;
+        }))
+      : 1;
+    
     const containerHeight = Math.max(
       600,
-      130 + positionedMessages.length * 150 + 100
+      130 + maxOrderIndex * 150 + 100
     );
 
     const actorsCount = actors.length;
