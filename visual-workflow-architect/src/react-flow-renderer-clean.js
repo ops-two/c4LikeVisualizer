@@ -112,10 +112,9 @@ window.SequenceDiagramRenderer = {
       
       .sequence-node {
         position: absolute;
-        width: 16px; /* Increased size */
-        height: 16px; /* Increased size */
+        width: 24px; /* Increased size */
+        height: 24px; /* Increased size */
         border-radius: 50%;
-        border: 2px solid white;
         transform: translate(-50%, -50%);
         z-index: 2; /* Keep it above the lifeline (z-index: 1) and below the arrow (z-index: 3) */
         box-shadow: 0 2px 4px rgba(0,0,0,0.15); /* Enhanced shadow for more "pop" */
