@@ -88,23 +88,28 @@ window.SequenceDiagramRenderer = {
       }
 
       .actor-lane h3 {
-        margin: 0;
-        padding: 8px 4px;
+        background-color: #e3f2fd;
+        border: 1px solid #90caf9;
+        color: #1e88e5;
+        border-radius: 6px;
+        padding: 8px 16px;
+        margin-top: 20px;
         font-weight: 500;
-        border-top: 5px solid transparent;
-        max-width: 160px;
-        text-align: center;
         font-size: 13px;
-        line-height: 1.2;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
+        max-width: 140px;
+        text-align: center;
+        line-height: 1.3;
+        
+        border-top: none;
+
+        transition: all 0.2s ease-in-out;
       }
 
-      .lifeline {
-        width: 2px;
+     .lifeline {
+        width: 0px; /* The element itself has no width */
         height: 100%;
         min-height: 600px;
-        background-color: #d3d3d3;
+        border-left: 2px dotted #cccccc; /* Create the line using a dotted border */
         z-index: 0;
       }
       
@@ -864,9 +869,9 @@ window.SequenceDiagramRenderer = {
         return;
       }
       const newContainerData = {
-        name: "New Container",
-        colorHex: "#3ea50b",
-        featureId: feature.id,
+        name_text: "New Container",
+        color_hex: "#3ea50b",
+        feature_id: feature.id,
       };
       if (window.WorkflowArchitectEventBridge) {
         // CORRECTED: Call the specific handleContainerAdd function
