@@ -18,7 +18,7 @@ document.addEventListener('workflow-architect:rerender', function(event) {
     console.log('RERENDER: Container cleared, calling render...');
     
     // Re-render with new data
-    window.SequenceDiagramRenderer.render(event.detail, container);
+    window.SequenceDiagramRenderer.render(container, event.detail);
     console.log('RERENDER: UI re-rendered successfully');
   } else {
     console.warn('RERENDER: Container or renderer not found for rerender');
@@ -68,10 +68,10 @@ window.SequenceDiagramRenderer = {
         align-items: flex-start;
         position: relative;
         width: 100%;
-        height: 100vh;
+        height: auto;
         min-height: 600px;
         overflow-x: auto;
-        overflow-y: scroll;
+        overflow-y: visible;
       }
 
       .actor-lane {
@@ -198,50 +198,7 @@ window.SequenceDiagramRenderer = {
       .container-name:hover {
         background-color: rgba(25, 118, 210, 0.1);
       }
-      .workflow-background {
-        position: absolute;
-        background: rgba(227, 242, 253, 0.10); /* Reduced opacity to 0.10 */
-        border: 2px solid rgba(227, 242, 253, 0.2); /* Border opacity 0.2 */
-        border-radius: 8px;
-        z-index: 1; /* Above diagram background but behind sequences */
-        pointer-events: none;
-      }
-      
-      .subgroup-background {
-        position: absolute;
-        background: rgba(245, 245, 245, 0.15); /* Light gray with transparency */
-        border: 1px solid rgba(245, 245, 245, 0.3);
-        border-radius: 6px;
-        z-index: 1.5; /* Above workflow background but behind sequences */
-        pointer-events: none;
-        margin: 5px;
-      }
 
-      .subgroup-label {
-        position: absolute;
-        background: #9e9e9e;
-        color: white;
-        padding: 2px 8px;
-        border-radius: 3px;
-        font-size: 11px;
-        font-weight: 500;
-        top: -10px;
-        left: 6px;
-        z-index: 2.5; /* Above subgroup background */
-      }
-
-      .workflow-label {
-        position: absolute;
-        background: #4caf50;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 500;
-        top: -12px;
-        left: 8px;
-        z-index: 2; /* Above workflow background */
-      }
       .arrow-line {
         position: absolute;
         top: 50%;
@@ -316,7 +273,6 @@ window.SequenceDiagramRenderer = {
       .self-message-path-bottom::after {
         content: ''; position: absolute; left: -1px; top: -4px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-right: 8px solid #555;
       }
-
     `;
     document.head.appendChild(style);
   },
@@ -356,37 +312,41 @@ window.SequenceDiagramRenderer = {
       sequenceId,
     }) {
       const isLeft = to < from;
-      const start =
-        (isLeft ? to : from) * (100 / actorsCount) + 100 / (actorsCount * 2);
-      const distance = Math.abs(to - from);
-      const width = distance * (100 / actorsCount);
+      const startActor = isLeft ? to : from;
+      const endActor = isLeft ? from : to;
 
-      const maxWidthPercentage = distance === 1 ? 75 : 90;
-      const labelStyle = { maxWidth: `${maxWidthPercentage}%` };
+      // Calculate positions using fixed spacing (180px per lane)
+      const startActorIndex = isLeft ? to : from;
+      const endActorIndex = isLeft ? from : to;
+      const startX = startActorIndex * 180 + 90; // Center of start lane
+      const endX = endActorIndex * 180 + 90; // Center of end lane
+      const width = Math.abs(endX - startX);
 
       const messageStyle = {
         top: `${yPos - 50}px`,
-        left: `${start}%`,
-        width: `${width}%`,
+        left: `${Math.min(startX, endX)}px`,
+        width: `${width}px`,
+        position: "absolute",
+        height: "100px",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
       };
+
       const arrowClass = `arrow-line ${dashed ? "dashed" : ""} ${
         isLeft ? "left" : ""
       }`;
 
-
       return React.createElement(
         "div",
-        {
-          className: "message",
-          style: messageStyle,
-        },
+        { className: "message", style: messageStyle },
         [
           React.createElement(
             "div",
             {
               key: "label",
               className: "message-label sequence-label",
-              style: labelStyle,
+              style: { maxWidth: "90%", textAlign: "center" },
               "data-sequence-id": sequenceId,
               "data-label-text": labelText,
               title: "Double-click to edit",
@@ -413,8 +373,6 @@ window.SequenceDiagramRenderer = {
       height,
       actorsCount,
       sequenceId,
-      subgroupId,
-      workflowId,
     }) {
       const position = actorIndex * 180 + 90; // Fixed spacing: 180px per lane, center at 90px
       const style = {
@@ -427,13 +385,9 @@ window.SequenceDiagramRenderer = {
         alignItems: "center",
       };
 
-
       return React.createElement(
         "div",
-        { 
-          className: "self-message", 
-          style: style,
-        },
+        { className: "self-message", style: style },
         [
           React.createElement(
             "div",
@@ -461,9 +415,7 @@ window.SequenceDiagramRenderer = {
             {
               key: "label",
               className: "message-label sequence-label",
-              style: { 
-                marginLeft: "10px",
-              },
+              style: { marginLeft: "10px" },
               "data-sequence-id": sequenceId,
               "data-label-text": labelText,
               title: "Double-click to edit",
