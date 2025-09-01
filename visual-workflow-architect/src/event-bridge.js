@@ -10,6 +10,9 @@ window.WorkflowArchitectEventBridge = {
     console.log(
       "WorkflowArchitectEventBridge: Initialized with simple event pattern"
     );
+
+    // Add event listeners for custom events (following storymap pattern)
+    document.addEventListener("workflow-architect:update", this.handleUpdate.bind(this));
   },
 
   // Handle container creation
@@ -108,6 +111,16 @@ window.WorkflowArchitectEventBridge = {
       eventData
     );
     this.handleSubgroupAdd(eventData);
+  },
+
+  // Handle update events from inline editing (following storymap pattern)
+  handleUpdate: function (event) {
+    console.log(
+      "WorkflowArchitectEventBridge: Update event received",
+      event.detail
+    );
+    this.instance.publishState("pending_update", JSON.stringify(event.detail));
+    this.instance.triggerEvent(`${event.detail.entityType}_updated`);
   },
 };
 

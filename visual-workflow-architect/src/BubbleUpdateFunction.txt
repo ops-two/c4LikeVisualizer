@@ -246,6 +246,26 @@ function(instance, properties, context) {
         // Store feature ID in DOM for persistence
         containerElement.attr('data-feature-id', featureId);
         
+        // Smart re-render detection - only re-render when data actually changes
+        var currentDataHash = JSON.stringify({
+            containers: containerCount,
+            sequences: sequenceCount,
+            workflows: workflowCount,
+            subgroups: subgroupCount,
+            featureId: featureId
+        });
+        
+        var lastDataHash = containerElement.attr('data-last-hash');
+        if (currentDataHash === lastDataHash) {
+            console.log('UPDATE: No data changes detected, skipping render');
+            return;
+        }
+        
+        console.log('UPDATE: Data changes detected, proceeding with render');
+        console.log('UPDATE: Previous hash:', lastDataHash);
+        console.log('UPDATE: Current hash:', currentDataHash);
+        containerElement.attr('data-last-hash', currentDataHash);
+        
         // Initialize view manager if available
         if (window.WorkflowArchitectViewManager) {
             console.log('UPDATE: Initializing view manager...');
@@ -258,7 +278,7 @@ function(instance, properties, context) {
             console.log('UPDATE: Initializing renderer...');
             window.WorkflowArchitectRenderer.init(pluginId);
             
-            // Call renderer with data and target element (following storymap pattern)
+            // Call renderer with data and target element
             console.log('UPDATE: Calling renderer...');
             window.WorkflowArchitectRenderer.render(bubbleData, containerElement);
             console.log('UPDATE: Renderer completed successfully');

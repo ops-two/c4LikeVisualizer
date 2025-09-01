@@ -115,23 +115,62 @@ window.WorkflowArchitectInlineEdit = {
     const oldText = this.currentEdit.originalText;
 
     if (newText !== oldText && newText.length > 0) {
-      // Don't update DOM directly - let the re-render handle proper formatting
-      // this.currentEdit.element.textContent = newText;
-
-      // Dispatch update event to event bridge
+      // Follow storymap pattern: Update local data store first
       if (this.currentEdit.entityType === "container") {
-        this.dispatchContainerUpdate(
-          this.currentEdit.entityId,
-          newText,
-          oldText
+        // Update local data store
+        window.WorkflowArchitectDataStore.updateEntity("container", this.currentEdit.entityId, {
+          name: newText
+        });
+        
+        // Get full entity data for Bubble update
+        const fullEntityData = window.WorkflowArchitectDataStore.getEntityForUpdate("container", this.currentEdit.entityId);
+        if (fullEntityData) {
+          fullEntityData.name_text = newText;
+        }
+
+        // Dispatch custom event following storymap pattern
+        document.dispatchEvent(
+          new CustomEvent("workflow-architect:update", {
+            detail: {
+              entityType: "container",
+              entityId: this.currentEdit.entityId,
+              fieldName: "name_text",
+              newValue: newText,
+              oldValue: oldText,
+              allData: fullEntityData,
+            },
+          })
         );
+
       } else if (this.currentEdit.entityType === "sequence") {
-        this.dispatchSequenceUpdate(
-          this.currentEdit.entityId,
-          newText,
-          oldText
+        // Update local data store
+        window.WorkflowArchitectDataStore.updateEntity("sequence", this.currentEdit.entityId, {
+          label: newText
+        });
+        
+        // Get full entity data for Bubble update
+        const fullEntityData = window.WorkflowArchitectDataStore.getEntityForUpdate("sequence", this.currentEdit.entityId);
+        if (fullEntityData) {
+          fullEntityData.label_text = newText;
+        }
+
+        // Dispatch custom event following storymap pattern
+        document.dispatchEvent(
+          new CustomEvent("workflow-architect:update", {
+            detail: {
+              entityType: "sequence",
+              entityId: this.currentEdit.entityId,
+              fieldName: "label_text",
+              newValue: newText,
+              oldValue: oldText,
+              allData: fullEntityData,
+            },
+          })
         );
       }
+
+      // Trigger immediate re-render following storymap pattern
+      this.triggerRerender();
     }
 
     this.cleanupEdit();
@@ -151,19 +190,29 @@ window.WorkflowArchitectInlineEdit = {
     this.currentEdit = null;
   },
 
-  dispatchContainerUpdate(containerId, newName, oldName) {
-    if (window.WorkflowArchitectEventBridge) {
-      window.WorkflowArchitectEventBridge.handleContainerUpdate(containerId, {
-        name: newName,
-      });
-    }
-  },
-
-  dispatchSequenceUpdate(sequenceId, newLabel, oldLabel) {
-    if (window.WorkflowArchitectEventBridge) {
-      window.WorkflowArchitectEventBridge.handleSequenceUpdate(sequenceId, {
-        label: newLabel,
-      });
+  // Add re-render trigger method following storymap pattern
+  triggerRerender() {
+    // Find the main container and trigger re-render
+    const container = document.getElementById("sequence-diagram-container");
+    if (container && window.SequenceDiagramRenderer) {
+      console.log("INLINE EDIT: Triggering re-render after edit");
+      
+      // Get fresh data from data store
+      const containers = window.WorkflowArchitectDataStore.getContainersArray();
+      const sequences = window.WorkflowArchitectDataStore.getSequencesArray();
+      const workflows = window.WorkflowArchitectDataStore.getWorkflowsArray();
+      const subgroups = window.WorkflowArchitectDataStore.getSubgroupsArray();
+      
+      const freshData = {
+        containers,
+        sequences,
+        workflows,
+        subgroups
+      };
+      
+      // Clear and re-render
+      container.innerHTML = "";
+      window.SequenceDiagramRenderer.render(freshData, container);
     }
   },
 };
