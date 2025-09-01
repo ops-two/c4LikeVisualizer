@@ -68,7 +68,7 @@ window.SequenceDiagramRenderer = {
       .diagram-container {
         display: flex;
         flex-direction: row;
-        align-items: flex-start;
+        align-items: center; /* Changed from flex-start to center */
         position: relative;
         width: 100%;
         height: 100vh;
@@ -250,29 +250,29 @@ window.SequenceDiagramRenderer = {
       .arrow-line {
         position: absolute;
         top: 50%;
-        height: 1px; /* Thinner line */
-        background-color: #333; /* Darker color */
-        z-index: 3;
+        height: 2px;
+        background-color: #555;
+        z-index: 2;
         transform: translateY(-50%);
       }
       
       .arrow-line.dashed {
-        background-image: linear-gradient(to right, #333 50%, transparent 50%);
-        background-size: 6px 1px; /* Shorter dashes */
+        background-image: linear-gradient(to right, #555 50%, transparent 50%);
+        background-size: 12px 2px;
         background-color: transparent;
       }
 
       .arrow-line::after {
         content: '';
         position: absolute;
-        right: 0px; /* Adjusted position */
+        right: -1px;
         top: 50%;
-        transform: translateY(-50%) translateX(100%);
+        transform: translateY(-50%);
         width: 0;
         height: 0;
-        border-top: 4px solid transparent; /* Smaller arrowhead */
-        border-bottom: 4px solid transparent; /* Smaller arrowhead */
-        border-left: 6px solid #333; /* Smaller arrowhead */
+        border-top: 5px solid transparent;
+        border-bottom: 5px solid transparent;
+        border-left: 8px solid #555;
       }
       
       .arrow-line.left::after {
@@ -321,6 +321,27 @@ window.SequenceDiagramRenderer = {
       .self-message-path-bottom::after {
         content: ''; position: absolute; left: -1px; top: -4px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-right: 8px solid #555;
       }
+  .add-container-btn {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 1px solid #cccccc;
+        background-color: white;
+        color: #888888;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 10px;
+        transition: all 0.2s ease-in-out;
+      }
+      .add-container-btn:hover {
+        background-color: #f0f0f0;
+        border-color: #aaaaaa;
+        color: #333333;
+      }
 
     `;
     document.head.appendChild(style);
@@ -354,17 +375,15 @@ window.SequenceDiagramRenderer = {
       sequenceId,
     }) {
       const isLeft = to < from;
-      const nodeRadius = 8; // Half the width of our 16px sequence node
 
       // Use the proven, pixel-based positioning system
       const startX = (isLeft ? to : from) * 180 + 90; // Center of start lane
       const endX = (isLeft ? from : to) * 180 + 90; // Center of end lane
-      // Adjust width and left position to account for the node radius
-      const width = Math.abs(endX - startX) - nodeRadius * 2;
-      const leftPos = Math.min(startX, endX) + nodeRadius;
+      const width = Math.abs(endX - startX);
+
       const messageStyle = {
         top: `${yPos - 50}px`,
-        left: `${leftPos}px`,
+        left: `${Math.min(startX, endX)}px`,
         width: `${width}px`,
         position: "absolute",
         height: "100px",
