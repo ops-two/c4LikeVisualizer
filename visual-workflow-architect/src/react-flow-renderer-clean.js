@@ -110,17 +110,16 @@ window.SequenceDiagramRenderer = {
         z-index: 0;
       }
       
-    .sequence-node {
+      .sequence-node {
         position: absolute;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%; /* This makes it a circle */
+        width: 16px; /* Increased size */
+        height: 16px; /* Increased size */
+        border-radius: 50%;
         border: 2px solid white;
         transform: translate(-50%, -50%);
-        z-index: 2; /* Ensure it's above the lifeline */
-        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        z-index: 2; /* Keep it above the lifeline (z-index: 1) and below the arrow (z-index: 3) */
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15); /* Enhanced shadow for more "pop" */
       }
-
       .message {
         position: absolute;
         height: 100px;
