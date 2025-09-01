@@ -573,6 +573,7 @@ window.SequenceDiagramRenderer = {
       sequences.length
     );
 
+    console.log("DEBUG - About to create actors...");
     // Create actor data from containers
     const actors = containers.map((container) => ({
       name: container.name || container.name_text || "Container",
@@ -582,6 +583,9 @@ window.SequenceDiagramRenderer = {
       color: container.colorHex || container.color_hex_text || "#3ea50b",
       id: container.id || container.container_id,
     }));
+    
+    console.log("DEBUG - Actors created:", actors.length);
+    console.log("DEBUG - About to start sequence grouping...");
 
     // Group sequences by workflow and subgroup (nested structure)
     const groupSequencesByWorkflowAndSubgroup = (sequences, workflows, subgroups) => {
@@ -624,11 +628,13 @@ window.SequenceDiagramRenderer = {
     };
 
     // Group sequences by workflow and subgroup
+    console.log("DEBUG - Calling groupSequencesByWorkflowAndSubgroup...");
     const { workflowGroups, ungroupedSequences } = groupSequencesByWorkflowAndSubgroup(
       sequences,
       workflows,
       subgroups
     );
+    console.log("DEBUG - Sequence grouping completed successfully");
 
     // Add margin between workflow groups and subgroups (matching mockup spacing)
     const WORKFLOW_MARGIN = 20;
