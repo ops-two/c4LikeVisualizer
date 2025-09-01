@@ -71,10 +71,10 @@ window.SequenceDiagramRenderer = {
         align-items: flex-start;
         position: relative;
         width: 100%;
-        height: auto;
+        height: 100vh;
         min-height: 600px;
         overflow-x: auto;
-        overflow-y: visible;
+        overflow-y: scroll;
       }
 
       .actor-lane {
@@ -206,7 +206,7 @@ window.SequenceDiagramRenderer = {
         background: rgba(227, 242, 253, 0.3); /* Light blue with transparency */
         border: 2px solid #e3f2fd;
         border-radius: 8px;
-        z-index: -2; /* Behind sequences but above diagram background */
+        z-index: 1; /* Above diagram background but behind sequences */
         pointer-events: none;
       }
 
@@ -220,7 +220,7 @@ window.SequenceDiagramRenderer = {
         font-weight: 500;
         top: -12px;
         left: 8px;
-        z-index: -1;
+        z-index: 2; /* Above workflow background */
       }
       .arrow-line {
         position: absolute;
@@ -541,6 +541,8 @@ window.SequenceDiagramRenderer = {
       workflowGroups: Object.keys(workflowGroups),
       ungroupedCount: ungroupedSequences.length,
       totalWorkflows: Object.keys(workflows).length,
+      workflowData: workflows,
+      sequenceWorkflowIds: sequences.map(s => ({ id: s.id, workflowId: s.workflowId }))
     });
 
     // Calculate workflow boundaries from sequence positions
@@ -608,18 +610,27 @@ window.SequenceDiagramRenderer = {
           final_label: `${orderIndex}. ${labelText}`,
         });
 
+        if (!fromActor || !toActor) {
+          console.warn("DEBUG - Skipping sequence due to missing actors:", {
+            sequenceId: sequence.id,
+            fromActor: !!fromActor,
+            toActor: !!toActor
+          });
+          return null;
+        }
+
         return {
           label: `${orderIndex}. ${labelText}`,
           labelText: labelText, // Pure label text for editing
           yPos: 130 + index * 150,
-          from: fromActor ? actors.indexOf(fromActor) : -1,
-          to: toActor ? actors.indexOf(toActor) : -1,
+          from: actors.indexOf(fromActor),
+          to: actors.indexOf(toActor),
           dashed:
             sequence.dashed_text === "true" ||
             sequence.is_dashed_boolean ||
             sequence.isDashed ||
             false,
-          self: fromActor && toActor && fromActor.id === toActor.id,
+          self: fromActor.id === toActor.id,
           id: sequence.id || sequence.sequence_id,
           workflowId: sequence.workflowId, // Add workflow ID to positioned message
         };
@@ -633,6 +644,8 @@ window.SequenceDiagramRenderer = {
     );
 
     console.log("DEBUG - Workflow bounds:", workflowBounds);
+    console.log("DEBUG - Workflow bounds count:", Object.keys(workflowBounds).length);
+    console.log("DEBUG - Positioned messages count:", positionedMessages.length);
 
     // Update container height based on content
     const containerHeight = Math.max(
