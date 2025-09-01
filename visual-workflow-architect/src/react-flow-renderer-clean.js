@@ -203,11 +203,34 @@ window.SequenceDiagramRenderer = {
       }
       .workflow-background {
         position: absolute;
-        background: rgba(227, 242, 253, 0.3); /* Light blue with transparency */
-        border: 2px solid #e3f2fd;
+        background: rgba(227, 242, 253, 0.10); /* Reduced opacity to 0.10 */
+        border: 2px solid rgba(227, 242, 253, 0.2); /* Border opacity 0.2 */
         border-radius: 8px;
         z-index: 1; /* Above diagram background but behind sequences */
         pointer-events: none;
+      }
+      
+      .subgroup-background {
+        position: absolute;
+        background: rgba(245, 245, 245, 0.15); /* Light gray with transparency */
+        border: 1px solid rgba(245, 245, 245, 0.3);
+        border-radius: 6px;
+        z-index: 1.5; /* Above workflow background but behind sequences */
+        pointer-events: none;
+        margin: 5px;
+      }
+
+      .subgroup-label {
+        position: absolute;
+        background: #9e9e9e;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-size: 11px;
+        font-weight: 500;
+        top: -10px;
+        left: 6px;
+        z-index: 2.5; /* Above subgroup background */
       }
 
       .workflow-label {
@@ -474,31 +497,40 @@ window.SequenceDiagramRenderer = {
       window.InlineEditSystem.init();
     }
 
-    // Get containers and sequences from data store or use provided data
-    let containers, sequences, workflows;
+    // Get containers, sequences, workflows, and subgroups from data store or use provided data
+    let containers, sequences, workflows, subgroups;
     if (
       window.WorkflowArchitectDataStore &&
       window.WorkflowArchitectDataStore.data.isInitialized
     ) {
       containers = window.WorkflowArchitectDataStore.getContainersArray();
       sequences = window.WorkflowArchitectDataStore.getSequencesArray();
+      
       // Use the proper method to get workflows as array, then convert to object for compatibility
-      const workflowsArray =
-        window.WorkflowArchitectDataStore.getWorkflowsArray();
+      const workflowsArray = window.WorkflowArchitectDataStore.getWorkflowsArray();
       workflows = {};
       workflowsArray.forEach((workflow) => {
         workflows[workflow.id] = workflow;
       });
+      
+      // Get subgroups as array, then convert to object for compatibility
+      const subgroupsArray = window.WorkflowArchitectDataStore.getSubgroupsArray();
+      subgroups = {};
+      subgroupsArray.forEach((subgroup) => {
+        subgroups[subgroup.id] = subgroup;
+      });
 
-      console.log("DEBUG - Workflows loaded from data store:", {
-        workflowsArrayLength: workflowsArray.length,
-        workflowsObject: workflows,
+      console.log("DEBUG - Data loaded from store:", {
+        workflowsCount: workflowsArray.length,
+        subgroupsCount: subgroupsArray.length,
         workflowIds: Object.keys(workflows),
+        subgroupIds: Object.keys(subgroups),
       });
     } else {
       containers = data.containers || [];
       sequences = data.sequences || [];
       workflows = {};
+      subgroups = {};
 
       // Transform raw Bubble workflow data if available
       if (data.workflows && Array.isArray(data.workflows)) {
@@ -506,15 +538,29 @@ window.SequenceDiagramRenderer = {
           if (workflow && typeof workflow.get === "function") {
             const transformedWorkflow = {
               id: workflow.get("_id"),
-              name:
-                workflow.get("label_text") ||
-                workflow.get("label") ||
-                "New Workflow",
+              name: workflow.get("label_text") || "New Workflow",
               colorHex: workflow.get("color_hex_text") || "#e3f2fd",
               description: workflow.get("description_text") || "",
               orderIndex: workflow.get("order_index_number") || 0,
             };
             workflows[transformedWorkflow.id] = transformedWorkflow;
+          }
+        });
+      }
+      
+      // Transform raw Bubble subgroup data if available
+      if (data.subgroups && Array.isArray(data.subgroups)) {
+        data.subgroups.forEach((subgroup) => {
+          if (subgroup && typeof subgroup.get === "function") {
+            const workflowRef = subgroup.get("Workflow");
+            const transformedSubgroup = {
+              id: subgroup.get("_id"),
+              label: subgroup.get("Label") || "New Subgroup",
+              colorHex: subgroup.get("color_Hex") || "#f5f5f5",
+              workflowId: workflowRef ? workflowRef.get("_id") : null,
+              orderIndex: subgroup.get("order_index_number") || 0,
+            };
+            subgroups[transformedSubgroup.id] = transformedSubgroup;
           }
         });
       }
@@ -537,21 +583,39 @@ window.SequenceDiagramRenderer = {
       id: container.id || container.container_id,
     }));
 
-    // Group sequences by workflow
-    const groupSequencesByWorkflow = (sequences, workflows) => {
+    // Group sequences by workflow and subgroup (nested structure)
+    const groupSequencesByWorkflowAndSubgroup = (sequences, workflows, subgroups) => {
       const workflowGroups = {};
       const ungroupedSequences = [];
 
       sequences.forEach((sequence) => {
         if (sequence.workflowId && workflows[sequence.workflowId]) {
+          // Initialize workflow group if not exists
           if (!workflowGroups[sequence.workflowId]) {
             workflowGroups[sequence.workflowId] = {
               workflow: workflows[sequence.workflowId],
-              sequences: [],
+              subgroups: {},
+              ungroupedSequences: [],
             };
           }
-          workflowGroups[sequence.workflowId].sequences.push(sequence);
+          
+          const workflowGroup = workflowGroups[sequence.workflowId];
+          
+          if (sequence.subgroupId && subgroups[sequence.subgroupId]) {
+            // Sequence belongs to a subgroup within this workflow
+            if (!workflowGroup.subgroups[sequence.subgroupId]) {
+              workflowGroup.subgroups[sequence.subgroupId] = {
+                subgroup: subgroups[sequence.subgroupId],
+                sequences: [],
+              };
+            }
+            workflowGroup.subgroups[sequence.subgroupId].sequences.push(sequence);
+          } else {
+            // Sequence belongs to workflow but no subgroup
+            workflowGroup.ungroupedSequences.push(sequence);
+          }
         } else {
+          // Sequence has no workflow
           ungroupedSequences.push(sequence);
         }
       });
@@ -559,132 +623,104 @@ window.SequenceDiagramRenderer = {
       return { workflowGroups, ungroupedSequences };
     };
 
-    // workflows variable is already declared above in the data loading section
-
-    // Group sequences by workflow
-    const { workflowGroups, ungroupedSequences } = groupSequencesByWorkflow(
+    // Group sequences by workflow and subgroup
+    const { workflowGroups, ungroupedSequences } = groupSequencesByWorkflowAndSubgroup(
       sequences,
-      workflows
+      workflows,
+      subgroups
     );
 
-    console.log("DEBUG - Workflow grouping:", {
+    // Add margin between workflow groups and subgroups (matching mockup spacing)
+    const WORKFLOW_MARGIN = 20;
+    const SUBGROUP_MARGIN = 10;
+
+    console.log("DEBUG - Nested grouping:", {
       workflowGroups: Object.keys(workflowGroups),
       ungroupedCount: ungroupedSequences.length,
       totalWorkflows: Object.keys(workflows).length,
+      totalSubgroups: Object.keys(subgroups).length,
       workflowData: workflows,
-      sequenceWorkflowIds: sequences.map((s) => ({
-        id: s.id,
-        workflowId: s.workflowId,
+      subgroupData: subgroups,
+      nestedStructure: Object.keys(workflowGroups).map(wId => ({
+        workflowId: wId,
+        subgroupCount: Object.keys(workflowGroups[wId].subgroups).length,
+        ungroupedSequenceCount: workflowGroups[wId].ungroupedSequences.length
       })),
     });
 
-    // Calculate workflow boundaries from sequence positions
-    const calculateWorkflowBounds = (workflowGroups, positionedMessages) => {
-      const workflowBounds = {};
+    // Create positioned messages from sequences
+    const positionedMessages = sequences.map((sequence, index) => {
+      const fromActor = actors.find(
+        (a) =>
+          a.id === (sequence.fromContainerId || sequence.from_container_id)
+      );
+      const toActor = actors.find(
+        (a) => a.id === (sequence.toContainerId || sequence.to_container_id)
+      );
 
-      Object.keys(workflowGroups).forEach((workflowId) => {
-        const workflowSequences = workflowGroups[workflowId].sequences;
-        const sequencePositions = positionedMessages.filter((msg) =>
-          workflowSequences.some((seq) => seq.id === msg.id)
-        );
+      const orderIndex =
+        sequence.order_number || sequence.order_index || index + 1;
+      let labelText = sequence.label_text || sequence.label || "Sequence";
 
-        if (sequencePositions.length > 0) {
-          const minY =
-            Math.min(...sequencePositions.map((pos) => pos.yPos)) - 30;
-          const maxY =
-            Math.max(...sequencePositions.map((pos) => pos.yPos)) + 50;
-          const minX = 0;
-          const maxX = actors.length * 180;
-
-          workflowBounds[workflowId] = {
-            x: minX,
-            y: minY,
-            width: maxX,
-            height: maxY - minY,
-            workflow: workflowGroups[workflowId].workflow,
-          };
-        }
+      // Debug logging to see what's happening
+      console.log("DEBUG - Processing sequence:", {
+        id: sequence.id,
+        raw_label_text: sequence.label_text,
+        raw_label: sequence.label,
+        orderIndex: orderIndex,
+        labelText_before_strip: labelText,
+        workflowId: sequence.workflowId,
       });
 
-      return workflowBounds;
-    };
+      // Strip any existing order index prefix from label text to prevent duplication
+      // Matches patterns like "1. ", "2. ", etc. at the start of the string
+      labelText = labelText.replace(/^\d+\.\s*/, "");
 
-    // Process sequences and create positioned messages
-    const positionedMessages = sequences
-      .map((sequence, index) => {
-        const fromActor = actors.find(
-          (a) =>
-            a.id === (sequence.fromContainerId || sequence.from_container_id)
-        );
-        const toActor = actors.find(
-          (a) => a.id === (sequence.toContainerId || sequence.to_container_id)
-        );
+      console.log("DEBUG - After stripping:", {
+        labelText_after_strip: labelText,
+        final_label: `${orderIndex}. ${labelText}`,
+      });
 
-        const orderIndex =
-          sequence.order_number || sequence.order_index || index + 1;
-        let labelText = sequence.label_text || sequence.label || "Sequence";
-
-        // Debug logging to see what's happening
-        console.log("DEBUG - Processing sequence:", {
-          id: sequence.id,
-          raw_label_text: sequence.label_text,
-          raw_label: sequence.label,
-          orderIndex: orderIndex,
-          labelText_before_strip: labelText,
-          workflowId: sequence.workflowId,
+      if (!fromActor || !toActor) {
+        console.warn("DEBUG - Skipping sequence due to missing actors:", {
+          sequenceId: sequence.id,
+          fromActor: !!fromActor,
+          toActor: !!toActor,
         });
+        return null;
+      }
 
-        // Strip any existing order index prefix from label text to prevent duplication
-        // Matches patterns like "1. ", "2. ", etc. at the start of the string
-        labelText = labelText.replace(/^\d+\.\s*/, "");
+      return {
+        label: `${orderIndex}. ${labelText}`,
+        labelText: labelText, // Pure label text for editing
+        yPos: 130 + index * 150,
+        from: actors.indexOf(fromActor),
+        to: actors.indexOf(toActor),
+        dashed:
+          sequence.dashed_text === "true" ||
+          sequence.is_dashed_boolean ||
+          sequence.isDashed ||
+          false,
+        sequenceId: sequence.id,
+        workflowId: sequence.workflowId,
+        subgroupId: sequence.subgroupId,
+      };
+    })
+    .filter((msg) => msg !== null);
 
-        console.log("DEBUG - After stripping:", {
-          labelText_after_strip: labelText,
-          final_label: `${orderIndex}. ${labelText}`,
-        });
-
-        if (!fromActor || !toActor) {
-          console.warn("DEBUG - Skipping sequence due to missing actors:", {
-            sequenceId: sequence.id,
-            fromActor: !!fromActor,
-            toActor: !!toActor,
-          });
-          return null;
-        }
-
-        return {
-          label: `${orderIndex}. ${labelText}`,
-          labelText: labelText, // Pure label text for editing
-          yPos: 130 + index * 150,
-          from: actors.indexOf(fromActor),
-          to: actors.indexOf(toActor),
-          dashed:
-            sequence.dashed_text === "true" ||
-            sequence.is_dashed_boolean ||
-            sequence.isDashed ||
-            false,
-          self: fromActor.id === toActor.id,
-          id: sequence.id || sequence.sequence_id,
-          workflowId: sequence.workflowId, // Add workflow ID to positioned message
-        };
-      })
-      .filter((msg) => msg !== null);
-
-    // Calculate workflow boundaries
-    const workflowBounds = calculateWorkflowBounds(
+    // Calculate workflow and subgroup boundaries
+    const { workflowBounds, subgroupBounds } = calculateNestedBounds(
       workflowGroups,
       positionedMessages
     );
 
-    console.log("DEBUG - Workflow bounds:", workflowBounds);
-    console.log(
-      "DEBUG - Workflow bounds count:",
-      Object.keys(workflowBounds).length
-    );
-    console.log(
-      "DEBUG - Positioned messages count:",
-      positionedMessages.length
-    );
+    console.log("DEBUG - Nested bounds:", {
+      workflowBounds: workflowBounds,
+      subgroupBounds: subgroupBounds,
+      workflowCount: Object.keys(workflowBounds).length,
+      subgroupCount: Object.keys(subgroupBounds).length,
+      positionedMessagesCount: positionedMessages.length
+    });
 
     // Update container height based on content
     const containerHeight = Math.max(

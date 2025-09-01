@@ -182,16 +182,31 @@ window.WorkflowArchitectDataStore = {
     };
   },
   transformSubgroup: function (bubbleSubgroup) {
-    // NOTE: Field names like 'label_text' and 'workflow_custom_workflow' are assumed based on Bubble conventions.
-    // These can be verified by logging the raw bubbleSubgroup object if issues arise.
-    const workflowRef = bubbleSubgroup.get("workflow_custom_workflow");
+    if (!bubbleSubgroup || typeof bubbleSubgroup.get !== "function") {
+      // Handle non-Bubble object (fallback)
+      return {
+        id: bubbleSubgroup.id,
+        label: bubbleSubgroup.label || "Untitled Subgroup",
+        workflowId: bubbleSubgroup.workflowId || null,
+        colorHex: bubbleSubgroup.colorHex || "#f5f5f5",
+        orderIndex: bubbleSubgroup.orderIndex || 0,
+        createdDate: bubbleSubgroup.createdDate || new Date(),
+        modifiedDate: bubbleSubgroup.modifiedDate || new Date(),
+      };
+    }
+
+    // Handle Bubble object with .get() method - using correct field names from schema
+    const workflowRef = bubbleSubgroup.get("Workflow");
     const workflowId = workflowRef ? workflowRef.get("_id") : null;
 
     return {
       id: bubbleSubgroup.get("_id"),
-      label: bubbleSubgroup.get("label_text") || "Untitled Subgroup",
+      label: bubbleSubgroup.get("Label") || "Untitled Subgroup",
       workflowId: workflowId,
+      colorHex: bubbleSubgroup.get("color_Hex") || "#f5f5f5",
       orderIndex: bubbleSubgroup.get("order_index_number") || 0,
+      createdDate: bubbleSubgroup.get("Created Date") || new Date(),
+      modifiedDate: bubbleSubgroup.get("Modified Date") || new Date(),
     };
   },
   // Get feature data
