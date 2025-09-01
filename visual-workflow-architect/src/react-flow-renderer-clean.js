@@ -110,13 +110,15 @@ window.SequenceDiagramRenderer = {
         z-index: 0;
       }
       
-      .activation-box {
+    .sequence-node {
         position: absolute;
-        width: 10px;
-        height: 28px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%; /* This makes it a circle */
+        border: 2px solid white;
         transform: translate(-50%, -50%);
-        z-index: 1;
-        border-radius: 2px;
+        z-index: 2; /* Ensure it's above the lifeline */
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
       }
 
       .message {
@@ -326,23 +328,17 @@ window.SequenceDiagramRenderer = {
     document.head.appendChild(style);
   },
 
-  // Step 2: Create ActivationBox component
-  createActivationBox: function () {
-    return function ActivationBox({ actorIndex, yPos, color, actorsCount }) {
+  // Step 2: Create SequenceNode component
+  createSequenceNode: function () {
+    return function SequenceNode({ actorIndex, yPos, color }) {
       const positionX = actorIndex * 180 + 90; // Fixed spacing: 180px per lane, center at 90px
       const style = {
         top: `${yPos}px`,
         left: `${positionX}px`,
         backgroundColor: color,
-        position: "absolute",
-        width: "10px",
-        height: "28px",
-        transform: "translate(-50%, -50%)",
-        zIndex: 1,
-        borderRadius: "2px",
       };
       return React.createElement("div", {
-        className: "activation-box",
+        className: "sequence-node", // Use the new CSS class
         style: style,
       });
     };
@@ -854,7 +850,8 @@ window.SequenceDiagramRenderer = {
     const actorsCount = actors.length;
 
     // Create components
-    const ActivationBox = this.createActivationBox();
+    const SequenceNode = this.createSequenceNode(); // Use the new function
+
     const Message = this.createMessage();
     const SelfMessage = this.createSelfMessage();
 
@@ -1166,14 +1163,14 @@ window.SequenceDiagramRenderer = {
                   if (msg.self) {
                     const loopHeight = stepY * 0.8;
                     return React.createElement(React.Fragment, { key: index }, [
-                      React.createElement(ActivationBox, {
+                      React.createElement(SequenceNode, {
                         key: `activation-start-${index}`,
                         actorIndex: msg.from,
                         yPos: msg.yPos,
                         color: actors[msg.from].color,
                         actorsCount: actorsCount,
                       }),
-                      React.createElement(ActivationBox, {
+                      React.createElement(SequenceNode, {
                         key: `activation-end-${index}`,
                         actorIndex: msg.from,
                         yPos: msg.yPos + loopHeight,
@@ -1195,14 +1192,14 @@ window.SequenceDiagramRenderer = {
                     ]);
                   } else {
                     return React.createElement(React.Fragment, { key: index }, [
-                      React.createElement(ActivationBox, {
+                      React.createElement(SequenceNode, {
                         key: `activation-from-${index}`,
                         actorIndex: msg.from,
                         yPos: msg.yPos,
                         color: actors[msg.from].color,
                         actorsCount: actorsCount,
                       }),
-                      React.createElement(ActivationBox, {
+                      React.createElement(SequenceNode, {
                         key: `activation-to-${index}`,
                         actorIndex: msg.to,
                         yPos: msg.yPos,
