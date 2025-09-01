@@ -404,7 +404,6 @@ window.SequenceDiagramRenderer = {
       );
     };
   },
-  // Step 4: Create SelfMessage component
   createSelfMessage: function () {
     return function SelfMessage({
       label,
