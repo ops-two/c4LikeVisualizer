@@ -319,6 +319,7 @@ window.SequenceDiagramRenderer = {
       .self-message-path-bottom::after {
         content: ''; position: absolute; left: -1px; top: -4px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-right: 8px solid #555;
       }
+
     `;
     document.head.appendChild(style);
   },
@@ -358,41 +359,37 @@ window.SequenceDiagramRenderer = {
       sequenceId,
     }) {
       const isLeft = to < from;
-      const startActor = isLeft ? to : from;
-      const endActor = isLeft ? from : to;
+      const start =
+        (isLeft ? to : from) * (100 / actorsCount) + 100 / (actorsCount * 2);
+      const distance = Math.abs(to - from);
+      const width = distance * (100 / actorsCount);
 
-      // Calculate positions using fixed spacing (180px per lane)
-      const startActorIndex = isLeft ? to : from;
-      const endActorIndex = isLeft ? from : to;
-      const startX = startActorIndex * 180 + 90; // Center of start lane
-      const endX = endActorIndex * 180 + 90; // Center of end lane
-      const width = Math.abs(endX - startX);
+      const maxWidthPercentage = distance === 1 ? 75 : 90;
+      const labelStyle = { maxWidth: `${maxWidthPercentage}%` };
 
       const messageStyle = {
         top: `${yPos - 50}px`,
-        left: `${Math.min(startX, endX)}px`,
-        width: `${width}px`,
-        position: "absolute",
-        height: "100px",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
+        left: `${start}%`,
+        width: `${width}%`,
       };
-
       const arrowClass = `arrow-line ${dashed ? "dashed" : ""} ${
         isLeft ? "left" : ""
       }`;
 
+
       return React.createElement(
         "div",
-        { className: "message", style: messageStyle },
+        {
+          className: "message",
+          style: messageStyle,
+        },
         [
           React.createElement(
             "div",
             {
               key: "label",
               className: "message-label sequence-label",
-              style: { maxWidth: "90%", textAlign: "center" },
+              style: labelStyle,
               "data-sequence-id": sequenceId,
               "data-label-text": labelText,
               title: "Double-click to edit",
@@ -419,6 +416,8 @@ window.SequenceDiagramRenderer = {
       height,
       actorsCount,
       sequenceId,
+      subgroupId,
+      workflowId,
     }) {
       const position = actorIndex * 180 + 90; // Fixed spacing: 180px per lane, center at 90px
       const style = {
@@ -431,9 +430,13 @@ window.SequenceDiagramRenderer = {
         alignItems: "center",
       };
 
+
       return React.createElement(
         "div",
-        { className: "self-message", style: style },
+        { 
+          className: "self-message", 
+          style: style,
+        },
         [
           React.createElement(
             "div",
@@ -461,7 +464,9 @@ window.SequenceDiagramRenderer = {
             {
               key: "label",
               className: "message-label sequence-label",
-              style: { marginLeft: "10px" },
+              style: { 
+                marginLeft: "10px",
+              },
               "data-sequence-id": sequenceId,
               "data-label-text": labelText,
               title: "Double-click to edit",
@@ -659,7 +664,7 @@ window.SequenceDiagramRenderer = {
         const workflowGroup = workflowGroups[workflowId];
         let allWorkflowSequences = [...workflowGroup.ungroupedSequences];
         
-        // Calculate subgroup bounds first
+        // Calculate subgroup bounds first - optimized to span only relevant actor lanes
         Object.keys(workflowGroup.subgroups).forEach((subgroupId) => {
           const subgroupData = workflowGroup.subgroups[subgroupId];
           const subgroupSequencePositions = positionedMessages.filter((msg) =>
@@ -669,14 +674,38 @@ window.SequenceDiagramRenderer = {
           if (subgroupSequencePositions.length > 0) {
             const minY = Math.min(...subgroupSequencePositions.map((pos) => pos.yPos));
             const maxY = Math.max(...subgroupSequencePositions.map((pos) => pos.yPos));
-            const minX = 0;
-            const maxX = actors.length * 180;
+            
+            // Calculate involved actor indices for precise bounds
+            const involvedActorIndices = [];
+            subgroupSequencePositions.forEach((pos) => {
+              involvedActorIndices.push(pos.from, pos.to);
+            });
+            const uniqueActorIndices = [...new Set(involvedActorIndices)];
+            const minActorIndex = Math.min(...uniqueActorIndices);
+            const maxActorIndex = Math.max(...uniqueActorIndices);
+            
+            // Calculate precise bounds spanning only involved lanes
+            const LANE_WIDTH = 180;
+            const LANE_PADDING = 45;
+            const minX = minActorIndex * LANE_WIDTH + LANE_PADDING;
+            const maxX = (maxActorIndex + 1) * LANE_WIDTH - LANE_PADDING;
+            const width = maxX - minX;
+            
+            console.log(`DEBUG - Subgroup ${subgroupId} bounds:`, {
+              involvedActors: uniqueActorIndices,
+              minActorIndex,
+              maxActorIndex,
+              minX,
+              maxX,
+              width,
+              sequences: subgroupData.sequences.length
+            });
             
             subgroupBounds[subgroupId] = {
-              x: minX + SUBGROUP_MARGIN,
-              y: minY - 30,
-              width: maxX - (SUBGROUP_MARGIN * 2),
-              height: maxY - minY + 80,
+              x: minX,
+              y: minY - 35,
+              width: width,
+              height: maxY - minY + 90,
               subgroup: subgroupData.subgroup,
             };
           }
@@ -1019,8 +1048,9 @@ window.SequenceDiagramRenderer = {
               ),
 
               // Subgroup backgrounds (render after workflows, before actor lanes)
-              ...Object.keys(subgroupBounds).map((subgroupId) =>
-                React.createElement(
+              ...Object.keys(subgroupBounds).map((subgroupId) => {
+
+                return React.createElement(
                   "div",
                   {
                     key: `subgroup-${subgroupId}`,
@@ -1035,7 +1065,13 @@ window.SequenceDiagramRenderer = {
                           "#f5f5f5") + "26", // 0.15 opacity in hex
                       borderColor:
                         (subgroupBounds[subgroupId].subgroup.colorHex ||
-                          "#f5f5f5") + "4D", // 0.3 opacity in hex
+                          "#f5f5f5") + "80", // 0.5 opacity for better visibility
+                      borderStyle: "dashed", // Dashed border for visual distinction
+                      borderWidth: "2px",
+                      borderRadius: "8px",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                      zIndex: 10, // Above workflows but below sequences
+                      pointerEvents: "none", // Disable interaction
                     },
                   },
                   [
@@ -1045,14 +1081,26 @@ window.SequenceDiagramRenderer = {
                         key: "label",
                         className: "subgroup-label",
                         style: {
-                          backgroundColor: "#9e9e9e",
+                          backgroundColor: subgroupBounds[subgroupId].subgroup.colorHex || "#9e9e9e",
+                          color: "#fff",
+                          fontSize: "11px",
+                          fontWeight: "600",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                          padding: "4px 8px",
+                          borderRadius: "4px",
+                          position: "absolute",
+                          top: "-12px",
+                          left: "8px",
+                          boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                          pointerEvents: "none", // Prevent label from interfering with drops
                         },
                       },
                       subgroupBounds[subgroupId].subgroup.label || "Subgroup"
                     ),
                   ]
-                )
-              ),
+                );
+              }),
 
               // Actor lanes
               ...actors.map((actor) =>
@@ -1115,7 +1163,9 @@ window.SequenceDiagramRenderer = {
                         yPos: msg.yPos,
                         height: loopHeight,
                         actorsCount: actorsCount,
-                        sequenceId: msg.id,
+                        sequenceId: msg.sequenceId,
+                        subgroupId: msg.subgroupId,
+                        workflowId: msg.workflowId,
                       }),
                     ]);
                   } else {
@@ -1143,7 +1193,9 @@ window.SequenceDiagramRenderer = {
                         yPos: msg.yPos,
                         dashed: !!msg.dashed,
                         actorsCount: actorsCount,
-                        sequenceId: msg.id,
+                        sequenceId: msg.sequenceId,
+                        subgroupId: msg.subgroupId,
+                        workflowId: msg.workflowId,
                       }),
                     ]);
                   }

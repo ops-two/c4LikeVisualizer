@@ -201,6 +201,67 @@ window.WorkflowArchitectEventBridge = {
     }
   },
 
+  // Handle generic entity updates (for drag-and-drop assignments)
+  handleEntityUpdate: function (entityType, entityId, updateData) {
+    console.log(
+      "WorkflowArchitectEventBridge: Entity update requested",
+      entityType,
+      entityId,
+      updateData
+    );
+
+    if (!this.bubbleInstance) {
+      console.error(
+        "WorkflowArchitectEventBridge: No Bubble instance available"
+      );
+      return false;
+    }
+
+    try {
+      // Update local data store first
+      const success = window.WorkflowArchitectDataStore.updateEntity(
+        entityType,
+        entityId,
+        updateData
+      );
+      if (!success) {
+        console.error(
+          "WorkflowArchitectEventBridge: Failed to update local data store"
+        );
+        return false;
+      }
+
+      // Get formatted data for Bubble
+      const bubbleUpdateData =
+        window.WorkflowArchitectDataStore.getEntityForUpdate(
+          entityType,
+          entityId
+        );
+      if (!bubbleUpdateData) {
+        console.error(
+          "WorkflowArchitectEventBridge: Failed to format update data for Bubble"
+        );
+        return false;
+      }
+
+      // Send to Bubble with debouncing
+      this.debouncedBubbleUpdate(`${entityType}_updated`, bubbleUpdateData);
+      
+      // Trigger UI re-render for immediate visual feedback
+      setTimeout(() => {
+        this.reRenderUI();
+      }, 50);
+
+      return true;
+    } catch (error) {
+      console.error(
+        "WorkflowArchitectEventBridge: Entity update failed",
+        error
+      );
+      return false;
+    }
+  },
+
   // Handle entity creation
   handleEntityAdd: function (entityType, entityData) {
     console.log(
@@ -661,6 +722,134 @@ window.WorkflowArchitectEventBridge = {
         error
       );
       return false;
+    }
+  },
+
+  // Handle subgroup creation popup trigger
+  handleSubgroupCreationTrigger: function (eventData) {
+    console.log(
+      "WorkflowArchitectEventBridge: Subgroup creation popup triggered",
+      eventData
+    );
+
+    if (!this.bubbleInstance) {
+      console.error(
+        "WorkflowArchitectEventBridge: No Bubble instance available for subgroup creation"
+      );
+      return false;
+    }
+
+    try {
+      // Trigger Bubble workflow to show subgroup creation popup
+      console.log("Triggering subgroup creation popup with feature ID:", eventData.featureId);
+      
+      if (this.bubbleInstance.triggerEvent) {
+        this.bubbleInstance.triggerEvent('show_subgroup_creation_popup', {
+          featureId: eventData.featureId,
+          availableWorkflows: eventData.availableWorkflows,
+          timestamp: eventData.timestamp
+        });
+      } else if (window.bubble_fn_trigger) {
+        window.bubble_fn_trigger('show_subgroup_creation_popup', {
+          featureId: eventData.featureId,
+          availableWorkflows: eventData.availableWorkflows,
+          timestamp: eventData.timestamp
+        });
+      } else {
+        console.error("No Bubble trigger method available");
+      }
+
+      return true;
+    } catch (error) {
+      console.error(
+        "WorkflowArchitectEventBridge: Failed to trigger subgroup creation popup",
+        error
+      );
+      return false;
+    }
+  },
+
+  // Get current status
+  getStatus: function () {
+    return {
+      isInitialized: !!this.bubbleInstance,
+      isProcessing: this.isProcessing,
+      pendingUpdates: this.pendingUpdates.length,
+      debounceActive: !!this.debounceTimer,
+    };
+  },
+
+  // Force flush all pending updates (for testing)
+  flush: function () {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.processPendingUpdates();
+    }
+  },
+
+  // Re-render UI after data changes (following storymap-grid pattern)
+  reRenderUI: function () {
+    console.log("WorkflowArchitectEventBridge: Re-rendering UI");
+
+    try {
+      // Get the container element that was used during initialization
+      let mainCanvas = this.containerElement;
+      
+      if (!mainCanvas) {
+        // Fallback: try to find it in the DOM
+        console.log("WorkflowArchitectEventBridge: No stored container, searching DOM...");
+        
+        // Try multiple possible selectors
+        mainCanvas = document.querySelector('[id^="workflow-architect-container"]');
+        if (!mainCanvas) {
+          mainCanvas = document.querySelector('[class*="workflow-architect"]');
+        }
+        if (!mainCanvas) {
+          mainCanvas = document.querySelector('[id*="workflow"]');
+        }
+        if (!mainCanvas) {
+          mainCanvas = document.querySelector('[id^="bubble-r-box"]');
+        }
+      }
+      
+      if (!mainCanvas) {
+        console.error("WorkflowArchitectEventBridge: Main canvas not found");
+        return;
+      }
+      
+      console.log("WorkflowArchitectEventBridge: Using container for rerender");
+
+      // Get latest data from data store
+      if (
+        window.WorkflowArchitectDataStore &&
+        window.WorkflowArchitectDataStore.data.isInitialized
+      ) {
+        const latestData = {
+          feature: window.WorkflowArchitectDataStore.getFeature(),
+          containers: window.WorkflowArchitectDataStore.getContainersArray(),
+          sequences: window.WorkflowArchitectDataStore.getSequencesArray(),
+          workflows: window.WorkflowArchitectDataStore.getWorkflowsArray(),
+        };
+
+        // Direct renderer call (exactly like storymap-grid pattern)
+        if (window.WorkflowArchitectRenderer) {
+          console.log(
+            "WorkflowArchitectEventBridge: Calling renderer directly with data:",
+            latestData
+          );
+          window.WorkflowArchitectRenderer.render(latestData, $(mainCanvas));
+          console.log("WorkflowArchitectEventBridge: Direct render completed");
+        } else {
+          console.error(
+            "WorkflowArchitectEventBridge: WorkflowArchitectRenderer not available"
+          );
+        }
+      }
+    } catch (error) {
+      console.error(
+        "WorkflowArchitectEventBridge: Failed to re-render UI",
+        error
+      );
     }
   },
 };

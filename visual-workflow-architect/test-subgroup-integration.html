@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Subgroup Integration Test</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  </head>
+  <body>
+    <div id="test-container"></div>
+
+    <script>
+      // Mock Bubble instance for testing
+      const mockBubbleInstance = {
+        triggerEvent: function (eventType, eventData) {
+          console.log("MOCK BUBBLE - Event triggered:", eventType, eventData);
+
+          // Simulate successful event handling
+          if (eventType === "show_subgroup_creation_popup") {
+            console.log(
+              "MOCK BUBBLE - Subgroup creation popup would open with data:",
+              eventData
+            );
+            alert(
+              `Subgroup creation triggered!\nFeature ID: ${eventData.featureId}\nAvailable Workflows: ${eventData.availableWorkflows.length}`
+            );
+          }
+
+          return true;
+        },
+      };
+
+      // Mock data for testing
+      const testData = {
+        feature: { id: "test-feature-123" },
+        containers: [
+          { id: "c1", name: "Client", type: "component", colorHex: "#3ea50b" },
+          { id: "c2", name: "Server", type: "service", colorHex: "#ff8f0e" },
+          { id: "c3", name: "Database", type: "database", colorHex: "#0055bc" },
+        ],
+        sequences: [
+          {
+            id: "s1",
+            fromContainerId: "c1",
+            toContainerId: "c2",
+            label_text: "Login Request",
+            workflowId: "w1",
+            subgroupId: "sg1",
+          },
+          {
+            id: "s2",
+            fromContainerId: "c2",
+            toContainerId: "c3",
+            label_text: "Query User",
+            workflowId: "w1",
+            subgroupId: "sg1",
+          },
+          {
+            id: "s3",
+            fromContainerId: "c3",
+            toContainerId: "c2",
+            label_text: "Return Data",
+            workflowId: "w1",
+          },
+        ],
+        workflows: [
+          { id: "w1", name: "Authentication Flow", colorHex: "#e3f2fd" },
+        ],
+        subgroups: [
+          {
+            id: "sg1",
+            label: "User Validation",
+            colorHex: "#f5f5f5",
+            workflowId: "w1",
+          },
+        ],
+      };
+    </script>
+
+    <!-- Load our components -->
+    <script src="src/data-store.js"></script>
+    <script src="src/event-bridge.js"></script>
+    <script src="src/react-flow-renderer-clean.js"></script>
+
+    <script>
+      // Initialize and test
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("Starting subgroup integration test...");
+
+        // Initialize event bridge with mock Bubble instance
+        const container = document.getElementById("test-container");
+        window.WorkflowArchitectEventBridge.init(mockBubbleInstance, container);
+
+        // Initialize data store
+        window.WorkflowArchitectDataStore.init(testData);
+
+        // Render the diagram
+        window.WorkflowArchitectRenderer.render(testData, $(container));
+
+        console.log(
+          'Test setup complete. Try clicking the "Add Subgroup" button.'
+        );
+      });
+    </script>
+  </body>
+</html>
