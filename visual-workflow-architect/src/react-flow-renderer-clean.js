@@ -112,8 +112,8 @@ window.SequenceDiagramRenderer = {
       
       .sequence-node {
         position: absolute;
-        width: 24px; /* Increased size */
-        height: 24px; /* Increased size */
+        width: 16px; /* Increased size */
+        height: 16px; /* Increased size */
         border-radius: 50%;
         transform: translate(-50%, -50%);
         z-index: 2; /* Keep it above the lifeline (z-index: 1) and below the arrow (z-index: 3) */
@@ -250,29 +250,29 @@ window.SequenceDiagramRenderer = {
       .arrow-line {
         position: absolute;
         top: 50%;
-        height: 2px;
-        background-color: #555;
-        z-index: 2;
+        height: 1px; /* Thinner line */
+        background-color: #333; /* Darker color */
+        z-index: 3;
         transform: translateY(-50%);
       }
       
       .arrow-line.dashed {
-        background-image: linear-gradient(to right, #555 50%, transparent 50%);
-        background-size: 12px 2px;
+        background-image: linear-gradient(to right, #333 50%, transparent 50%);
+        background-size: 6px 1px; /* Shorter dashes */
         background-color: transparent;
       }
 
       .arrow-line::after {
         content: '';
         position: absolute;
-        right: -1px;
+        right: 0px; /* Adjusted position */
         top: 50%;
-        transform: translateY(-50%);
+        transform: translateY(-50%) translateX(100%);
         width: 0;
         height: 0;
-        border-top: 5px solid transparent;
-        border-bottom: 5px solid transparent;
-        border-left: 8px solid #555;
+        border-top: 4px solid transparent; /* Smaller arrowhead */
+        border-bottom: 4px solid transparent; /* Smaller arrowhead */
+        border-left: 6px solid #333; /* Smaller arrowhead */
       }
       
       .arrow-line.left::after {
@@ -354,15 +354,17 @@ window.SequenceDiagramRenderer = {
       sequenceId,
     }) {
       const isLeft = to < from;
+      const nodeRadius = 8; // Half the width of our 16px sequence node
 
       // Use the proven, pixel-based positioning system
       const startX = (isLeft ? to : from) * 180 + 90; // Center of start lane
       const endX = (isLeft ? from : to) * 180 + 90; // Center of end lane
-      const width = Math.abs(endX - startX);
-
+      // Adjust width and left position to account for the node radius
+      const width = Math.abs(endX - startX) - nodeRadius * 2;
+      const leftPos = Math.min(startX, endX) + nodeRadius;
       const messageStyle = {
         top: `${yPos - 50}px`,
-        left: `${Math.min(startX, endX)}px`,
+        left: `${leftPos}px`,
         width: `${width}px`,
         position: "absolute",
         height: "100px",
