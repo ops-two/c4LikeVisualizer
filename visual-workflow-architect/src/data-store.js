@@ -125,7 +125,28 @@ window.WorkflowArchitectDataStore = {
     );
     const toContainerRef = bubbleSequence.get("tocontainer_custom_component");
     const workflowRef = bubbleSequence.get("workflow_custom_workflows");
-    const subgroupRef = bubbleSequence.get("subgroup_custom_subgroup");
+    
+    // Try different possible field names for subgroup relationship
+    let subgroupRef = null;
+    const possibleSubgroupFields = [
+      "subgroup_custom_subgroup",
+      "subgroup",
+      "Subgroup", 
+      "subgroup_custom_Subgroup"
+    ];
+    
+    for (const fieldName of possibleSubgroupFields) {
+      try {
+        const ref = bubbleSequence.get(fieldName);
+        if (ref) {
+          console.log(`DEBUG - Found subgroup field "${fieldName}" for sequence:`, bubbleSequence.get("_id"));
+          subgroupRef = ref;
+          break;
+        }
+      } catch (e) {
+        // Field doesn't exist, continue
+      }
+    }
 
     return {
       id: bubbleSequence.get("_id"),

@@ -525,6 +525,10 @@ window.SequenceDiagramRenderer = {
         subgroupsCount: subgroupsArray.length,
         workflowIds: Object.keys(workflows),
         subgroupIds: Object.keys(subgroups),
+        rawSubgroupsArray: subgroupsArray,
+        subgroupsObject: subgroups,
+        sequencesWithSubgroups: sequences.filter(s => s.subgroupId).length,
+        allSequenceSubgroupIds: sequences.map(s => s.subgroupId).filter(Boolean)
       });
     } else {
       containers = data.containers || [];
@@ -711,6 +715,11 @@ window.SequenceDiagramRenderer = {
         subgroupCount: Object.keys(workflowGroups[wId].subgroups).length,
         ungroupedSequenceCount: workflowGroups[wId].ungroupedSequences.length
       })),
+      sequenceSubgroupIds: sequences.map(s => ({
+        id: s.id,
+        subgroupId: s.subgroupId,
+        workflowId: s.workflowId
+      }))
     });
 
     // Create positioned messages from sequences
