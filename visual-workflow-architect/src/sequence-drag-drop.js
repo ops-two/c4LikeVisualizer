@@ -34,6 +34,9 @@ window.WorkflowArchitectSequenceDragDrop = {
         setTimeout(() => message.classList.add("dragging"), 0);
         this.container.classList.add("sequence-drag-active");
         
+        // Create drop zones when drag starts
+        this.createSequenceDropZones();
+        
         // Store sequence data for drop calculations
         e.dataTransfer.setData("text/plain", message.dataset.sequenceId);
       });
@@ -44,11 +47,14 @@ window.WorkflowArchitectSequenceDragDrop = {
         document
           .querySelectorAll(".drag-over")
           .forEach((el) => el.classList.remove("drag-over"));
+        
+        // Clean up drop zones when drag ends
+        this.container.querySelectorAll('.sequence-drop-zone').forEach(zone => zone.remove());
       });
     });
 
-    // Setup drop zones - between sequences and at workflow boundaries
-    this.setupDropZones();
+    // Setup initial drop zone styles
+    this.addDropZoneStyles();
   },
 
   addDragHandle: function (message) {
@@ -131,75 +137,223 @@ window.WorkflowArchitectSequenceDragDrop = {
   setupDropZones: function () {
     console.log("Setting up drop zones...");
     
-    // For now, use the entire container as a drop zone for simplicity
-    this.container.addEventListener("dragover", (e) => {
-      if (this.draggedSequence) {
-        e.preventDefault();
-        console.log("Drag over container");
-      }
+    // Create drop zones between sequences and at workflow boundaries
+    this.createSequenceDropZones();
+    
+    // Add CSS for drop zone styling
+    this.addDropZoneStyles();
+  },
+
+  createSequenceDropZones: function () {
+    // Remove existing drop zones
+    this.container.querySelectorAll('.sequence-drop-zone').forEach(zone => zone.remove());
+    
+    // Get all sequence messages grouped by workflow
+    const workflows = {};
+    const sequenceMessages = this.container.querySelectorAll('.message, .sequence-message');
+    
+    sequenceMessages.forEach(message => {
+      const workflowId = message.dataset.workflowId;
+      if (!workflowId) return;
+      
+      if (!workflows[workflowId]) workflows[workflowId] = [];
+      workflows[workflowId].push(message);
     });
     
-    this.container.addEventListener("drop", (e) => {
-      e.preventDefault();
-      if (this.draggedSequence) {
-        console.log("Drop detected in container");
-        this.handleSimpleDrop(e);
-      }
+    // Create drop zones for each workflow
+    Object.keys(workflows).forEach(workflowId => {
+      const workflowSequences = workflows[workflowId];
+      
+      // Sort by Y position to maintain visual order
+      workflowSequences.sort((a, b) => {
+        const rectA = a.getBoundingClientRect();
+        const rectB = b.getBoundingClientRect();
+        return rectA.top - rectB.top;
+      });
+      
+      // Create drop zones before each sequence and after the last one
+      workflowSequences.forEach((sequence, index) => {
+        // Drop zone before this sequence
+        this.createDropZone(sequence, 'before', workflowId, index);
+        
+        // Drop zone after last sequence
+        if (index === workflowSequences.length - 1) {
+          this.createDropZone(sequence, 'after', workflowId, index + 1);
+        }
+      });
     });
   },
 
-  createDropZone: function (sequence, position) {
-    const dropZone = document.createElement("div");
-    dropZone.className = "sequence-drop-zone";
-    dropZone.dataset.position = position;
-    dropZone.dataset.referenceSequenceId = sequence.dataset.sequenceId;
-    dropZone.dataset.workflowId = sequence.dataset.workflowId;
+  addDropZoneStyles: function () {
+    if (document.getElementById('sequence-drop-zone-styles')) return;
     
-    dropZone.style.cssText = `
-      height: 20px;
-      margin: 5px 0;
-      border: 2px dashed transparent;
-      border-radius: 4px;
-      transition: all 0.2s ease;
-    `;
-    
-    // Add visual feedback styles
-    const style = document.createElement("style");
+    const style = document.createElement('style');
+    style.id = 'sequence-drop-zone-styles';
     style.textContent = `
-      .sequence-drop-zone.drag-over {
-        border-color: #007bff !important;
-        background-color: rgba(0, 123, 255, 0.1) !important;
+      .sequence-drop-zone {
+        height: 4px;
+        margin: 8px 20px;
+        border: none;
+        background: transparent;
+        border-radius: 2px;
+        transition: all 0.2s ease;
+        opacity: 0;
+        position: relative;
       }
+      
       .sequence-drag-active .sequence-drop-zone {
-        border-color: #ddd !important;
+        opacity: 1;
+        background: #e0e0e0;
+      }
+      
+      .sequence-drop-zone.drag-over {
+        background: #007bff !important;
+        height: 6px !important;
+        box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+      }
+      
+      .sequence-drop-zone::before {
+        content: '';
+        position: absolute;
+        left: -10px;
+        right: -10px;
+        top: -10px;
+        bottom: -10px;
+        background: transparent;
       }
     `;
     document.head.appendChild(style);
+  },
+
+  createDropZone: function (sequence, position, workflowId, orderIndex) {
+    const dropZone = document.createElement('div');
+    dropZone.className = 'sequence-drop-zone';
+    dropZone.dataset.position = position;
+    dropZone.dataset.referenceSequenceId = sequence.dataset.sequenceId;
+    dropZone.dataset.workflowId = workflowId;
+    dropZone.dataset.orderIndex = orderIndex;
     
-    if (position === "before") {
+    // Determine if this is a subgroup drop zone
+    const subgroupContainer = sequence.closest('.subgroup-container');
+    if (subgroupContainer) {
+      dropZone.dataset.subgroupId = subgroupContainer.dataset.subgroupId;
+    }
+    
+    // Add drag over and drop event listeners
+    dropZone.addEventListener('dragover', (e) => {
+      if (this.draggedSequence) {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+      }
+    });
+    
+    dropZone.addEventListener('dragleave', (e) => {
+      dropZone.classList.remove('drag-over');
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      if (this.draggedSequence) {
+        this.handleDropZoneDrop(dropZone);
+      }
+    });
+    
+    // Insert drop zone in correct position
+    if (position === 'before') {
       sequence.parentNode.insertBefore(dropZone, sequence);
     } else {
       sequence.parentNode.insertBefore(dropZone, sequence.nextSibling);
     }
   },
 
-  handleSimpleDrop: function (event) {
+  handleDropZoneDrop: function (dropZone) {
     if (this.isProcessing || !this.draggedSequence) return;
 
     try {
       this.isProcessing = true;
-      console.log("Processing simple drop...");
+      console.log('Processing drop zone drop...');
       
       const draggedSequenceId = this.draggedSequence.dataset.sequenceId;
       const draggedWorkflowId = this.draggedSequence.dataset.workflowId;
+      const targetWorkflowId = dropZone.dataset.workflowId;
+      const targetSubgroupId = dropZone.dataset.subgroupId || null;
+      const orderIndex = parseInt(dropZone.dataset.orderIndex);
       
-      console.log("Drop completed for sequence:", draggedSequenceId);
+      console.log('Drop details:', {
+        draggedSequenceId,
+        draggedWorkflowId,
+        targetWorkflowId,
+        targetSubgroupId,
+        orderIndex
+      });
+
+      // Constraint: Only allow vertical dragging within same workflow
+      if (draggedWorkflowId !== targetWorkflowId) {
+        console.warn('Cross-workflow dragging not allowed');
+        return;
+      }
+
+      // Get sequence data and calculate new order
+      const allSequences = window.WorkflowArchitectDataStore.getSequencesArray();
+      const draggedSequence = allSequences.find(s => s.id === draggedSequenceId);
       
-      // For now, just log the successful drag operation
-      // Later we'll implement proper reordering based on drop position
+      if (!draggedSequence) {
+        console.error('Dragged sequence not found in data store');
+        return;
+      }
+
+      // Calculate new order based on position
+      const newOrderValue = this.calculateNewOrderFromPosition(
+        draggedSequence,
+        targetWorkflowId,
+        targetSubgroupId,
+        orderIndex
+      );
+
+      // Prepare update payload
+      const payload = {
+        entityType: 'sequence',
+        entityId: draggedSequenceId,
+        fieldName: 'order_index',
+        newValue: newOrderValue,
+        oldValue: draggedSequence.orderIndex || draggedSequence.order_number,
+        workflowId: targetWorkflowId,
+        subgroupId: targetSubgroupId
+      };
+
+      // Get full sequence data for update
+      const fullSequenceData = window.WorkflowArchitectDataStore.getSequenceForUpdate(draggedSequenceId);
+      if (fullSequenceData) {
+        fullSequenceData.order_index = newOrderValue;
+        if (targetSubgroupId) {
+          fullSequenceData.subgroupId = targetSubgroupId;
+        }
+        payload.allData = fullSequenceData;
+      }
+
+      // Optimistic UI update
+      window.WorkflowArchitectDataStore.updateSequenceOrder(
+        draggedSequenceId,
+        newOrderValue,
+        targetSubgroupId
+      );
+
+      // Re-render UI
+      const mainCanvas = $(this.container).closest('[id^="bubble-r-box"]');
+      if (window.WorkflowArchitectRenderer && mainCanvas.length) {
+        window.WorkflowArchitectRenderer.render(mainCanvas);
+      }
+
+      // Dispatch event to trigger Bubble update
+      document.dispatchEvent(
+        new CustomEvent('workflow:update', { detail: payload })
+      );
+
+      console.log('Sequence reorder completed:', payload);
       
     } catch (error) {
-      console.error("Sequence drag drop error:", error);
+      console.error('Sequence drag drop error:', error);
     } finally {
       this.isProcessing = false;
       this.draggedSequence = null;
@@ -285,43 +439,41 @@ window.WorkflowArchitectSequenceDragDrop = {
     }
   },
 
-  calculateNewOrder: function (draggedSequence, referenceSequenceId, position, workflowId) {
-    // Get all sequences in the target workflow, sorted by order
+  calculateNewOrderFromPosition: function (draggedSequence, workflowId, subgroupId, targetOrderIndex) {
+    // Get all sequences in the target workflow/subgroup, sorted by order
     const allSequences = window.WorkflowArchitectDataStore.getSequencesArray();
-    const workflowSequences = allSequences
-      .filter(s => s.workflowId === workflowId)
-      .sort((a, b) => (a.orderIndex || a.order_number || 0) - (b.orderIndex || b.order_number || 0));
-
-    const referenceSequence = workflowSequences.find(s => s.id === referenceSequenceId);
-    if (!referenceSequence) {
-      // Default to end of list
-      const lastSequence = workflowSequences[workflowSequences.length - 1];
-      return lastSequence ? (lastSequence.orderIndex || lastSequence.order_number || 0) + 10 : 10;
+    let targetSequences = allSequences.filter(s => s.workflowId === workflowId);
+    
+    // Filter by subgroup if specified
+    if (subgroupId) {
+      targetSequences = targetSequences.filter(s => s.subgroupId === subgroupId);
+    } else {
+      targetSequences = targetSequences.filter(s => !s.subgroupId);
     }
-
-    const referenceIndex = workflowSequences.findIndex(s => s.id === referenceSequenceId);
-    const referenceOrder = referenceSequence.orderIndex || referenceSequence.order_number || 0;
-
-    if (position === "before") {
-      if (referenceIndex === 0) {
-        // Insert at beginning
-        return referenceOrder / 2;
-      } else {
-        // Insert between previous and reference
-        const prevSequence = workflowSequences[referenceIndex - 1];
-        const prevOrder = prevSequence.orderIndex || prevSequence.order_number || 0;
-        return (prevOrder + referenceOrder) / 2;
-      }
-    } else { // position === "after"
-      if (referenceIndex === workflowSequences.length - 1) {
-        // Insert at end
-        return referenceOrder + 10;
-      } else {
-        // Insert between reference and next
-        const nextSequence = workflowSequences[referenceIndex + 1];
-        const nextOrder = nextSequence.orderIndex || nextSequence.order_number || 0;
-        return (referenceOrder + nextOrder) / 2;
-      }
+    
+    // Sort by current order
+    targetSequences.sort((a, b) => (a.orderIndex || a.order_number || 0) - (b.orderIndex || b.order_number || 0));
+    
+    // Remove the dragged sequence from calculations
+    targetSequences = targetSequences.filter(s => s.id !== draggedSequence.id);
+    
+    if (targetSequences.length === 0) {
+      return 10; // First sequence in this container
+    }
+    
+    if (targetOrderIndex === 0) {
+      // Insert at beginning
+      const firstOrder = targetSequences[0].orderIndex || targetSequences[0].order_number || 0;
+      return Math.max(firstOrder - 10, 1);
+    } else if (targetOrderIndex >= targetSequences.length) {
+      // Insert at end
+      const lastOrder = targetSequences[targetSequences.length - 1].orderIndex || targetSequences[targetSequences.length - 1].order_number || 0;
+      return lastOrder + 10;
+    } else {
+      // Insert between sequences
+      const prevOrder = targetSequences[targetOrderIndex - 1].orderIndex || targetSequences[targetOrderIndex - 1].order_number || 0;
+      const nextOrder = targetSequences[targetOrderIndex].orderIndex || targetSequences[targetOrderIndex].order_number || 0;
+      return (prevOrder + nextOrder) / 2;
     }
   },
 

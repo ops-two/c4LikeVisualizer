@@ -291,11 +291,16 @@ window.WorkflowArchitectDataStore = {
   },
 
   // Update sequence order (following storymap pattern)
-  updateSequenceOrder: function (sequenceId, newOrder) {
+  updateSequenceOrder: function (sequenceId, newOrder, subgroupId = null) {
     const sequence = this.data.sequences[sequenceId];
     if (sequence) {
       sequence.orderIndex = newOrder;
       sequence.order_number = newOrder; // Maintain compatibility
+      
+      // Update subgroup assignment if provided
+      if (subgroupId !== undefined) {
+        sequence.subgroupId = subgroupId;
+      }
     }
   },
 
