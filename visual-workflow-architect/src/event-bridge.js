@@ -3,13 +3,16 @@ window.WorkflowArchitectEventBridge = {
   instance: null,
   isInitialized: false,
 
-  init(instance) {
+  init: function (instance) {
     if (this.isInitialized) return;
     this.instance = instance;
     this.isInitialized = true;
-    console.log(
-      "WorkflowArchitectEventBridge: Initialized with simple event pattern"
-    );
+    console.log("WorkflowArchitectEventBridge: Initialized");
+
+    // Setup event listeners for drag and drop (following storymap pattern)
+    document.addEventListener("workflow:update", (event) => {
+      this.handleSequenceDragDrop(event.detail);
+    });
 
     // Add event listeners for custom events (following storymap pattern)
     document.addEventListener("workflow-architect:update", this.handleUpdate.bind(this));
@@ -111,6 +114,15 @@ window.WorkflowArchitectEventBridge = {
       eventData
     );
     this.handleSubgroupAdd(eventData);
+  },
+
+  // Handle sequence drag and drop updates (following storymap pattern)
+  handleSequenceDragDrop: function (eventData) {
+    console.log(
+      "WorkflowArchitectEventBridge: Sequence drag drop update",
+      eventData
+    );
+    this.instance.publishState("pending_update", JSON.stringify(eventData));
   },
 
   // Handle update events from inline editing (following storymap pattern)

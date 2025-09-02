@@ -398,7 +398,12 @@ window.SequenceDiagramRenderer = {
 
       return React.createElement(
         "div",
-        { className: "message", style: messageStyle },
+        { 
+          className: "message sequence-message", 
+          style: messageStyle,
+          "data-sequence-id": sequenceId,
+          "data-workflow-id": workflowId
+        },
         [
           React.createElement(
             "div",
@@ -1271,6 +1276,14 @@ window.SequenceDiagramRenderer = {
         console.log(
           "SequenceDiagramRenderer: Successfully rendered sequence diagram"
         );
+
+        // Initialize drag and drop functionality (following storymap pattern)
+        if (window.WorkflowArchitectSequenceDragDrop) {
+          setTimeout(() => {
+            window.WorkflowArchitectSequenceDragDrop.init(container);
+            console.log("SequenceDiagramRenderer: Drag and drop initialized");
+          }, 100); // Small delay to ensure DOM is ready
+        }
       } else {
         console.error("SequenceDiagramRenderer: Target container not found");
       }

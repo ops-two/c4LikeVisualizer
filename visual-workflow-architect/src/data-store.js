@@ -289,6 +289,36 @@ window.WorkflowArchitectDataStore = {
   getSubgroup: function (subgroupId) {
     return this.data.subgroups[subgroupId] || null;
   },
+
+  // Update sequence order (following storymap pattern)
+  updateSequenceOrder: function (sequenceId, newOrder) {
+    const sequence = this.data.sequences[sequenceId];
+    if (sequence) {
+      sequence.orderIndex = newOrder;
+      sequence.order_number = newOrder; // Maintain compatibility
+    }
+  },
+
+  // Get sequence data for update (prevents data loss during drag operations)
+  getSequenceForUpdate: function (sequenceId) {
+    const sequence = this.data.sequences[sequenceId];
+    if (!sequence) return null;
+
+    return {
+      entityId: sequenceId,
+      label_text: sequence.labelText || sequence.label || "",
+      order_index: sequence.orderIndex || sequence.order_number || 0,
+      fromcontainer_custom_component: sequence.fromContainerId,
+      tocontainer_custom_component: sequence.toContainerId,
+      workflow_custom_workflows: sequence.workflowId,
+      subgroup_custom_subgroup: sequence.subgroupId || null,
+      action_text: sequence.actionText || "",
+      color_text: sequence.colorText || "",
+      dashed_text: sequence.dashedText || "",
+      desc_text: sequence.descText || "",
+      feature_text: sequence.featureText || ""
+    };
+  },
   // END OF NEW FUNCTIONS
   // Update entity locally (before sending to Bubble)
   updateEntity: function (entityType, entityId, updates) {
