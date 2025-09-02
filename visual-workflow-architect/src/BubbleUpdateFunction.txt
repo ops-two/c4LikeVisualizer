@@ -243,7 +243,6 @@ function(instance, properties, context) {
             }
         }
         
-        // Store feature ID in DOM for persistence
         containerElement.attr('data-feature-id', featureId);
         
         // Smart re-render detection - detect both count and content changes
