@@ -15,7 +15,10 @@ window.WorkflowArchitectEventBridge = {
     });
 
     // Add event listeners for custom events (following storymap pattern)
-    document.addEventListener("workflow-architect:update", this.handleUpdate.bind(this));
+    document.addEventListener(
+      "workflow-architect:update",
+      this.handleUpdate.bind(this)
+    );
   },
 
   // Handle container creation
@@ -122,7 +125,7 @@ window.WorkflowArchitectEventBridge = {
       "WorkflowArchitectEventBridge: Sequence drag drop update",
       eventData
     );
-    this.instance.publishState("pending_update", JSON.stringify(eventData));
+    this.instance.publishState("pending_reorder", JSON.stringify(eventData));
     this.instance.triggerEvent("sequence_updated");
   },
 
