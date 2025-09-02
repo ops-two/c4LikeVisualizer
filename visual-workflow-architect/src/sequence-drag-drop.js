@@ -375,18 +375,32 @@ window.WorkflowArchitectSequenceDragDrop = {
         return;
       }
 
-      // Calculate new order using storymap-style position logic
-      const newOrderValue = this.calculateNewOrderBetweenSequences(
-        draggedSequence,
-        targetSequence,
-        targetWorkflowId
-      );
-
       // Determine subgroup assignment from target
       const targetSubgroupContainer = target.closest('.subgroup-container');
       const targetSubgroupId = targetSubgroupContainer ? targetSubgroupContainer.dataset.subgroupId : null;
+      
+      // Validate subgroup capacity if dropping into subgroup
+      if (targetSubgroupId && !this.validateSubgroupCapacity(targetSubgroupId, draggedSequenceId)) {
+        console.warn('Subgroup capacity exceeded - cannot add more sequences');
+        return;
+      }
+      
+      // Calculate new order using enhanced workflow/subgroup-aware logic
+      const newOrderValue = this.calculateNewOrderWithSubgroupFlow(
+        draggedSequence,
+        targetSequence,
+        targetWorkflowId,
+        targetSubgroupId
+      );
+      
+      console.log('Order calculation result:', {
+        newOrderValue,
+        targetSubgroupId,
+        workflowSequenceCount: this.getWorkflowSequenceCount(targetWorkflowId),
+        subgroupSequenceCount: targetSubgroupId ? this.getSubgroupSequenceCount(targetSubgroupId) : 0
+      });
 
-      // Prepare update payload
+      // Prepare update payload following Bubble event structure
       const payload = {
         entityType: 'sequence',
         entityId: draggedSequenceId,
@@ -394,7 +408,10 @@ window.WorkflowArchitectSequenceDragDrop = {
         newValue: newOrderValue,
         oldValue: draggedSequence.orderIndex || draggedSequence.order_number,
         workflowId: targetWorkflowId,
-        subgroupId: targetSubgroupId
+        subgroupId: targetSubgroupId,
+        // Add state management fields
+        pending_reorder: true,
+        current_view: 'workflow_diagram'
       };
 
       // Get full sequence data for update
@@ -499,10 +516,23 @@ window.WorkflowArchitectSequenceDragDrop = {
         window.WorkflowArchitectRenderer.render(mainCanvas);
       }
 
-      // Dispatch event to trigger Bubble update (following storymap pattern)
+      // Set pending state before Bubble update
+      this.setPendingState('reorder', true);
+      
+      // Dispatch sequence_updated event to match Bubble's expected events
       document.dispatchEvent(
-        new CustomEvent("workflow:update", { detail: payload })
+        new CustomEvent('sequence_updated', { detail: payload })
       );
+      
+      // Also dispatch workflow update for broader state management
+      document.dispatchEvent(
+        new CustomEvent('workflow:update', { detail: payload })
+      );
+      
+      // Clear pending state after short delay
+      setTimeout(() => {
+        this.setPendingState('reorder', false);
+      }, 1000);
 
       console.log("Sequence drag drop completed:", payload);
 
@@ -511,6 +541,95 @@ window.WorkflowArchitectSequenceDragDrop = {
     } finally {
       this.isProcessing = false;
       this.draggedSequence = null;
+    }
+  },
+
+  validateSubgroupCapacity: function (subgroupId, draggedSequenceId) {
+    // Get subgroup data to check capacity
+    const subgroup = window.WorkflowArchitectDataStore.getSubgroup(subgroupId);
+    if (!subgroup) return true; // Allow if subgroup not found
+    
+    // Get current sequences in this subgroup
+    const allSequences = window.WorkflowArchitectDataStore.getSequencesArray();
+    const subgroupSequences = allSequences.filter(s => s.subgroupId === subgroupId && s.id !== draggedSequenceId);
+    
+    // For now, allow unlimited sequences in subgroups
+    // TODO: Add capacity limits based on subgroup configuration
+    console.log(`Subgroup ${subgroupId} currently has ${subgroupSequences.length} sequences`);
+    return true;
+  },
+
+  getWorkflowSequenceCount: function (workflowId) {
+    const allSequences = window.WorkflowArchitectDataStore.getSequencesArray();
+    return allSequences.filter(s => s.workflowId === workflowId).length;
+  },
+
+  getSubgroupSequenceCount: function (subgroupId) {
+    const allSequences = window.WorkflowArchitectDataStore.getSequencesArray();
+    return allSequences.filter(s => s.subgroupId === subgroupId).length;
+  },
+
+  setPendingState: function (operation, isActive) {
+    // Update global state to match Bubble's state management
+    if (window.WorkflowArchitectDataStore.data) {
+      window.WorkflowArchitectDataStore.data.pending_reorder = isActive;
+      window.WorkflowArchitectDataStore.data.is_loading = isActive;
+    }
+    console.log(`Set pending_${operation}:`, isActive);
+  },
+
+  calculateNewOrderWithSubgroupFlow: function (draggedSequence, targetSequence, workflowId, targetSubgroupId) {
+    // Enhanced order calculation that considers subgroup boundaries
+    const allSequences = window.WorkflowArchitectDataStore.getSequencesArray();
+    
+    // Filter sequences based on target container (workflow or subgroup)
+    let containerSequences;
+    if (targetSubgroupId) {
+      // Dropping into subgroup - only consider sequences in that subgroup
+      containerSequences = allSequences.filter(s => s.subgroupId === targetSubgroupId);
+      console.log(`Calculating order within subgroup ${targetSubgroupId}`);
+    } else {
+      // Dropping into workflow (outside subgroups) - only consider workflow-level sequences
+      containerSequences = allSequences.filter(s => s.workflowId === workflowId && !s.subgroupId);
+      console.log(`Calculating order within workflow ${workflowId} (outside subgroups)`);
+    }
+    
+    // Sort by current order
+    containerSequences.sort((a, b) => (a.orderIndex || a.order_number || 0) - (b.orderIndex || b.order_number || 0));
+    
+    const draggedIndex = containerSequences.findIndex(s => s.id === draggedSequence.id);
+    const targetIndex = containerSequences.findIndex(s => s.id === targetSequence.id);
+    
+    console.log('Enhanced order calculation:', { 
+      draggedIndex, 
+      targetIndex, 
+      containerType: targetSubgroupId ? 'subgroup' : 'workflow',
+      containerSequenceCount: containerSequences.length
+    });
+    
+    // Use same logic as before but within the correct container scope
+    if (draggedIndex > targetIndex) {
+      // Moving up - insert before target
+      if (targetIndex === 0) {
+        const targetOrder = targetSequence.orderIndex || targetSequence.order_number || 0;
+        return Math.max(targetOrder - 10, 1);
+      } else {
+        const prevSequence = containerSequences[targetIndex - 1];
+        const prevOrder = prevSequence.orderIndex || prevSequence.order_number || 0;
+        const targetOrder = targetSequence.orderIndex || targetSequence.order_number || 0;
+        return (prevOrder + targetOrder) / 2;
+      }
+    } else {
+      // Moving down - insert after target
+      if (targetIndex === containerSequences.length - 1) {
+        const targetOrder = targetSequence.orderIndex || targetSequence.order_number || 0;
+        return targetOrder + 10;
+      } else {
+        const nextSequence = containerSequences[targetIndex + 1];
+        const targetOrder = targetSequence.orderIndex || targetSequence.order_number || 0;
+        const nextOrder = nextSequence.orderIndex || nextSequence.order_number || 0;
+        return (targetOrder + nextOrder) / 2;
+      }
     }
   },
 
