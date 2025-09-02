@@ -61,27 +61,48 @@ window.WorkflowArchitectSequenceDragDrop = {
     const dropTargets = this.container.querySelectorAll(".message, .sequence-message");
     console.log("Found drop targets:", dropTargets.length);
     
-    dropTargets.forEach((target) => {
+    dropTargets.forEach((target, index) => {
+      console.log(`Setting up drop target ${index}:`, target.dataset.sequenceId, target.className);
+      
+      // Ensure target can receive drops
       target.addEventListener("dragover", (e) => {
         if (this.draggedSequence && this.draggedSequence !== target) {
           e.preventDefault();
+          e.stopPropagation();
           target.classList.add("drag-over");
           console.log("Drag over target:", target.dataset.sequenceId);
         }
       });
       
+      target.addEventListener("dragenter", (e) => {
+        if (this.draggedSequence && this.draggedSequence !== target) {
+          e.preventDefault();
+          console.log("Drag enter target:", target.dataset.sequenceId);
+        }
+      });
+      
       target.addEventListener("dragleave", (e) => {
         target.classList.remove("drag-over");
+        console.log("Drag leave target:", target.dataset.sequenceId);
       });
       
       target.addEventListener("drop", (e) => {
         e.preventDefault();
+        e.stopPropagation();
         target.classList.remove("drag-over");
         if (this.draggedSequence) {
           console.log("Drop detected on target:", target.dataset.sequenceId);
           this.handleSequenceDrop(target);
         }
       });
+    });
+    
+    // Also add container-level fallback
+    this.container.addEventListener("dragover", (e) => {
+      if (this.draggedSequence) {
+        e.preventDefault();
+        console.log("Container dragover fallback");
+      }
     });
   },
 
