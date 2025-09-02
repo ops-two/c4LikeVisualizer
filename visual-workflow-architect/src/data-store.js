@@ -125,15 +125,22 @@ window.WorkflowArchitectDataStore = {
     );
     const toContainerRef = bubbleSequence.get("tocontainer_custom_component");
     const workflowRef = bubbleSequence.get("workflow_custom_workflows");
-    
+
     // Use the confirmed field name from debug output
     const subgroupRef = bubbleSequence.get("subgroup_custom_subgroup");
-    
+
     // Debug log subgroup relationship for each sequence
     if (subgroupRef) {
-      console.log(`DEBUG - Sequence ${bubbleSequence.get("_id")} has subgroup:`, subgroupRef.get("_id"));
+      console.log(
+        `DEBUG - Sequence ${bubbleSequence.get("_id")} has subgroup:`,
+        subgroupRef.get("_id")
+      );
     } else {
-      console.log(`DEBUG - Sequence ${bubbleSequence.get("_id")} has no subgroup relationship`);
+      console.log(
+        `DEBUG - Sequence ${bubbleSequence.get(
+          "_id"
+        )} has no subgroup relationship`
+      );
     }
 
     return {
@@ -204,15 +211,15 @@ window.WorkflowArchitectDataStore = {
       };
     }
 
-    // Handle Bubble object with .get() method - using correct field names from memory
-    const workflowRef = bubbleSubgroup.get("Workflow");
+    // Handle Bubble object with .get() method - using correct field names
+    const workflowRef = bubbleSubgroup.get("workflow_custom_workflows");
     const workflowId = workflowRef ? workflowRef.get("_id") : null;
 
     return {
       id: bubbleSubgroup.get("_id"),
-      label: bubbleSubgroup.get("Label") || "Untitled Subgroup",
+      label: bubbleSubgroup.get("label_text") || "Untitled Subgroup",
       workflowId: workflowId,
-      colorHex: bubbleSubgroup.get("color_Hex") || "#f5f5f5",
+      colorHex: bubbleSubgroup.get("color_hex_text") || "#f5f5f5",
       // No orderIndex field in subgroup schema
       createdDate: bubbleSubgroup.get("Created Date") || new Date(),
       modifiedDate: bubbleSubgroup.get("Modified Date") || new Date(),
@@ -273,8 +280,9 @@ window.WorkflowArchitectDataStore = {
 
   // Get subgroups for a specific workflow
   getSubgroupsByWorkflow: function (workflowId) {
-    return Object.values(this.data.subgroups)
-      .filter((subgroup) => subgroup.workflowId === workflowId);
+    return Object.values(this.data.subgroups).filter(
+      (subgroup) => subgroup.workflowId === workflowId
+    );
   },
 
   // Get subgroup by ID
@@ -494,7 +502,6 @@ window.WorkflowArchitectDataStore = {
         );
       }
     });
-
     return issues;
   },
 
