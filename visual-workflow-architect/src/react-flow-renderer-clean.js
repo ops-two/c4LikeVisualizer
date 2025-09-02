@@ -363,6 +363,7 @@ window.SequenceDiagramRenderer = {
     };
   },
 
+  // Step 3: Create Message component
   createMessage: function () {
     return function Message({
       label,
@@ -373,6 +374,8 @@ window.SequenceDiagramRenderer = {
       dashed = false,
       actorsCount,
       sequenceId,
+      subgroupId,
+      workflowId,
     }) {
       const isLeft = to < from;
 
