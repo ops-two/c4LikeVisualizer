@@ -58,22 +58,23 @@ window.WorkflowArchitectSequenceDragDrop = {
     dragHandle.innerHTML = "⋮⋮";
     dragHandle.style.cssText = `
       position: absolute;
-      left: -25px;
+      left: -30px;
       top: 50%;
       transform: translateY(-50%);
-      width: 20px;
-      height: 30px;
+      width: 25px;
+      height: 35px;
       background: #666;
       color: white;
       display: none;
       align-items: center;
       justify-content: center;
       cursor: grab;
-      border-radius: 3px;
-      font-size: 12px;
+      border-radius: 4px;
+      font-size: 14px;
       line-height: 1;
       z-index: 1000;
       box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      pointer-events: auto;
     `;
     
     // Ensure message has relative positioning
@@ -85,59 +86,65 @@ window.WorkflowArchitectSequenceDragDrop = {
     message.appendChild(dragHandle);
     console.log("Added drag handle to:", message);
     
-    // Show handle on hover
-    message.addEventListener("mouseenter", () => {
-      console.log("Mouse enter - showing drag handle");
-      dragHandle.style.display = "flex";
-    });
+    // Create hover area that includes both message and handle
+    const hoverArea = document.createElement("div");
+    hoverArea.className = "drag-hover-area";
+    hoverArea.style.cssText = `
+      position: absolute;
+      left: -35px;
+      top: -10px;
+      right: -10px;
+      bottom: -10px;
+      z-index: 999;
+      pointer-events: none;
+    `;
     
-    message.addEventListener("mouseleave", () => {
-      if (!message.classList.contains("dragging")) {
-        console.log("Mouse leave - hiding drag handle");
-        dragHandle.style.display = "none";
-      }
-    });
+    message.appendChild(hoverArea);
+    
+    // Use single hover area to prevent flickering
+    let hoverTimeout;
+    
+    const showHandle = () => {
+      clearTimeout(hoverTimeout);
+      console.log("Showing drag handle");
+      dragHandle.style.display = "flex";
+    };
+    
+    const hideHandleDelayed = () => {
+      hoverTimeout = setTimeout(() => {
+        if (!message.classList.contains("dragging")) {
+          console.log("Hiding drag handle");
+          dragHandle.style.display = "none";
+        }
+      }, 100); // Small delay to prevent flickering
+    };
+    
+    // Hover events on the message
+    message.addEventListener("mouseenter", showHandle);
+    message.addEventListener("mouseleave", hideHandleDelayed);
+    
+    // Hover events on the drag handle itself
+    dragHandle.addEventListener("mouseenter", showHandle);
+    dragHandle.addEventListener("mouseleave", hideHandleDelayed);
   },
 
   setupDropZones: function () {
-    // Create drop zones between sequences within same workflow
-    const workflows = this.container.querySelectorAll(".workflow-group");
+    console.log("Setting up drop zones...");
     
-    workflows.forEach((workflow) => {
-      const sequences = workflow.querySelectorAll(".sequence-message");
-      
-      // Add drop zones between sequences
-      sequences.forEach((sequence, index) => {
-        this.createDropZone(sequence, "before");
-        
-        // Add drop zone after last sequence
-        if (index === sequences.length - 1) {
-          this.createDropZone(sequence, "after");
-        }
-      });
-    });
-
-    // Setup drop event handlers
-    const dropZones = this.container.querySelectorAll(".sequence-drop-zone");
-    dropZones.forEach((zone) => {
-      zone.addEventListener("dragover", (e) => {
-        if (this.draggedSequence) {
-          e.preventDefault();
-          zone.classList.add("drag-over");
-        }
-      });
-      
-      zone.addEventListener("dragleave", (e) => {
-        zone.classList.remove("drag-over");
-      });
-      
-      zone.addEventListener("drop", (e) => {
+    // For now, use the entire container as a drop zone for simplicity
+    this.container.addEventListener("dragover", (e) => {
+      if (this.draggedSequence) {
         e.preventDefault();
-        zone.classList.remove("drag-over");
-        if (this.draggedSequence) {
-          this.handleDrop(zone);
-        }
-      });
+        console.log("Drag over container");
+      }
+    });
+    
+    this.container.addEventListener("drop", (e) => {
+      e.preventDefault();
+      if (this.draggedSequence) {
+        console.log("Drop detected in container");
+        this.handleSimpleDrop(e);
+      }
     });
   },
 
@@ -173,6 +180,29 @@ window.WorkflowArchitectSequenceDragDrop = {
       sequence.parentNode.insertBefore(dropZone, sequence);
     } else {
       sequence.parentNode.insertBefore(dropZone, sequence.nextSibling);
+    }
+  },
+
+  handleSimpleDrop: function (event) {
+    if (this.isProcessing || !this.draggedSequence) return;
+
+    try {
+      this.isProcessing = true;
+      console.log("Processing simple drop...");
+      
+      const draggedSequenceId = this.draggedSequence.dataset.sequenceId;
+      const draggedWorkflowId = this.draggedSequence.dataset.workflowId;
+      
+      console.log("Drop completed for sequence:", draggedSequenceId);
+      
+      // For now, just log the successful drag operation
+      // Later we'll implement proper reordering based on drop position
+      
+    } catch (error) {
+      console.error("Sequence drag drop error:", error);
+    } finally {
+      this.isProcessing = false;
+      this.draggedSequence = null;
     }
   },
 
