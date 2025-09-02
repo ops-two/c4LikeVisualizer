@@ -253,7 +253,7 @@ function(instance, properties, context) {
             var containerNames = allContainers.map(c => c.get('name_text') || '').join('|');
             var sequenceLabels = allSequences.map(s => s.get('label_text') || '').join('|');
             var workflowNames = allWorkflows.map(w => w.get('label_text') || '').join('|');
-            var subgroupNames = allSubgroups.map(sg => sg.get('label_text') || '').join('|');
+            var subgroupNames = allSubgroups.map(sg => sg.get('Label') || '').join('|');
             
             contentHash = containerNames + '::' + sequenceLabels + '::' + workflowNames + '::' + subgroupNames;
         } catch (e) {

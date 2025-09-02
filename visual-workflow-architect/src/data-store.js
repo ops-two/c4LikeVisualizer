@@ -204,15 +204,15 @@ window.WorkflowArchitectDataStore = {
       };
     }
 
-    // Handle Bubble object with .get() method - using correct field names from debug output
-    const workflowRef = bubbleSubgroup.get("workflow_custom_workflows");
+    // Handle Bubble object with .get() method - using correct field names from memory
+    const workflowRef = bubbleSubgroup.get("Workflow");
     const workflowId = workflowRef ? workflowRef.get("_id") : null;
 
     return {
       id: bubbleSubgroup.get("_id"),
-      label: bubbleSubgroup.get("label_text") || "Untitled Subgroup",
+      label: bubbleSubgroup.get("Label") || "Untitled Subgroup",
       workflowId: workflowId,
-      colorHex: bubbleSubgroup.get("color_hex_text") || "#f5f5f5",
+      colorHex: bubbleSubgroup.get("color_Hex") || "#f5f5f5",
       // No orderIndex field in subgroup schema
       createdDate: bubbleSubgroup.get("Created Date") || new Date(),
       modifiedDate: bubbleSubgroup.get("Modified Date") || new Date(),
