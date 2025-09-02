@@ -861,12 +861,9 @@ window.SequenceDiagramRenderer = {
     });
 
     // Update container height based on content
-    // Calculate max order index for height calculation
-    const maxOrderIndex = positionedMessages.length > 0
-      ? Math.max(...positionedMessages.map(msg => {
-          const orderMatch = msg.label.match(/^(\d+)\./);
-          return orderMatch ? parseInt(orderMatch[1]) : 1;
-        }))
+    // Calculate max order index for height calculation using actual sequence data
+    const maxOrderIndex = sequences.length > 0
+      ? Math.max(...sequences.map(seq => seq.orderIndex || 1))
       : 1;
     
     const finalContainerHeight = Math.max(
