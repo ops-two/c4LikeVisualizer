@@ -46,7 +46,7 @@ window.SequenceDiagramRenderer = {
   },
 
   // Step 1: Add CSS styles to document
-  addStyles: function () {
+  addStyles: function (containerHeight = 600) {
     const styleId = "sequence-diagram-styles";
     if (document.getElementById(styleId)) return;
 
@@ -105,7 +105,7 @@ window.SequenceDiagramRenderer = {
       .lifeline {
         width: 0px; /* The element itself has no width */
         height: 100%;
-        min-height: ${containerHeight}px; /* Dynamic height based on content */
+        min-height: 600px; /* Will be updated dynamically */
         border-left: 2px dotted #cccccc; /* Create the line using a dotted border */
         z-index: 0;
       }
@@ -498,7 +498,7 @@ window.SequenceDiagramRenderer = {
       data
     );
 
-    // Add CSS styles
+    // Add CSS styles with default height (will be updated later)
     this.addStyles();
 
     // Initialize data store if available
@@ -860,15 +860,16 @@ window.SequenceDiagramRenderer = {
       positionedMessagesCount: positionedMessages.length,
     });
 
-    // Update container height based on content - use max orderIndex instead of array length
-    const maxOrderIndex = positionedMessages.length > 0 
+    // Update container height based on content
+    // Calculate max order index for height calculation
+    const maxOrderIndex = positionedMessages.length > 0
       ? Math.max(...positionedMessages.map(msg => {
           const orderMatch = msg.label.match(/^(\d+)\./);
           return orderMatch ? parseInt(orderMatch[1]) : 1;
         }))
       : 1;
     
-    const containerHeight = Math.max(
+    const finalContainerHeight = Math.max(
       600,
       130 + maxOrderIndex * 150 + 100
     );
@@ -1049,7 +1050,7 @@ window.SequenceDiagramRenderer = {
             {
               key: "diagram",
               className: "diagram-container",
-              style: { height: `${containerHeight}px` },
+              style: { height: `${finalContainerHeight}px` },
             },
             [
               // Workflow backgrounds (render first, behind everything)
@@ -1153,7 +1154,7 @@ window.SequenceDiagramRenderer = {
                   {
                     key: actor.name,
                     className: `actor-lane ${actor.className}`,
-                    style: { height: `${containerHeight}px` },
+                    style: { height: `${finalContainerHeight}px` },
                   },
                   [
                     React.createElement(
