@@ -12,17 +12,24 @@ window.WorkflowArchitectSequenceDragDrop = {
   },
 
   setupSequenceDragging: function () {
-    // Setup dragging for sequence messages
-    const sequenceMessages = this.container.querySelectorAll(".sequence-message");
+    console.log("Setting up sequence dragging...");
+    
+    // Setup dragging for sequence messages - target both .message and .sequence-message classes
+    const sequenceMessages = this.container.querySelectorAll(".message, .sequence-message");
+    console.log("Found sequence messages:", sequenceMessages.length);
+    
     sequenceMessages.forEach((message) => {
       if (message.dataset.dragSetup === "true") return;
       message.dataset.dragSetup = "true";
+      
+      console.log("Setting up drag for message:", message);
       
       // Add drag handle
       this.addDragHandle(message);
       
       message.draggable = true;
       message.addEventListener("dragstart", (e) => {
+        console.log("Drag started for:", message);
         this.draggedSequence = message;
         setTimeout(() => message.classList.add("dragging"), 0);
         this.container.classList.add("sequence-drag-active");
@@ -65,19 +72,28 @@ window.WorkflowArchitectSequenceDragDrop = {
       border-radius: 3px;
       font-size: 12px;
       line-height: 1;
-      z-index: 10;
+      z-index: 1000;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     `;
     
-    message.style.position = "relative";
+    // Ensure message has relative positioning
+    const currentPosition = window.getComputedStyle(message).position;
+    if (currentPosition === 'static') {
+      message.style.position = "relative";
+    }
+    
     message.appendChild(dragHandle);
+    console.log("Added drag handle to:", message);
     
     // Show handle on hover
     message.addEventListener("mouseenter", () => {
+      console.log("Mouse enter - showing drag handle");
       dragHandle.style.display = "flex";
     });
     
     message.addEventListener("mouseleave", () => {
       if (!message.classList.contains("dragging")) {
+        console.log("Mouse leave - hiding drag handle");
         dragHandle.style.display = "none";
       }
     });

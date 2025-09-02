@@ -423,7 +423,11 @@ window.SequenceDiagramRenderer = {
           React.createElement("div", {
             key: "arrow",
             className: arrowClass,
-            style: { width: "100%" },
+            style: { 
+              width: "100%",
+              backgroundColor: "#555",
+              height: "2px"
+            },
           }),
         ]
       );

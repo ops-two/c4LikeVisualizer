@@ -280,5 +280,28 @@
   root.render(<SequenceDiagram />);
 </script>
 
+<!-- Load drag and drop functionality -->
+<script src="visual-workflow-architect/src/sequence-drag-drop.js"></script>
+
+<script>
+// Initialize drag and drop after page loads
+document.addEventListener('DOMContentLoaded', function() {
+  console.log("DOM loaded, initializing drag drop...");
+  
+  setTimeout(() => {
+    const container = document.getElementById('root');
+    if (container && window.WorkflowArchitectSequenceDragDrop) {
+      console.log("Initializing drag drop for container:", container);
+      window.WorkflowArchitectSequenceDragDrop.init(container);
+    } else {
+      console.error("Container or drag drop not found:", {
+        container: !!container,
+        dragDrop: !!window.WorkflowArchitectSequenceDragDrop
+      });
+    }
+  }, 500); // Wait for React to render
+});
+</script>
+
 </body>
 </html>
