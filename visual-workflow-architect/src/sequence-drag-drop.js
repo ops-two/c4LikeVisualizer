@@ -359,10 +359,9 @@ window.WorkflowArchitectSequenceDragDrop = {
         targetWorkflowId
       });
 
-      // Constraint: Only allow vertical dragging within same workflow
+      // Allow cross-workflow dragging (sequences can move between workflows)
       if (draggedWorkflowId !== targetWorkflowId) {
-        console.warn('Cross-workflow dragging not allowed');
-        return;
+        console.log('Cross-workflow drag detected - moving sequence between workflows');
       }
 
       // Get sequence data from data store
@@ -519,15 +518,20 @@ window.WorkflowArchitectSequenceDragDrop = {
       // Set pending state before Bubble update
       this.setPendingState('reorder', true);
       
-      // Dispatch sequence_updated event to match Bubble's expected events
-      document.dispatchEvent(
-        new CustomEvent('sequence_updated', { detail: payload })
-      );
-      
-      // Also dispatch workflow update for broader state management
-      document.dispatchEvent(
-        new CustomEvent('workflow:update', { detail: payload })
-      );
+      // Use event bridge to properly trigger Bubble workflow
+      if (window.WorkflowArchitectEventBridge && window.WorkflowArchitectEventBridge.instance) {
+        console.log('Triggering Bubble workflow via event bridge...');
+        window.WorkflowArchitectEventBridge.handleSequenceDragDrop(payload);
+      } else {
+        console.warn('Event bridge not available - falling back to direct events');
+        // Fallback: dispatch events directly
+        document.dispatchEvent(
+          new CustomEvent('sequence_updated', { detail: payload })
+        );
+        document.dispatchEvent(
+          new CustomEvent('workflow:update', { detail: payload })
+        );
+      }
       
       // Clear pending state after short delay
       setTimeout(() => {

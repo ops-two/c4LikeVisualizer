@@ -123,6 +123,7 @@ window.WorkflowArchitectEventBridge = {
       eventData
     );
     this.instance.publishState("pending_update", JSON.stringify(eventData));
+    this.instance.triggerEvent("sequence_updated");
   },
 
   // Handle update events from inline editing (following storymap pattern)
