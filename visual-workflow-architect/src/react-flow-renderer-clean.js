@@ -586,11 +586,11 @@ window.SequenceDiagramRenderer = {
       if (data.subgroups && Array.isArray(data.subgroups)) {
         data.subgroups.forEach((subgroup) => {
           if (subgroup && typeof subgroup.get === "function") {
-            const workflowRef = subgroup.get("Workflow");
+            const workflowRef = subgroup.get("workflow_custom_workflows");
             const transformedSubgroup = {
               id: subgroup.get("_id"),
-              label: subgroup.get("Label") || "New Subgroup",
-              colorHex: subgroup.get("color_Hex") || "#f5f5f5",
+              label: subgroup.get("label_text") || "New Subgroup",
+              colorHex: subgroup.get("color_hex_text") || "#f5f5f5",
               workflowId: workflowRef ? workflowRef.get("_id") : null,
               // No orderIndex needed for subgroups
             };
@@ -862,14 +862,12 @@ window.SequenceDiagramRenderer = {
 
     // Update container height based on content
     // Calculate max order index for height calculation using actual sequence data
-    const maxOrderIndex = sequences.length > 0
-      ? Math.max(...sequences.map(seq => seq.orderIndex || 1))
-      : 1;
-    
-    const finalContainerHeight = Math.max(
-      600,
-      130 + maxOrderIndex * 150 + 100
-    );
+    const maxOrderIndex =
+      sequences.length > 0
+        ? Math.max(...sequences.map((seq) => seq.orderIndex || 1))
+        : 1;
+
+    const finalContainerHeight = Math.max(600, 130 + maxOrderIndex * 150 + 100);
 
     const actorsCount = actors.length;
 
