@@ -145,8 +145,19 @@ window.SequenceDiagramRenderer = {
         transition: background-color 0.2s;
       }
       
-      .message-label.sequence-label:hover {
+       .message-label.sequence-label:hover {
         background-color: rgba(25, 118, 210, 0.1);
+      }
+
+      .message.drag-over,
+      .sequence-message.drag-over {
+        box-shadow: 0 0 0 2px #1976d2; /* Blue outline for drop target */
+      }
+      
+      .message.dragging,
+      .sequence-message.dragging {
+        opacity: 0.5;
+        transform: rotate(3deg);
       }
 
       .sequence-inline-edit-input {
