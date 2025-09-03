@@ -957,13 +957,13 @@ window.SequenceDiagramRenderer = {
       const currentContainer = containers[index];
       const nextContainer = containers[index + 1];
       
-      // Use orderIndex or order property, with fallback
-      const currentOrder = currentContainer?.orderIndex || currentContainer?.order || (index + 1) * 10;
+      // Use correct Bubble property name: order_index1_number
+      const currentOrder = currentContainer?.order_index1_number || currentContainer?.orderIndex || currentContainer?.order || (index + 1) * 10;
       
       let nextOrder;
       if (nextContainer) {
         // There is a next container, insert between current and next
-        nextOrder = nextContainer.orderIndex || nextContainer.order || (index + 2) * 10;
+        nextOrder = nextContainer.order_index1_number || nextContainer.orderIndex || nextContainer.order || (index + 2) * 10;
         newOrderIndex = (currentOrder + nextOrder) / 2;
       } else {
         // This is the last container, add after it
