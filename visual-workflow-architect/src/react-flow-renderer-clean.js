@@ -902,6 +902,11 @@ window.SequenceDiagramRenderer = {
 
     // Toolbar event handlers
     // ... existing code
+    const handleAddContainerAfter = (index) => {
+      console.log("Add Container After index:", index);
+      // The order index calculation and event trigger will be implemented here.
+    };
+
     const handleAddContainer = () => {
       const feature = window.WorkflowArchitectDataStore?.getFeature();
       if (!feature || !feature.id) {
@@ -1156,11 +1161,12 @@ window.SequenceDiagramRenderer = {
               }),
 
               // Actor lanes
-              ...actors.map((actor) =>
+              ...actors.flatMap((actor, index) => [
+                // Render the Actor Lane
                 React.createElement(
                   "div",
                   {
-                    key: actor.name,
+                    key: actor.id, // Use stable ID for key
                     className: `actor-lane ${actor.className}`,
                     style: { height: `${finalContainerHeight}px` },
                   },
@@ -1170,9 +1176,9 @@ window.SequenceDiagramRenderer = {
                       {
                         key: "title",
                         style: {
-                          backgroundColor: actor.color + "20", // Use color with ~12% opacity
+                          backgroundColor: actor.color + "20",
                           borderColor: actor.color,
-                          color: actor.color, // Use the main color for the text
+                          color: actor.color,
                         },
                         className: "container-name",
                         "data-container-id": actor.id,
@@ -1185,8 +1191,19 @@ window.SequenceDiagramRenderer = {
                       className: "lifeline",
                     }),
                   ]
-                )
-              ),
+                ),
+                // Render the "+" button after the lane
+                React.createElement(
+                  "button",
+                  {
+                    key: `add-btn-${actor.id}`,
+                    className: "add-container-btn",
+                    title: "Add a new container here",
+                    onClick: () => handleAddContainerAfter(index),
+                  },
+                  "+"
+                ),
+              ]),
 
               // Messages and activation boxes
               React.createElement(
