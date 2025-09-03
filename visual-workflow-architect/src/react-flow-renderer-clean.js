@@ -173,6 +173,38 @@ window.SequenceDiagramRenderer = {
         box-shadow: 0 2px 8px rgba(0,0,0,0.15);
       }
 
+      .add-container-btn {
+        position: absolute;
+        top: 8px;
+        right: -15px;
+        width: 24px;
+        height: 24px;
+        border: 2px solid #ddd;
+        border-radius: 50%;
+        background: white;
+        color: #666;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      }
+
+      .add-container-btn:hover {
+        border-color: #1976d2;
+        color: #1976d2;
+        background: #f5f5f5;
+        transform: scale(1.1);
+      }
+
+      .container-name {
+        position: relative;
+      }
+
       .toolbar {
         display: flex;
         gap: 10px;
@@ -903,8 +935,33 @@ window.SequenceDiagramRenderer = {
     // Toolbar event handlers
     // ... existing code
     const handleAddContainerAfter = (index) => {
-      console.log("Add Container After index:", index);
-      // The order index calculation and event trigger will be implemented here.
+      const feature = window.WorkflowArchitectDataStore?.getFeature();
+      if (!feature || !feature.id) {
+        return;
+      }
+      
+      // Calculate order_index to insert container after the specified index
+      let newOrderIndex;
+      if (index >= containers.length - 1) {
+        // Adding at the end
+        newOrderIndex = containers.length > 0 ? containers[containers.length - 1].orderIndex + 10 : 10;
+      } else {
+        // Adding between containers
+        const currentContainer = containers[index];
+        const nextContainer = containers[index + 1];
+        newOrderIndex = (currentContainer.orderIndex + nextContainer.orderIndex) / 2;
+      }
+      
+      const newContainerData = {
+        name_text: "New Container",
+        color_hex: "#3ea50b",
+        feature_id: feature.id,
+        order_index: newOrderIndex
+      };
+      
+      if (window.WorkflowArchitectEventBridge) {
+        window.WorkflowArchitectEventBridge.handleContainerAdd(newContainerData);
+      }
     };
 
     const handleAddContainer = () => {
@@ -1161,7 +1218,7 @@ window.SequenceDiagramRenderer = {
               }),
 
               // Actor lanes
-              ...actors.map((actor) =>
+              ...actors.map((actor, index) =>
                 React.createElement(
                   "div",
                   {
@@ -1183,7 +1240,23 @@ window.SequenceDiagramRenderer = {
                         "data-container-id": actor.id,
                         title: "Double-click to edit",
                       },
-                      actor.name
+                      [
+                        actor.name,
+                        // Add + button after each container (except the last one gets it outside the loop)
+                        React.createElement(
+                          "button",
+                          {
+                            key: "add-btn",
+                            className: "add-container-btn",
+                            title: "Add container after this one",
+                            onClick: (e) => {
+                              e.stopPropagation();
+                              handleAddContainerAfter(index);
+                            },
+                          },
+                          "+"
+                        )
+                      ]
                     ),
                     React.createElement("div", {
                       key: "lifeline",
