@@ -69,7 +69,7 @@ window.WorkflowArchitectSequenceDragDrop = {
   },
 
   handleDrop: function (target) {
-    if (this.isProcessing) return;
+    if (this.isProcessing || !this.draggedSequence) return;
 
     try {
       this.isProcessing = true;
@@ -77,73 +77,113 @@ window.WorkflowArchitectSequenceDragDrop = {
       const targetId = target.dataset.sequenceId;
 
       if (!draggedId || !targetId || draggedId === targetId) {
+        this.isProcessing = false;
         return;
       }
 
       const allSequences =
         window.WorkflowArchitectDataStore.getSequencesArray();
       const draggedSeq = allSequences.find((s) => s.id === draggedId);
+      const targetSeq = allSequences.find((s) => s.id === targetId);
 
-      if (!draggedSeq) {
-        console.error("Dragged sequence not found in data store");
+      if (!draggedSeq || !targetSeq) {
+        this.isProcessing = false;
         return;
       }
 
-      const workflowId = draggedSeq.workflowId;
-      const sortedList = allSequences
-        .filter((s) => s.workflowId === workflowId)
-        .sort((a, b) => a.orderIndex - b.orderIndex);
-
-      const draggedIndex = sortedList.findIndex(
-        (item) => item.id === draggedId
-      );
-      const targetIndex = sortedList.findIndex((item) => item.id === targetId);
-
-      if (draggedIndex === -1 || targetIndex === -1) {
-        return;
-      }
+      // ALWAYS determine the workflow from the TARGET sequence. This is the key to fixing both bugs.
+      const targetWorkflowId = targetSeq.workflowId;
 
       let newOrderValue;
-      const targetItem = sortedList[targetIndex];
 
-      // --- PROVEN RE-INDEXING LOGIC FROM STORYMAPPER ---
-      if (draggedIndex > targetIndex) {
-        if (targetIndex === 0) {
-          newOrderValue = targetItem.orderIndex / 2;
-        } else {
-          const prevItem = sortedList[targetIndex - 1];
-          newOrderValue = (prevItem.orderIndex + targetItem.orderIndex) / 2;
-        }
+      // This logic now correctly handles reordering within a workflow, or dropping into a new one.
+      const targetWorkflowSequences = allSequences
+        .filter((s) => s.workflowId === targetWorkflowId)
+        .sort((a, b) => a.orderIndex - b.orderIndex);
+
+      // We must remove the dragged item if it was already in this list to calculate the index correctly.
+      const listWithoutDragged = targetWorkflowSequences.filter(
+        (s) => s.id !== draggedId
+      );
+      const targetIndex = listWithoutDragged.findIndex(
+        (item) => item.id === targetId
+      );
+
+      if (targetIndex === -1 && listWithoutDragged.length > 0) {
+        // Failsafe if target isn't found, drop at the end.
+        const lastItem = listWithoutDragged[listWithoutDragged.length - 1];
+        newOrderValue = lastItem.orderIndex + 10;
+      } else if (listWithoutDragged.length === 0) {
+        // Dropping into an empty workflow
+        newOrderValue = 10;
       } else {
-        const nextItem = sortedList[targetIndex + 1];
-        if (nextItem) {
-          newOrderValue = (targetItem.orderIndex + nextItem.orderIndex) / 2;
+        // Use mouse position for a more intuitive drop, like the storymapper
+        const targetRect = target.getBoundingClientRect();
+        const dropOnTopHalf =
+          event.clientY < targetRect.top + targetRect.height / 2;
+
+        if (dropOnTopHalf) {
+          // Drop BEFORE the target
+          if (targetIndex === 0) {
+            newOrderValue = listWithoutDragged[targetIndex].orderIndex / 2;
+          } else {
+            const prevItem = listWithoutDragged[targetIndex - 1];
+            newOrderValue =
+              (prevItem.orderIndex +
+                listWithoutDragged[targetIndex].orderIndex) /
+              2;
+          }
         } else {
-          newOrderValue = targetItem.orderIndex + 10;
+          // Drop AFTER the target
+          const nextItem = listWithoutDragged[targetIndex + 1];
+          if (nextItem) {
+            newOrderValue =
+              (listWithoutDragged[targetIndex].orderIndex +
+                nextItem.orderIndex) /
+              2;
+          } else {
+            newOrderValue = listWithoutDragged[targetIndex].orderIndex + 10;
+          }
         }
       }
 
+      // --- PREPARE A COMPLETE PAYLOAD ---
       const fullSequenceData =
         window.WorkflowArchitectDataStore.getSequenceForUpdate(draggedId);
       if (fullSequenceData) {
         fullSequenceData.order_index_number = newOrderValue;
+        // This is the critical fix: ALWAYS include the target workflow ID.
+        fullSequenceData.workflow_custom_workflows = targetWorkflowId;
       }
 
       const payload = {
         entityType: "sequence",
         entityId: draggedId,
-        fieldName: "order_index_number",
+        // Tell Bubble to update both fields, preventing data loss.
+        fieldName: "order_index_and_workflow",
         newValue: newOrderValue,
+        newParentId: targetWorkflowId, // Pass the workflowId here
         oldValue: draggedSeq.orderIndex,
         allData: fullSequenceData,
       };
 
+      // --- DISPATCH AND RENDER ---
+      // 1. Optimistically update the local data store, including the new workflow.
+      const localSeq = window.WorkflowArchitectDataStore.getSequence(draggedId);
+      if (localSeq) {
+        localSeq.workflowId = targetWorkflowId;
+      }
       window.WorkflowArchitectDataStore.updateSequenceOrder(
         draggedId,
         newOrderValue
       );
 
-      // Let the main update function handle the re-render by detecting the hash change
+      // 2. Trigger an immediate, optimistic re-render.
+      document.dispatchEvent(
+        new CustomEvent("workflow-architect:rerender", { detail: {} })
+      );
+
+      // 3. Send the complete update to Bubble.
       if (window.WorkflowArchitectEventBridge) {
         window.WorkflowArchitectEventBridge.handleSequenceDragDrop(payload);
       }
