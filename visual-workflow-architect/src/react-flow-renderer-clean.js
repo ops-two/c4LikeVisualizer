@@ -175,30 +175,37 @@ window.SequenceDiagramRenderer = {
 
       .add-container-btn {
         position: absolute;
-        top: 8px;
-        right: -15px;
-        width: 24px;
-        height: 24px;
-        border: 2px solid #ddd;
-        border-radius: 50%;
-        background: white;
-        color: #666;
-        font-size: 14px;
-        font-weight: bold;
+        top: 50%;
+        right: -11px;
+        width: 20px;
+        height: 20px;
+        border: none;
+        border-radius: 4px;
+        background-color: transparent;
+        color: #888;
+        font-size: 22px;
+        font-weight: normal;
+        line-height: 20px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 10;
-        transition: all 0.2s ease;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        opacity: 0;
+        transform: translateY(-50%) scale(0.8);
+        transition: opacity 0.15s ease-out, transform 0.15s ease-out, background-color 0.15s;
+        pointer-events: none;
+      }
+
+      .container-name:hover .add-container-btn {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+        pointer-events: auto;
       }
 
       .add-container-btn:hover {
-        border-color: #1976d2;
-        color: #1976d2;
-        background: #f5f5f5;
-        transform: scale(1.1);
+        background-color: #e9e9e9;
+        color: #333;
       }
 
       .container-name {
@@ -940,17 +947,26 @@ window.SequenceDiagramRenderer = {
         return;
       }
       
+      console.log("Adding container after index:", index);
+      console.log("Containers array:", containers);
+      console.log("Container at index:", containers[index]);
+      
       // Calculate order_index to insert container after the specified index
+      // Following storymap-grid pattern with beforeOrder/afterOrder
       let newOrderIndex;
-      if (index >= containers.length - 1) {
-        // Adding at the end
-        newOrderIndex = containers.length > 0 ? containers[containers.length - 1].orderIndex + 10 : 10;
-      } else {
-        // Adding between containers
-        const currentContainer = containers[index];
-        const nextContainer = containers[index + 1];
-        newOrderIndex = (currentContainer.orderIndex + nextContainer.orderIndex) / 2;
-      }
+      const currentContainer = containers[index];
+      const nextContainer = containers[index + 1];
+      
+      // Use orderIndex or order property, with fallback
+      const currentOrder = currentContainer?.orderIndex || currentContainer?.order || (index + 1) * 10;
+      const nextOrder = nextContainer?.orderIndex || nextContainer?.order || (index + 2) * 10;
+      
+      console.log("Current order:", currentOrder, "Next order:", nextOrder);
+      
+      // Calculate midpoint like storymap-grid
+      newOrderIndex = (currentOrder + nextOrder) / 2;
+      
+      console.log("Calculated new order index:", newOrderIndex);
       
       const newContainerData = {
         name_text: "New Container",
@@ -958,6 +974,8 @@ window.SequenceDiagramRenderer = {
         feature_id: feature.id,
         order_index: newOrderIndex
       };
+      
+      console.log("Sending container data:", newContainerData);
       
       if (window.WorkflowArchitectEventBridge) {
         window.WorkflowArchitectEventBridge.handleContainerAdd(newContainerData);
