@@ -162,7 +162,7 @@ window.WorkflowArchitectSequenceDragDrop = {
         // Tell Bubble to update both fields, preventing data loss.
         fieldName: "order_index_and_workflow",
         newValue: newOrderValue,
-        newParentId: targetWorkflowId, // Pass the workflowId here
+        workflowId: targetWorkflowId, // CORRECTED: Renamed 'newParentId' to 'workflowId' for backend compatibility
         oldValue: draggedSeq.orderIndex,
         allData: fullSequenceData,
       };
