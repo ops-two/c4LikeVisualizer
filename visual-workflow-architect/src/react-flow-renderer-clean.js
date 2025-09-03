@@ -959,12 +959,18 @@ window.SequenceDiagramRenderer = {
       
       // Use orderIndex or order property, with fallback
       const currentOrder = currentContainer?.orderIndex || currentContainer?.order || (index + 1) * 10;
-      const nextOrder = nextContainer?.orderIndex || nextContainer?.order || (index + 2) * 10;
       
-      console.log("Current order:", currentOrder, "Next order:", nextOrder);
+      let nextOrder;
+      if (nextContainer) {
+        // There is a next container, insert between current and next
+        nextOrder = nextContainer.orderIndex || nextContainer.order || (index + 2) * 10;
+        newOrderIndex = (currentOrder + nextOrder) / 2;
+      } else {
+        // This is the last container, add after it
+        newOrderIndex = currentOrder + 1;
+      }
       
-      // Calculate midpoint like storymap-grid
-      newOrderIndex = (currentOrder + nextOrder) / 2;
+      console.log("Current order:", currentOrder, "Next order:", nextOrder, "New order:", newOrderIndex);
       
       console.log("Calculated new order index:", newOrderIndex);
       
