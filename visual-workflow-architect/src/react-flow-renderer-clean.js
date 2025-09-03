@@ -1161,12 +1161,11 @@ window.SequenceDiagramRenderer = {
               }),
 
               // Actor lanes
-              ...actors.flatMap((actor, index) => [
-                // Render the Actor Lane
+              ...actors.map((actor) =>
                 React.createElement(
                   "div",
                   {
-                    key: actor.id, // Use stable ID for key
+                    key: actor.name,
                     className: `actor-lane ${actor.className}`,
                     style: { height: `${finalContainerHeight}px` },
                   },
@@ -1176,9 +1175,9 @@ window.SequenceDiagramRenderer = {
                       {
                         key: "title",
                         style: {
-                          backgroundColor: actor.color + "20",
+                          backgroundColor: actor.color + "20", // Use color with ~12% opacity
                           borderColor: actor.color,
-                          color: actor.color,
+                          color: actor.color, // Use the main color for the text
                         },
                         className: "container-name",
                         "data-container-id": actor.id,
@@ -1191,19 +1190,8 @@ window.SequenceDiagramRenderer = {
                       className: "lifeline",
                     }),
                   ]
-                ),
-                // Render the "+" button after the lane
-                React.createElement(
-                  "button",
-                  {
-                    key: `add-btn-${actor.id}`,
-                    className: "add-container-btn",
-                    title: "Add a new container here",
-                    onClick: () => handleAddContainerAfter(index),
-                  },
-                  "+"
-                ),
-              ]),
+                )
+              ),
 
               // Messages and activation boxes
               React.createElement(
