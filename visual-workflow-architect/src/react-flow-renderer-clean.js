@@ -769,7 +769,7 @@ window.SequenceDiagramRenderer = {
             x: minX,
             y: minY - 50,
             width: maxX,
-            height: maxY - minY + 140,
+            height: maxY - minY + 180,
             workflow: workflowGroup.workflow,
           };
         }
