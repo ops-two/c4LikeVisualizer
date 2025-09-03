@@ -401,11 +401,11 @@ window.SequenceDiagramRenderer = {
 
       return React.createElement(
         "div",
-        { 
-          className: "message sequence-message", 
+        {
+          className: "message sequence-message",
           style: messageStyle,
           "data-sequence-id": sequenceId,
-          "data-workflow-id": workflowId
+          "data-workflow-id": workflowId,
         },
         [
           React.createElement(
@@ -423,10 +423,10 @@ window.SequenceDiagramRenderer = {
           React.createElement("div", {
             key: "arrow",
             className: arrowClass,
-            style: { 
+            style: {
               width: "100%",
               backgroundColor: "#555",
-              height: "2px"
+              height: "2px",
             },
           }),
         ]
@@ -843,7 +843,7 @@ window.SequenceDiagramRenderer = {
         return {
           label: `${orderIndex}. ${labelText}`,
           labelText: labelText, // Pure label text for editing
-          yPos: 130 + (orderIndex - 1) * 150, // Use orderIndex instead of array index
+          yPos: 130 + (orderIndex - 1) * 90, // Use orderIndex instead of array index
           from: actors.indexOf(fromActor),
           to: actors.indexOf(toActor),
           dashed:
@@ -879,7 +879,7 @@ window.SequenceDiagramRenderer = {
         ? Math.max(...sequences.map((seq) => seq.orderIndex || 1))
         : 1;
 
-    const finalContainerHeight = Math.max(600, 130 + maxOrderIndex * 150 + 100);
+    const finalContainerHeight = Math.max(600, 130 + maxOrderIndex * 90 + 100);
 
     const actorsCount = actors.length;
 
@@ -1037,16 +1037,6 @@ window.SequenceDiagramRenderer = {
                   disabled: actors.length < 2,
                 },
                 "+ Add Sequence"
-              ),
-              React.createElement(
-                "button",
-                {
-                  key: "add-subgroup",
-                  className: "toolbar-button",
-                  onClick: handleAddSubgroup,
-                  disabled: Object.keys(workflows).length === 0,
-                },
-                "+ Add Subgroup"
               ),
             ]
           ),
