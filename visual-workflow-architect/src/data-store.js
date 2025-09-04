@@ -106,7 +106,10 @@ window.WorkflowArchitectDataStore = {
       featureId: featureRef ? featureRef.get("_id") : null,
       componentUrl: bubbleContainer.get("url") || "",
       description: bubbleContainer.get("description_text") || "",
-      orderIndex: bubbleContainer.get("order_index1_number") || 0,
+      orderIndex:
+        bubbleContainer.get("order_index_number") ||
+        bubbleWorkflow.orderIndex ||
+        0,
       colorHex: bubbleContainer.get("color_hex_text") || "#3ea50b",
       createdDate: bubbleContainer.get("Created Date") || new Date(),
       modifiedDate: bubbleContainer.get("Modified Date") || new Date(),
