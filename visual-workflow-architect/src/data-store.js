@@ -101,16 +101,11 @@ window.WorkflowArchitectDataStore = {
     return {
       id: bubbleContainer.get("_id"),
       name: bubbleContainer.get("name_text") || "Untitled Container",
-      // NOTE: 'type' is an Option Set or relationship, requires specific handling
-      // type: bubbleContainer.get('type_option_...') || "Component",
       featureId: featureRef ? featureRef.get("_id") : null,
       componentUrl: bubbleContainer.get("url") || "",
       description: bubbleContainer.get("description_text") || "",
-      orderIndex:
-        bubbleContainer.get("order_index_number") ||
-        bubbleWorkflow.orderIndex ||
-        0,
       colorHex: bubbleContainer.get("color_hex_text") || "#3ea50b",
+      orderIndex: bubbleContainer.get("order_index_number") || 0,
       createdDate: bubbleContainer.get("Created Date") || new Date(),
       modifiedDate: bubbleContainer.get("Modified Date") || new Date(),
     };
