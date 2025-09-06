@@ -230,6 +230,8 @@ window.SequenceDiagramRenderer = {
         cursor: pointer;
         z-index: 15;
         pointer-events: none;
+        right: 8px;
+        top: 8px;
       }
 
       .container-name:hover .container-icon-button {
@@ -243,10 +245,8 @@ window.SequenceDiagramRenderer = {
 
       .sequence-icon-button {
         position: absolute;
-        top: 2px;
-        right: 2px;
-        width: 14px;
-        height: 14px;
+        width: 16px;
+        height: 16px;
         background: rgba(255, 255, 255, 0.9);
         border: 1px solid #ddd;
         border-radius: 3px;
@@ -258,6 +258,8 @@ window.SequenceDiagramRenderer = {
         cursor: pointer;
         z-index: 15;
         pointer-events: none;
+        right: 8px;
+        top: 8px;
       }
 
       .sequence-label:hover .sequence-icon-button {
