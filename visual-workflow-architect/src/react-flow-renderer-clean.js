@@ -1114,22 +1114,41 @@ window.SequenceDiagramRenderer = {
       y: sequenceToY(orderIndex)
     });
 
+    // Phase 3: Circle edge intersection calculation
+    const getCircleEdgePoint = (centerX, centerY, targetX, targetY, radius) => {
+      const dx = targetX - centerX;
+      const dy = targetY - centerY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      // Avoid division by zero
+      if (distance === 0) return { x: centerX, y: centerY };
+      
+      return {
+        x: centerX + (dx / distance) * radius,
+        y: centerY + (dy / distance) * radius
+      };
+    };
+
     // SVG Arrow Component for precise circle-to-circle positioning
     const SVGArrow = ({ from, to, yPos, label, dashed = false }) => {
       const startCenter = getCircleCenter(from, yPos / 90 - 130/90);
       const endCenter = getCircleCenter(to, yPos / 90 - 130/90);
       
-      // For now, draw from center to center (Phase 3 will add edge calculations)
+      // Phase 3: Calculate circle edge points (24px radius for 48px diameter)
+      const circleRadius = 24;
+      const startEdge = getCircleEdgePoint(startCenter.x, startCenter.y, endCenter.x, endCenter.y, circleRadius);
+      const endEdge = getCircleEdgePoint(endCenter.x, endCenter.y, startCenter.x, startCenter.y, circleRadius);
+      
       const strokeDashArray = dashed ? "8,4" : "none";
       
       return React.createElement("g", { key: `arrow-${from}-${to}-${yPos}` }, [
-        // Arrow line
+        // Arrow line from circle edge to circle edge
         React.createElement("line", {
           key: "line",
-          x1: startCenter.x,
-          y1: startCenter.y,
-          x2: endCenter.x,
-          y2: endCenter.y,
+          x1: startEdge.x,
+          y1: startEdge.y,
+          x2: endEdge.x,
+          y2: endEdge.y,
           stroke: "#555",
           strokeWidth: "3",
           strokeDasharray: strokeDashArray,
