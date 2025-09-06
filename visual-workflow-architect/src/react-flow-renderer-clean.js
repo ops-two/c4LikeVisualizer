@@ -1195,7 +1195,7 @@ window.SequenceDiagramRenderer = {
     const SVGSelfMessage = ({ actorIndex, yPos, height, dashed = false }) => {
       const centerX = actorIndex * 180 + 90;
       const circleRadius = 19;
-      const loopWidth = 60; // Increased width for better spacing
+      const loopWidth = 80; // Increased width to prevent workflow conflicts
       
       // Calculate path points
       const startX = centerX + circleRadius;
@@ -1230,17 +1230,17 @@ window.SequenceDiagramRenderer = {
           strokeWidth: "2",
           strokeDasharray: strokeDashArray,
         }),
-        // Bottom horizontal line (left arrow)
+        // Bottom horizontal line (left arrow) - reversed direction
         React.createElement("line", {
           key: "bottom-line",
-          x1: rightX,
+          x1: endX,
           y1: bottomY,
-          x2: endX,
+          x2: rightX,
           y2: bottomY,
           stroke: "#555",
           strokeWidth: "2",
           strokeDasharray: strokeDashArray,
-          markerEnd: "url(#arrowhead-left)",
+          markerEnd: "url(#arrowhead)",
         }),
       ];
     };
@@ -1877,7 +1877,7 @@ window.SequenceDiagramRenderer = {
                       className: "message-label sequence-label",
                       style: {
                         position: "absolute",
-                        left: `${msg.from * 180 + 90 + 70}px`, // Position to the right of the loop
+                        left: `${msg.from * 180 + 90 + 90}px`, // Position to the right of the loop with more spacing
                         top: `${msg.yPos + loopHeight / 2 - 12}px`, // Center vertically
                         maxWidth: "200px",
                         textAlign: "left",
