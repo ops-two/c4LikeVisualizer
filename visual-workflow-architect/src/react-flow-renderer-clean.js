@@ -96,7 +96,8 @@ window.SequenceDiagramRenderer = {
         padding: 8px 16px;
         margin-top: 20px;
         font-weight: 500;
-        font-size: 13px;
+        font-size: 14px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         max-width: 140px;
         text-align: center;
         line-height: 1.3;
@@ -1653,7 +1654,7 @@ window.SequenceDiagramRenderer = {
                   style: {
                     position: "absolute",
                     left: `${midX}px`,
-                    top: `${msg.yPos - 25}px`,
+                    top: `${msg.yPos - 29}px`,
                     transform: "translateX(-50%)",
                     maxWidth: "90%",
                     textAlign: "center",
