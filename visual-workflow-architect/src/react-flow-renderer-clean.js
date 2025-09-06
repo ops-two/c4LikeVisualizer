@@ -409,7 +409,7 @@ window.SequenceDiagramRenderer = {
 
       .self-message-path {
         position: relative;
-        width: 50px; /* Reduced from 70px to prevent extending into workflow backgrounds */
+        width: 30px; /* Further reduced to prevent workflow background overlap */
         height: 100%;
       }
       
@@ -421,30 +421,30 @@ window.SequenceDiagramRenderer = {
       }
 
       .self-message-path-top {
-        width: 50px; height: 2px; top: 0; left: 19px; /* Start from circle edge (19px radius) */
+        width: 30px; height: 2px; top: 0; left: 19px; /* Start from circle edge (19px radius) */
       }
 
       .self-message-path-top::after {
-        content: ''; position: absolute; right: -1px; top: -4px; 
+        content: ''; position: absolute; right: -1px; top: -3px; 
         width: 0; height: 0;
-        border-top: 5px solid transparent; 
-        border-bottom: 5px solid transparent; 
+        border-top: 3px solid transparent; 
+        border-bottom: 3px solid transparent; 
         border-left: 8px solid #555;
       }
 
       .self-message-path-vertical {
-        width: 2px; height: 100%; top: 0; left: 69px; /* Adjusted for 50px width */
+        width: 2px; height: 100%; top: 0; left: 49px; /* Adjusted for 30px width */
       }
 
       .self-message-path-bottom {
-        width: 50px; height: 2px; bottom: 0; left: 19px; /* Start from circle edge */
+        width: 30px; height: 2px; bottom: 0; left: 19px; /* Start from circle edge */
       }
 
       .self-message-path-bottom::after {
-        content: ''; position: absolute; left: -1px; top: -4px; 
+        content: ''; position: absolute; left: -1px; top: -3px; 
         width: 0; height: 0;
-        border-top: 5px solid transparent; 
-        border-bottom: 5px solid transparent; 
+        border-top: 3px solid transparent; 
+        border-bottom: 3px solid transparent; 
         border-right: 8px solid #555;
       }
   .add-container-btn {
