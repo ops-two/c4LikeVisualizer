@@ -57,12 +57,17 @@ window.SequenceDiagramRenderer = {
         width: 100%;
         height: 100vh;
         max-height: none;
-        overflow-y: scroll;
+        overflow-y: hidden;
         overflow-x: auto;
         min-height: 400px;
         background: #f8f9fa;
         position: relative;
         box-sizing: border-box;
+      }
+
+      .workflow-architect-container {
+        height: 100vh;
+        overflow: hidden;
       }
 
       .diagram-container {
@@ -146,9 +151,6 @@ window.SequenceDiagramRenderer = {
         position: relative;
       }
       
-       .message-label.sequence-label:hover {
-        background-color: rgba(25, 118, 210, 0.1);
-      }
 
       .message.drag-over,
       .sequence-message.drag-over {
@@ -554,9 +556,34 @@ window.SequenceDiagramRenderer = {
                     stroke: "currentColor",
                     strokeWidth: "2",
                   },
-                  React.createElement("path", {
-                    d: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z",
-                  })
+                  [
+                    React.createElement("path", {
+                      key: "path1",
+                      d: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z",
+                    }),
+                    React.createElement("polyline", {
+                      key: "path2",
+                      points: "14,2 14,8 20,8",
+                    }),
+                    React.createElement("line", {
+                      key: "path3",
+                      x1: "16",
+                      y1: "13",
+                      x2: "8",
+                      y2: "13",
+                    }),
+                    React.createElement("line", {
+                      key: "path4",
+                      x1: "16",
+                      y1: "17",
+                      x2: "8",
+                      y2: "17",
+                    }),
+                    React.createElement("polyline", {
+                      key: "path5",
+                      points: "10,9 9,9 8,9",
+                    }),
+                  ]
                 )
               ),
             ]
@@ -663,9 +690,34 @@ window.SequenceDiagramRenderer = {
                     stroke: "currentColor",
                     strokeWidth: "2",
                   },
-                  React.createElement("path", {
-                    d: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z",
-                  })
+                  [
+                    React.createElement("path", {
+                      key: "path1",
+                      d: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z",
+                    }),
+                    React.createElement("polyline", {
+                      key: "path2",
+                      points: "14,2 14,8 20,8",
+                    }),
+                    React.createElement("line", {
+                      key: "path3",
+                      x1: "16",
+                      y1: "13",
+                      x2: "8",
+                      y2: "13",
+                    }),
+                    React.createElement("line", {
+                      key: "path4",
+                      x1: "16",
+                      y1: "17",
+                      x2: "8",
+                      y2: "17",
+                    }),
+                    React.createElement("polyline", {
+                      key: "path5",
+                      points: "10,9 9,9 8,9",
+                    }),
+                  ]
                 )
               ),
             ]
