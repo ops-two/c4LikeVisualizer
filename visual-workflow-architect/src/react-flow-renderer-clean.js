@@ -1655,8 +1655,8 @@ window.SequenceDiagramRenderer = {
                           ]
                         ),
                       ]),
-                      // Render SVG arrows
-                      ...positionedMessages.map((msg, index) =>
+                      // Render SVG arrows - ONLY for non-self messages
+                      ...positionedMessages.filter(msg => !msg.self).map((msg, index) =>
                         React.createElement(SVGArrow, {
                           key: `svg-arrow-${index}`,
                           from: msg.from,
@@ -1670,9 +1670,9 @@ window.SequenceDiagramRenderer = {
                   )
                 : null,
 
-              // Interactive HTML sequence labels overlay (when using SVG arrows)
+              // Interactive HTML sequence labels overlay (when using SVG arrows) - ONLY for non-self messages
               USE_SVG_ARROWS
-                ? positionedMessages.map((msg, index) => {
+                ? positionedMessages.filter(msg => !msg.self).map((msg, index) => {
                     const startX = msg.from * 180 + 90;
                     const endX = msg.to * 180 + 90;
                     const midX = (startX + endX) / 2;
