@@ -946,45 +946,62 @@ window.SequenceDiagramRenderer = {
       if (!feature || !feature.id) {
         return;
       }
-      
+
       console.log("Adding container after index:", index);
       console.log("Containers array:", containers);
       console.log("Container at index:", containers[index]);
-      
+
       // Calculate order_index to insert container after the specified index
       // Following storymap-grid pattern with beforeOrder/afterOrder
       let newOrderIndex;
       const currentContainer = containers[index];
       const nextContainer = containers[index + 1];
-      
+
       // Use correct Bubble property name: order_index1_number
-      const currentOrder = currentContainer?.order_index1_number || currentContainer?.orderIndex || currentContainer?.order || (index + 1) * 10;
-      
+      const currentOrder =
+        currentContainer?.order_index1_number ||
+        currentContainer?.orderIndex ||
+        currentContainer?.order ||
+        (index + 1) * 10;
+
       let nextOrder;
       if (nextContainer) {
         // There is a next container, insert between current and next
-        nextOrder = nextContainer.order_index1_number || nextContainer.orderIndex || nextContainer.order || (index + 2) * 10;
+        nextOrder =
+          nextContainer.order_index1_number ||
+          nextContainer.orderIndex ||
+          nextContainer.order ||
+          (index + 2) * 10;
         newOrderIndex = (currentOrder + nextOrder) / 2;
       } else {
         // This is the last container, add after it
         newOrderIndex = currentOrder + 1;
       }
-      
-      console.log("Current order:", currentOrder, "Next order:", nextOrder, "New order:", newOrderIndex);
-      
+
+      console.log(
+        "Current order:",
+        currentOrder,
+        "Next order:",
+        nextOrder,
+        "New order:",
+        newOrderIndex
+      );
+
       console.log("Calculated new order index:", newOrderIndex);
-      
+
       const newContainerData = {
         name_text: "New Container",
         color_hex: "#3ea50b",
         feature_id: feature.id,
-        order_index: newOrderIndex
+        order_index: newOrderIndex,
       };
-      
+
       console.log("Sending container data:", newContainerData);
-      
+
       if (window.WorkflowArchitectEventBridge) {
-        window.WorkflowArchitectEventBridge.handleContainerAdd(newContainerData);
+        window.WorkflowArchitectEventBridge.handleContainerAdd(
+          newContainerData
+        );
       }
     };
 
@@ -1279,7 +1296,7 @@ window.SequenceDiagramRenderer = {
                             },
                           },
                           "+"
-                        )
+                        ),
                       ]
                     ),
                     React.createElement("div", {
