@@ -940,7 +940,7 @@ window.SequenceDiagramRenderer = {
         Object.keys(workflowGroup.subgroups).forEach((subgroupId) => {
           const subgroupData = workflowGroup.subgroups[subgroupId];
           const subgroupSequencePositions = positionedMessages.filter((msg) =>
-            subgroupData.sequences.some((seq) => seq.id === msg.sequenceId)
+            subgroupData.sequences.some((seq) => seq.id === msg.sequenceId) && !msg.self
           );
 
           if (subgroupSequencePositions.length > 0) {
@@ -951,50 +951,36 @@ window.SequenceDiagramRenderer = {
               ...subgroupSequencePositions.map((pos) => pos.yPos)
             );
 
-            // Calculate involved actor indices for precise bounds
-            const involvedActorIndices = [];
-            subgroupSequencePositions.forEach((pos) => {
-              involvedActorIndices.push(pos.from, pos.to);
-            });
-            const uniqueActorIndices = [...new Set(involvedActorIndices)];
-            const minActorIndex = Math.min(...uniqueActorIndices);
-            const maxActorIndex = Math.max(...uniqueActorIndices);
-
-            // Calculate precise bounds spanning only involved lanes
-            const LANE_WIDTH = 180;
-            const LANE_PADDING = 45;
-            const minX = minActorIndex * LANE_WIDTH + LANE_PADDING;
-            const maxX = (maxActorIndex + 1) * LANE_WIDTH - LANE_PADDING;
-            const width = maxX - minX;
-
-            console.log(`DEBUG - Subgroup ${subgroupId} bounds:`, {
-              involvedActors: uniqueActorIndices,
-              minActorIndex,
-              maxActorIndex,
-              minX,
-              maxX,
-              width,
-              sequences: subgroupData.sequences.length,
-            });
+            // Calculate X bounds based on actor lanes involved
+            const actorIndices = [
+              ...new Set(
+                subgroupSequencePositions.flatMap((pos) => [pos.from, pos.to])
+              ),
+            ];
+            const minActor = Math.min(...actorIndices);
+            const maxActor = Math.max(...actorIndices);
+            const minX = minActor * 180 + 10;
+            const maxX = maxActor * 180 + 170;
 
             subgroupBounds[subgroupId] = {
               x: minX,
-              y: minY - 35,
-              width: width,
-              height: maxY - minY + 90,
+              y: minY - 30,
+              width: maxX - minX,
+              height: maxY - minY + 80,
               subgroup: subgroupData.subgroup,
             };
           }
 
-          // Add subgroup sequences to workflow total
-          allWorkflowSequences = allWorkflowSequences.concat(
-            subgroupData.sequences
-          );
+          // Add subgroup sequences to workflow sequences
+          allWorkflowSequences = [
+            ...allWorkflowSequences,
+            ...subgroupData.sequences,
+          ];
         });
 
-        // Calculate workflow bounds encompassing all sequences (grouped and ungrouped)
+        // Calculate workflow bounds based on all sequences in the workflow (excluding self-messages)
         const allWorkflowPositions = positionedMessages.filter((msg) =>
-          allWorkflowSequences.some((seq) => seq.id === msg.sequenceId)
+          allWorkflowSequences.some((seq) => seq.id === msg.sequenceId) && !msg.self
         );
 
         if (allWorkflowPositions.length > 0) {
@@ -1015,25 +1001,6 @@ window.SequenceDiagramRenderer = {
 
       return { workflowBounds, subgroupBounds };
     };
-
-    console.log("DEBUG - Nested grouping:", {
-      workflowGroups: Object.keys(workflowGroups),
-      ungroupedCount: ungroupedSequences.length,
-      totalWorkflows: Object.keys(workflows).length,
-      totalSubgroups: Object.keys(subgroups).length,
-      workflowData: workflows,
-      subgroupData: subgroups,
-      nestedStructure: Object.keys(workflowGroups).map((wId) => ({
-        workflowId: wId,
-        subgroupCount: Object.keys(workflowGroups[wId].subgroups).length,
-        ungroupedSequenceCount: workflowGroups[wId].ungroupedSequences.length,
-      })),
-      sequenceSubgroupIds: sequences.map((s) => ({
-        id: s.id,
-        subgroupId: s.subgroupId,
-        workflowId: s.workflowId,
-      })),
-    });
 
     // Create positioned messages from sequences
     const positionedMessages = sequences
@@ -1230,12 +1197,12 @@ window.SequenceDiagramRenderer = {
           strokeWidth: "2",
           strokeDasharray: strokeDashArray,
         }),
-        // Bottom horizontal line (left arrow) - reversed direction
+        // Bottom horizontal line (right arrow pointing into circle)
         React.createElement("line", {
           key: "bottom-line",
-          x1: endX,
+          x1: rightX,
           y1: bottomY,
-          x2: rightX,
+          x2: endX,
           y2: bottomY,
           stroke: "#555",
           strokeWidth: "2",
