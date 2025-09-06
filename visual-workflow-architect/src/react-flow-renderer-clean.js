@@ -1121,7 +1121,7 @@ window.SequenceDiagramRenderer = {
     const sequenceToY = (orderIndex) => 130 + orderIndex * 90;
     const getCircleCenter = (laneIndex, orderIndex) => ({
       x: laneToPixel(laneIndex),
-      y: sequenceToY(orderIndex)
+      y: sequenceToY(orderIndex),
     });
 
     // Phase 3: Circle edge intersection calculation
@@ -1129,28 +1129,40 @@ window.SequenceDiagramRenderer = {
       const dx = targetX - centerX;
       const dy = targetY - centerY;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      
+
       // Avoid division by zero
       if (distance === 0) return { x: centerX, y: centerY };
-      
+
       return {
         x: centerX + (dx / distance) * radius,
-        y: centerY + (dy / distance) * radius
+        y: centerY + (dy / distance) * radius,
       };
     };
 
     // SVG Arrow Component for precise circle-to-circle positioning
     const SVGArrow = ({ from, to, yPos, label, dashed = false }) => {
-      const startCenter = getCircleCenter(from, yPos / 90 - 130/90);
-      const endCenter = getCircleCenter(to, yPos / 90 - 130/90);
-      
-      // Phase 3: Calculate circle edge points (19px radius for 38px diameter, plus 4px spacing)
-      const circleRadius = 19 + 4; // 19px radius + 4px spacing for better visual separation
-      const startEdge = getCircleEdgePoint(startCenter.x, startCenter.y, endCenter.x, endCenter.y, circleRadius);
-      const endEdge = getCircleEdgePoint(endCenter.x, endCenter.y, startCenter.x, startCenter.y, circleRadius);
-      
+      const startCenter = getCircleCenter(from, yPos / 90 - 130 / 90);
+      const endCenter = getCircleCenter(to, yPos / 90 - 130 / 90);
+
+      // Phase 3: Calculate circle edge points (19px radius for 38px diameter, touching edges)
+      const circleRadius = 19; // 19px radius to touch circle edges directly
+      const startEdge = getCircleEdgePoint(
+        startCenter.x,
+        startCenter.y,
+        endCenter.x,
+        endCenter.y,
+        circleRadius
+      );
+      const endEdge = getCircleEdgePoint(
+        endCenter.x,
+        endCenter.y,
+        startCenter.x,
+        startCenter.y,
+        circleRadius
+      );
+
       const strokeDashArray = dashed ? "5,5" : "none";
-      
+
       return [
         React.createElement("line", {
           key: "line",
@@ -1161,8 +1173,8 @@ window.SequenceDiagramRenderer = {
           stroke: "#555",
           strokeWidth: "2",
           strokeDasharray: strokeDashArray,
-          markerEnd: "url(#arrowhead)"
-        })
+          markerEnd: "url(#arrowhead)",
+        }),
         // Note: Label is now rendered as HTML overlay, not SVG text
       ];
     };
@@ -1598,119 +1610,149 @@ window.SequenceDiagramRenderer = {
               ),
 
               // SVG Overlay for precise arrows (conditionally rendered)
-              USE_SVG_ARROWS ? React.createElement("svg", {
-                key: "svg-overlay",
-                style: {
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  pointerEvents: "none",
-                  zIndex: 2
-                },
-                viewBox: `0 0 ${actors.length * 180} ${finalContainerHeight}`
-              }, [
-                // Arrowhead marker definition
-                React.createElement("defs", { key: "defs" }, [
-                  React.createElement("marker", {
-                    key: "arrowhead",
-                    id: "arrowhead",
-                    markerWidth: "8",
-                    markerHeight: "6",
-                    refX: "8",
-                    refY: "3",
-                    orient: "auto"
-                  }, [
-                    React.createElement("polygon", {
-                      key: "arrow-polygon",
-                      points: "0 0, 8 3, 0 6",
-                      fill: "#555"
-                    })
-                  ])
-                ]),
-                // Render SVG arrows
-                ...positionedMessages.map((msg, index) => 
-                  React.createElement(SVGArrow, {
-                    key: `svg-arrow-${index}`,
-                    from: msg.from,
-                    to: msg.to,
-                    yPos: msg.yPos,
-                    label: msg.label,
-                    dashed: msg.dashed
-                  })
-                )
-              ]) : null,
+              USE_SVG_ARROWS
+                ? React.createElement(
+                    "svg",
+                    {
+                      key: "svg-overlay",
+                      style: {
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        pointerEvents: "none",
+                        zIndex: 2,
+                      },
+                      viewBox: `0 0 ${
+                        actors.length * 180
+                      } ${finalContainerHeight}`,
+                    },
+                    [
+                      // Arrowhead marker definition
+                      React.createElement("defs", { key: "defs" }, [
+                        React.createElement(
+                          "marker",
+                          {
+                            key: "arrowhead",
+                            id: "arrowhead",
+                            markerWidth: "8",
+                            markerHeight: "6",
+                            refX: "8",
+                            refY: "3",
+                            orient: "auto",
+                          },
+                          [
+                            React.createElement("polygon", {
+                              key: "arrow-polygon",
+                              points: "0 0, 8 3, 0 6",
+                              fill: "#555",
+                            }),
+                          ]
+                        ),
+                      ]),
+                      // Render SVG arrows
+                      ...positionedMessages.map((msg, index) =>
+                        React.createElement(SVGArrow, {
+                          key: `svg-arrow-${index}`,
+                          from: msg.from,
+                          to: msg.to,
+                          yPos: msg.yPos,
+                          label: msg.label,
+                          dashed: msg.dashed,
+                        })
+                      ),
+                    ]
+                  )
+                : null,
 
               // Interactive HTML sequence labels overlay (when using SVG arrows)
-              USE_SVG_ARROWS ? positionedMessages.map((msg, index) => {
-                const startX = msg.from * 180 + 90;
-                const endX = msg.to * 180 + 90;
-                const midX = (startX + endX) / 2;
-                
-                return React.createElement("div", {
-                  key: `sequence-label-${index}`,
-                  className: "message-label sequence-label",
-                  style: {
-                    position: "absolute",
-                    left: `${midX}px`,
-                    top: `${msg.yPos - 35}px`,
-                    transform: "translateX(-50%)",
-                    maxWidth: "90%",
-                    textAlign: "center",
-                    zIndex: 5,
-                    pointerEvents: "auto"
-                  },
-                  "data-sequence-id": msg.sequenceId,
-                  "data-label-text": msg.labelText,
-                  title: "Double-click to edit"
-                }, [
-                  msg.label,
-                  React.createElement("div", {
-                    key: "icon-button",
-                    className: "sequence-icon-button",
-                    onClick: (e) => {
-                      e.stopPropagation();
-                      console.log(`SEQUENCE ICON CLICKED: ${msg.sequenceId}`);
-                      if (window.WorkflowArchitectEventBridge) {
-                        window.WorkflowArchitectEventBridge.handleSequenceClick(msg.sequenceId);
-                      }
-                    }
-                  }, React.createElement("svg", { 
-                    viewBox: "0 0 24 24", 
-                    fill: "none", 
-                    stroke: "currentColor", 
-                    strokeWidth: "2" 
-                  }, [
-                    React.createElement("path", { 
-                      key: "path1", 
-                      d: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" 
-                    }),
-                    React.createElement("polyline", { 
-                      key: "path2", 
-                      points: "14,2 14,8 20,8" 
-                    }),
-                    React.createElement("line", { 
-                      key: "path3", 
-                      x1: "16", 
-                      y1: "13", 
-                      x2: "8", 
-                      y2: "13" 
-                    }),
-                    React.createElement("line", { 
-                      key: "path4", 
-                      x1: "16", 
-                      y1: "17", 
-                      x2: "8", 
-                      y2: "17" 
-                    }),
-                    React.createElement("polyline", { 
-                      key: "path5", 
-                      points: "10,9 9,9 8,9" 
-                    })
-                  ]))
-                ]);
-              }) : null,
+              USE_SVG_ARROWS
+                ? positionedMessages.map((msg, index) => {
+                    const startX = msg.from * 180 + 90;
+                    const endX = msg.to * 180 + 90;
+                    const midX = (startX + endX) / 2;
+
+                    return React.createElement(
+                      "div",
+                      {
+                        key: `sequence-label-${index}`,
+                        className: "message-label sequence-label",
+                        style: {
+                          position: "absolute",
+                          left: `${midX}px`,
+                          top: `${msg.yPos - 35}px`,
+                          transform: "translateX(-50%)",
+                          maxWidth: "90%",
+                          textAlign: "center",
+                          zIndex: 5,
+                          pointerEvents: "auto",
+                        },
+                        "data-sequence-id": msg.sequenceId,
+                        "data-label-text": msg.labelText,
+                        title: "Double-click to edit",
+                      },
+                      [
+                        msg.label,
+                        React.createElement(
+                          "div",
+                          {
+                            key: "icon-button",
+                            className: "sequence-icon-button",
+                            onClick: (e) => {
+                              e.stopPropagation();
+                              console.log(
+                                `SEQUENCE ICON CLICKED: ${msg.sequenceId}`
+                              );
+                              if (window.WorkflowArchitectEventBridge) {
+                                window.WorkflowArchitectEventBridge.handleSequenceClick(
+                                  msg.sequenceId
+                                );
+                              }
+                            },
+                          },
+                          React.createElement(
+                            "svg",
+                            {
+                              viewBox: "0 0 24 24",
+                              fill: "none",
+                              stroke: "currentColor",
+                              strokeWidth: "2",
+                            },
+                            [
+                              React.createElement("path", {
+                                key: "path1",
+                                d: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z",
+                              }),
+                              React.createElement("polyline", {
+                                key: "path2",
+                                points: "14,2 14,8 20,8",
+                              }),
+                              React.createElement("line", {
+                                key: "path3",
+                                x1: "16",
+                                y1: "13",
+                                x2: "8",
+                                y2: "13",
+                              }),
+                              React.createElement("line", {
+                                key: "path4",
+                                x1: "16",
+                                y1: "17",
+                                x2: "8",
+                                y2: "17",
+                              }),
+                              React.createElement("polyline", {
+                                key: "path5",
+                                points: "10,9 9,9 8,9",
+                              }),
+                            ]
+                          )
+                        ),
+                      ]
+                    );
+                  })
+                : null,
 
               // Sequence nodes and messages
               ...positionedMessages.map((msg, index) => {
@@ -1764,22 +1806,24 @@ window.SequenceDiagramRenderer = {
                       actorsCount: actorsCount,
                     }),
                     // Conditionally render old CSS arrows (hidden when using SVG)
-                    !USE_SVG_ARROWS ? React.createElement(Message, {
-                      key: `message-${index}`,
-                      label: sequencedLabel,
-                      labelText: msg.labelText,
-                      from: msg.from,
-                      to: msg.to,
-                      yPos: msg.yPos,
-                      dashed: !!msg.dashed,
-                      actorsCount: actorsCount,
-                      sequenceId: msg.sequenceId,
-                      subgroupId: msg.subgroupId,
-                      workflowId: msg.workflowId,
-                    }) : null,
+                    !USE_SVG_ARROWS
+                      ? React.createElement(Message, {
+                          key: `message-${index}`,
+                          label: sequencedLabel,
+                          labelText: msg.labelText,
+                          from: msg.from,
+                          to: msg.to,
+                          yPos: msg.yPos,
+                          dashed: !!msg.dashed,
+                          actorsCount: actorsCount,
+                          sequenceId: msg.sequenceId,
+                          subgroupId: msg.subgroupId,
+                          workflowId: msg.workflowId,
+                        })
+                      : null,
                   ]);
                 }
-              })
+              }),
             ]
           ),
         ]
