@@ -117,8 +117,8 @@ window.SequenceDiagramRenderer = {
       
       .sequence-node {
         position: absolute;
-        width: 48px; /* Doubled from 24px to match mockup */
-        height: 48px; /* Doubled from 24px to match mockup */
+        width: 38px; /* Reduced by 20% from 48px */
+        height: 38px; /* Reduced by 20% from 48px */
         border-radius: 50%;
         transform: translate(-50%, -50%);
         z-index: 2; /* Keep it above the lifeline (z-index: 1) and below the arrow (z-index: 3) */
@@ -1144,8 +1144,8 @@ window.SequenceDiagramRenderer = {
       const startCenter = getCircleCenter(from, yPos / 90 - 130/90);
       const endCenter = getCircleCenter(to, yPos / 90 - 130/90);
       
-      // Phase 3: Calculate circle edge points (24px radius for 48px diameter)
-      const circleRadius = 24;
+      // Phase 3: Calculate circle edge points (19px radius for 38px diameter, plus 4px spacing)
+      const circleRadius = 19 + 4; // 19px radius + 4px spacing for better visual separation
       const startEdge = getCircleEdgePoint(startCenter.x, startCenter.y, endCenter.x, endCenter.y, circleRadius);
       const endEdge = getCircleEdgePoint(endCenter.x, endCenter.y, startCenter.x, startCenter.y, circleRadius);
       
