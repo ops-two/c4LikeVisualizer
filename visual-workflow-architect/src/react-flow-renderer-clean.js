@@ -146,8 +146,14 @@ window.SequenceDiagramRenderer = {
         cursor: pointer;
         padding: 2px 4px;
         border-radius: 3px;
-        transition: background-color 0.2s;
+        transition: all 0.2s ease;
         position: relative;
+      }
+      
+      .message-label.sequence-label:hover {
+        background-color: rgba(25, 118, 210, 0.1);
+        outline: 2px solid #1976d2;
+        outline-offset: 2px;
       }
       
 
