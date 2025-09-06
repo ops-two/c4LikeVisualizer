@@ -116,8 +116,8 @@ window.SequenceDiagramRenderer = {
       
       .sequence-node {
         position: absolute;
-        width: 24px; /* Enlarged from 16px */
-        height: 24px; /* Enlarged from 16px */
+        width: 48px; /* Doubled from 24px to match mockup */
+        height: 48px; /* Doubled from 24px to match mockup */
         border-radius: 50%;
         transform: translate(-50%, -50%);
         z-index: 2; /* Keep it above the lifeline (z-index: 1) and below the arrow (z-index: 3) */
@@ -1106,6 +1106,48 @@ window.SequenceDiagramRenderer = {
 
     const actorsCount = actors.length;
 
+    // Phase 2: SVG Overlay System - Coordinate calculation functions
+    const laneToPixel = (laneIndex) => laneIndex * 180 + 90;
+    const sequenceToY = (orderIndex) => 130 + orderIndex * 90;
+    const getCircleCenter = (laneIndex, orderIndex) => ({
+      x: laneToPixel(laneIndex),
+      y: sequenceToY(orderIndex)
+    });
+
+    // SVG Arrow Component for precise circle-to-circle positioning
+    const SVGArrow = ({ from, to, yPos, label, dashed = false }) => {
+      const startCenter = getCircleCenter(from, yPos / 90 - 130/90);
+      const endCenter = getCircleCenter(to, yPos / 90 - 130/90);
+      
+      // For now, draw from center to center (Phase 3 will add edge calculations)
+      const strokeDashArray = dashed ? "8,4" : "none";
+      
+      return React.createElement("g", { key: `arrow-${from}-${to}-${yPos}` }, [
+        // Arrow line
+        React.createElement("line", {
+          key: "line",
+          x1: startCenter.x,
+          y1: startCenter.y,
+          x2: endCenter.x,
+          y2: endCenter.y,
+          stroke: "#555",
+          strokeWidth: "3",
+          strokeDasharray: strokeDashArray,
+          markerEnd: "url(#arrowhead)"
+        }),
+        // Label positioned at midpoint
+        React.createElement("text", {
+          key: "label",
+          x: (startCenter.x + endCenter.x) / 2,
+          y: startCenter.y - 10,
+          textAnchor: "middle",
+          fontSize: "12",
+          fill: "#333",
+          fontFamily: "Arial, sans-serif"
+        }, label)
+      ]);
+    };
+
     // Create components
     const SequenceNode = this.createSequenceNode(); // Use the new function
 
@@ -1535,6 +1577,52 @@ window.SequenceDiagramRenderer = {
                   ]
                 )
               ),
+
+              // SVG Overlay for precise arrows
+              React.createElement("svg", {
+                key: "svg-overlay",
+                style: {
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: finalContainerHeight + "px",
+                  pointerEvents: "none",
+                  zIndex: 1
+                },
+                viewBox: `0 0 ${actorsCount * 180} ${finalContainerHeight}`
+              }, [
+                // Define arrowhead marker
+                React.createElement("defs", { key: "defs" }, [
+                  React.createElement("marker", {
+                    key: "arrowhead",
+                    id: "arrowhead",
+                    markerWidth: "12",
+                    markerHeight: "8",
+                    refX: "12",
+                    refY: "4",
+                    orient: "auto",
+                    markerUnits: "strokeWidth"
+                  }, [
+                    React.createElement("path", {
+                      key: "arrow-path",
+                      d: "M0,0 L0,8 L12,4 z",
+                      fill: "#555"
+                    })
+                  ])
+                ]),
+                // Render SVG arrows for non-self messages
+                ...positionedMessages.filter(msg => !msg.self).map((msg, index) => 
+                  React.createElement(SVGArrow, {
+                    key: `svg-arrow-${index}`,
+                    from: msg.from,
+                    to: msg.to,
+                    yPos: msg.yPos,
+                    label: msg.labelText,
+                    dashed: msg.dashed || false
+                  })
+                )
+              ]),
 
               // Messages and activation boxes
               React.createElement(
