@@ -174,27 +174,27 @@ window.SequenceDiagramRenderer = {
       }
 
       .add-container-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         position: absolute;
-        top: 50%;
-        right: -11px;
         width: 20px;
         height: 20px;
-        border: none;
-        border-radius: 4px;
         background-color: transparent;
+        border: none;
         color: #888;
+        border-radius: 4px;
         font-size: 22px;
         font-weight: normal;
         line-height: 20px;
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         z-index: 10;
         opacity: 0;
         transform: translateY(-50%) scale(0.8);
         transition: opacity 0.15s ease-out, transform 0.15s ease-out, background-color 0.15s;
         pointer-events: none;
+        top: 50%;
+        right: -11px;
       }
 
       .container-name:hover .add-container-btn {
@@ -210,6 +210,62 @@ window.SequenceDiagramRenderer = {
 
       .container-name {
         position: relative;
+      }
+
+      .container-icon-button {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 16px;
+        height: 16px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        cursor: pointer;
+        z-index: 15;
+        pointer-events: none;
+      }
+
+      .container-name:hover .container-icon-button {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .container-icon-button:hover {
+        background-color: #f5f5f5;
+      }
+
+      .sequence-icon-button {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 14px;
+        height: 14px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        cursor: pointer;
+        z-index: 15;
+        pointer-events: none;
+      }
+
+      .sequence-label:hover .sequence-icon-button {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .sequence-icon-button:hover {
+        background-color: #f5f5f5;
       }
 
       .toolbar {
@@ -468,7 +524,36 @@ window.SequenceDiagramRenderer = {
               "data-label-text": labelText,
               title: "Double-click to edit",
             },
-            label
+            [
+              label,
+              React.createElement(
+                "div",
+                {
+                  key: "icon-button",
+                  className: "sequence-icon-button",
+                  onClick: (e) => {
+                    e.stopPropagation();
+                    console.log(`SEQUENCE ICON CLICKED: ${sequenceId}`);
+                    // Trigger sequence_clicked event
+                    if (window.WorkflowArchitectEventBridge) {
+                      window.WorkflowArchitectEventBridge.handleSequenceClick(sequenceId);
+                    }
+                  },
+                },
+                React.createElement(
+                  "svg",
+                  {
+                    viewBox: "0 0 24 24",
+                    fill: "none",
+                    stroke: "currentColor",
+                    strokeWidth: "2",
+                  },
+                  React.createElement("path", {
+                    d: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z",
+                  })
+                )
+              ),
+            ]
           ),
           React.createElement("div", {
             key: "arrow",
@@ -546,7 +631,36 @@ window.SequenceDiagramRenderer = {
               "data-label-text": labelText,
               title: "Double-click to edit",
             },
-            label
+            [
+              label,
+              React.createElement(
+                "div",
+                {
+                  key: "icon-button",
+                  className: "sequence-icon-button",
+                  onClick: (e) => {
+                    e.stopPropagation();
+                    console.log(`SEQUENCE ICON CLICKED: ${sequenceId}`);
+                    // Trigger sequence_clicked event
+                    if (window.WorkflowArchitectEventBridge) {
+                      window.WorkflowArchitectEventBridge.handleSequenceClick(sequenceId);
+                    }
+                  },
+                },
+                React.createElement(
+                  "svg",
+                  {
+                    viewBox: "0 0 24 24",
+                    fill: "none",
+                    stroke: "currentColor",
+                    strokeWidth: "2",
+                  },
+                  React.createElement("path", {
+                    d: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z",
+                  })
+                )
+              ),
+            ]
           ),
         ]
       );
@@ -1283,6 +1397,58 @@ window.SequenceDiagramRenderer = {
                       },
                       [
                         actor.name,
+                        React.createElement(
+                          "div",
+                          {
+                            key: "icon-button",
+                            className: "container-icon-button",
+                            onClick: (e) => {
+                              e.stopPropagation();
+                              console.log(`CONTAINER ICON CLICKED: ${actor.id}`);
+                              // Trigger container_clicked event
+                              if (window.WorkflowArchitectEventBridge) {
+                                window.WorkflowArchitectEventBridge.handleContainerClick(actor.id);
+                              }
+                            },
+                          },
+                          React.createElement(
+                            "svg",
+                            {
+                              viewBox: "0 0 24 24",
+                              fill: "none",
+                              stroke: "currentColor",
+                              strokeWidth: "2",
+                            },
+                            [
+                              React.createElement("path", {
+                                key: "path1",
+                                d: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z",
+                              }),
+                              React.createElement("polyline", {
+                                key: "path2",
+                                points: "14,2 14,8 20,8",
+                              }),
+                              React.createElement("line", {
+                                key: "path3",
+                                x1: "16",
+                                y1: "13",
+                                x2: "8",
+                                y2: "13",
+                              }),
+                              React.createElement("line", {
+                                key: "path4",
+                                x1: "16",
+                                y1: "17",
+                                x2: "8",
+                                y2: "17",
+                              }),
+                              React.createElement("polyline", {
+                                key: "path5",
+                                points: "10,9 9,9 8,9",
+                              })
+                            ]
+                          )
+                        ),
                         // Add + button after each container (except the last one gets it outside the loop)
                         React.createElement(
                           "button",

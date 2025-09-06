@@ -129,6 +129,26 @@ window.WorkflowArchitectEventBridge = {
     this.instance.triggerEvent("sequence_updated");
   },
 
+  // Handle container click events (following storymap pattern)
+  handleContainerClick: function (containerId) {
+    console.log(
+      "WorkflowArchitectEventBridge: Container clicked",
+      containerId
+    );
+    this.instance.publishState("selected_container_id", containerId);
+    this.instance.triggerEvent("container_clicked");
+  },
+
+  // Handle sequence click events (following storymap pattern)
+  handleSequenceClick: function (sequenceId) {
+    console.log(
+      "WorkflowArchitectEventBridge: Sequence clicked",
+      sequenceId
+    );
+    this.instance.publishState("selected_sequence_id", sequenceId);
+    this.instance.triggerEvent("sequence_clicked");
+  },
+
   // Handle update events from inline editing (following storymap pattern)
   handleUpdate: function (event) {
     console.log(
