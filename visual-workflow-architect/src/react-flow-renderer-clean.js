@@ -191,16 +191,22 @@ window.SequenceDiagramRenderer = {
         z-index: 10;
         opacity: 0;
         transform: translateY(-50%) scale(0.8);
-        transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+        transition: opacity 0.15s ease-out, transform 0.15s ease-out, background-color 0.15s;
         pointer-events: none;
         top: 50%;
-        right: -11px;
+        right: -40px;
+
       }
 
       .container-name:hover .add-container-btn {
         opacity: 1;
         transform: translateY(-50%) scale(1);
         pointer-events: auto;
+      }
+
+      .add-container-btn:hover {
+        background-color: #e9e9e9;
+        color: #333;
       }
 
       .container-name {
@@ -531,7 +537,9 @@ window.SequenceDiagramRenderer = {
                     console.log(`SEQUENCE ICON CLICKED: ${sequenceId}`);
                     // Trigger sequence_clicked event
                     if (window.WorkflowArchitectEventBridge) {
-                      window.WorkflowArchitectEventBridge.handleSequenceClick(sequenceId);
+                      window.WorkflowArchitectEventBridge.handleSequenceClick(
+                        sequenceId
+                      );
                     }
                   },
                 },
@@ -638,7 +646,9 @@ window.SequenceDiagramRenderer = {
                     console.log(`SEQUENCE ICON CLICKED: ${sequenceId}`);
                     // Trigger sequence_clicked event
                     if (window.WorkflowArchitectEventBridge) {
-                      window.WorkflowArchitectEventBridge.handleSequenceClick(sequenceId);
+                      window.WorkflowArchitectEventBridge.handleSequenceClick(
+                        sequenceId
+                      );
                     }
                   },
                 },
@@ -1399,10 +1409,14 @@ window.SequenceDiagramRenderer = {
                             className: "container-icon-button",
                             onClick: (e) => {
                               e.stopPropagation();
-                              console.log(`CONTAINER ICON CLICKED: ${actor.id}`);
+                              console.log(
+                                `CONTAINER ICON CLICKED: ${actor.id}`
+                              );
                               // Trigger container_clicked event
                               if (window.WorkflowArchitectEventBridge) {
-                                window.WorkflowArchitectEventBridge.handleContainerClick(actor.id);
+                                window.WorkflowArchitectEventBridge.handleContainerClick(
+                                  actor.id
+                                );
                               }
                             },
                           },
@@ -1440,7 +1454,7 @@ window.SequenceDiagramRenderer = {
                               React.createElement("polyline", {
                                 key: "path5",
                                 points: "10,9 9,9 8,9",
-                              })
+                              }),
                             ]
                           )
                         ),
