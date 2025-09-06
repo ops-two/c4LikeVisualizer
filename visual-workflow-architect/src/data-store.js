@@ -197,7 +197,6 @@ window.WorkflowArchitectDataStore = {
   },
   transformSubgroup: function (bubbleSubgroup) {
     if (!bubbleSubgroup || typeof bubbleSubgroup.get !== "function") {
-      // Handle non-Bubble object (fallback)
       return {
         id: bubbleSubgroup.id,
         label: bubbleSubgroup.label || "Untitled Subgroup",
