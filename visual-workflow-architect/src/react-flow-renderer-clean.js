@@ -57,8 +57,8 @@ window.SequenceDiagramRenderer = {
         width: 100%;
         height: 100vh;
         max-height: none;
-        overflow-y: hidden;
-        overflow-x: auto;
+        overflow-y: scroll;
+        overflow-x: hidden;
         min-height: 400px;
         background: #f8f9fa;
         position: relative;
@@ -73,13 +73,12 @@ window.SequenceDiagramRenderer = {
       .diagram-container {
         display: flex;
         flex-direction: row;
-        align-items: center; /* Changed from flex-start to center */
+        align-items: center;
         position: relative;
-        width: 100%;
-        height: 100vh;
+        width: fit-content;
+        height: auto;
         min-height: 600px;
-        overflow-x: auto;
-        overflow-y: scroll;
+        overflow: visible;
       }
 
       .actor-lane {
