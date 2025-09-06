@@ -1148,10 +1148,9 @@ window.SequenceDiagramRenderer = {
       const startEdge = getCircleEdgePoint(startCenter.x, startCenter.y, endCenter.x, endCenter.y, circleRadius);
       const endEdge = getCircleEdgePoint(endCenter.x, endCenter.y, startCenter.x, startCenter.y, circleRadius);
       
-      const strokeDashArray = dashed ? "8,4" : "none";
+      const strokeDashArray = dashed ? "5,5" : "none";
       
-      return React.createElement("g", { key: `arrow-${from}-${to}-${yPos}` }, [
-        // Arrow line from circle edge to circle edge
+      return [
         React.createElement("line", {
           key: "line",
           x1: startEdge.x,
@@ -1162,18 +1161,9 @@ window.SequenceDiagramRenderer = {
           strokeWidth: "2",
           strokeDasharray: strokeDashArray,
           markerEnd: "url(#arrowhead)"
-        }),
-        // Label positioned at midpoint
-        React.createElement("text", {
-          key: "label",
-          x: (startCenter.x + endCenter.x) / 2,
-          y: startCenter.y - 10,
-          textAnchor: "middle",
-          fontSize: "12",
-          fill: "#333",
-          fontFamily: "Arial, sans-serif"
-        }, label)
-      ]);
+        })
+        // Note: Label is now rendered as HTML overlay, not SVG text
+      ];
     };
 
     // Create components
@@ -1614,13 +1604,13 @@ window.SequenceDiagramRenderer = {
                   top: 0,
                   left: 0,
                   width: "100%",
-                  height: finalContainerHeight + "px",
+                  height: "100%",
                   pointerEvents: "none",
-                  zIndex: 1
+                  zIndex: 2
                 },
-                viewBox: `0 0 ${actorsCount * 180} ${finalContainerHeight}`
+                viewBox: `0 0 ${actors.length * 180} ${finalContainerHeight}`
               }, [
-                // Define arrowhead marker (smaller size)
+                // Arrowhead marker definition
                 React.createElement("defs", { key: "defs" }, [
                   React.createElement("marker", {
                     key: "arrowhead",
@@ -1629,100 +1619,166 @@ window.SequenceDiagramRenderer = {
                     markerHeight: "6",
                     refX: "8",
                     refY: "3",
-                    orient: "auto",
-                    markerUnits: "strokeWidth"
+                    orient: "auto"
                   }, [
-                    React.createElement("path", {
-                      key: "arrow-path",
-                      d: "M0,0 L0,6 L8,3 z",
+                    React.createElement("polygon", {
+                      key: "arrow-polygon",
+                      points: "0 0, 8 3, 0 6",
                       fill: "#555"
                     })
                   ])
                 ]),
-                // Render SVG arrows for non-self messages
-                ...positionedMessages.filter(msg => !msg.self).map((msg, index) => 
+                // Render SVG arrows
+                ...positionedMessages.map((msg, index) => 
                   React.createElement(SVGArrow, {
                     key: `svg-arrow-${index}`,
                     from: msg.from,
                     to: msg.to,
                     yPos: msg.yPos,
-                    label: msg.labelText,
-                    dashed: msg.dashed || false
+                    label: msg.label,
+                    dashed: msg.dashed
                   })
                 )
               ]) : null,
 
-              // Messages and activation boxes
-              React.createElement(
-                React.Fragment,
-                { key: "messages" },
-                positionedMessages.map((msg, index) => {
-                  const sequencedLabel = msg.label; // Use the already formatted label
+              // Interactive HTML sequence labels overlay (when using SVG arrows)
+              USE_SVG_ARROWS ? positionedMessages.map((msg, index) => {
+                const startX = msg.from * 180 + 90;
+                const endX = msg.to * 180 + 90;
+                const midX = (startX + endX) / 2;
+                
+                return React.createElement("div", {
+                  key: `sequence-label-${index}`,
+                  className: "message-label sequence-label",
+                  style: {
+                    position: "absolute",
+                    left: `${midX}px`,
+                    top: `${msg.yPos - 25}px`,
+                    transform: "translateX(-50%)",
+                    maxWidth: "90%",
+                    textAlign: "center",
+                    zIndex: 5,
+                    pointerEvents: "auto"
+                  },
+                  "data-sequence-id": msg.sequenceId,
+                  "data-label-text": msg.labelText,
+                  title: "Double-click to edit"
+                }, [
+                  msg.label,
+                  React.createElement("div", {
+                    key: "icon-button",
+                    className: "sequence-icon-button",
+                    onClick: (e) => {
+                      e.stopPropagation();
+                      console.log(`SEQUENCE ICON CLICKED: ${msg.sequenceId}`);
+                      if (window.WorkflowArchitectEventBridge) {
+                        window.WorkflowArchitectEventBridge.handleSequenceClick(msg.sequenceId);
+                      }
+                    }
+                  }, React.createElement("svg", { 
+                    viewBox: "0 0 24 24", 
+                    fill: "none", 
+                    stroke: "currentColor", 
+                    strokeWidth: "2" 
+                  }, [
+                    React.createElement("path", { 
+                      key: "path1", 
+                      d: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" 
+                    }),
+                    React.createElement("polyline", { 
+                      key: "path2", 
+                      points: "14,2 14,8 20,8" 
+                    }),
+                    React.createElement("line", { 
+                      key: "path3", 
+                      x1: "16", 
+                      y1: "13", 
+                      x2: "8", 
+                      y2: "13" 
+                    }),
+                    React.createElement("line", { 
+                      key: "path4", 
+                      x1: "16", 
+                      y1: "17", 
+                      x2: "8", 
+                      y2: "17" 
+                    }),
+                    React.createElement("polyline", { 
+                      key: "path5", 
+                      points: "10,9 9,9 8,9" 
+                    })
+                  ]))
+                ]);
+              }) : null,
 
-                  if (msg.self) {
-                    const loopHeight = stepY * 0.8;
-                    return React.createElement(React.Fragment, { key: index }, [
-                      React.createElement(SequenceNode, {
-                        key: `activation-start-${index}`,
-                        actorIndex: msg.from,
-                        yPos: msg.yPos,
-                        color: actors[msg.from].color,
-                        actorsCount: actorsCount,
-                      }),
-                      React.createElement(SequenceNode, {
-                        key: `activation-end-${index}`,
-                        actorIndex: msg.from,
-                        yPos: msg.yPos + loopHeight,
-                        color: actors[msg.from].color,
-                        actorsCount: actorsCount,
-                      }),
-                      React.createElement(SelfMessage, {
-                        key: `self-message-${index}`,
-                        label: sequencedLabel,
-                        labelText: msg.labelText,
-                        actorIndex: msg.from,
-                        yPos: msg.yPos,
-                        height: loopHeight,
-                        actorsCount: actorsCount,
-                        sequenceId: msg.sequenceId,
-                        subgroupId: msg.subgroupId,
-                        workflowId: msg.workflowId,
-                      }),
-                    ]);
-                  } else {
-                    return React.createElement(React.Fragment, { key: index }, [
-                      React.createElement(SequenceNode, {
-                        key: `activation-from-${index}`,
-                        actorIndex: msg.from,
-                        yPos: msg.yPos,
-                        color: actors[msg.from].color,
-                        actorsCount: actorsCount,
-                      }),
-                      React.createElement(SequenceNode, {
-                        key: `activation-to-${index}`,
-                        actorIndex: msg.to,
-                        yPos: msg.yPos,
-                        color: actors[msg.to].color,
-                        actorsCount: actorsCount,
-                      }),
-                      // Conditionally render old CSS arrows (hidden when using SVG)
-                      !USE_SVG_ARROWS ? React.createElement(Message, {
-                        key: `message-${index}`,
-                        label: sequencedLabel,
-                        labelText: msg.labelText,
-                        from: msg.from,
-                        to: msg.to,
-                        yPos: msg.yPos,
-                        dashed: !!msg.dashed,
-                        actorsCount: actorsCount,
-                        sequenceId: msg.sequenceId,
-                        subgroupId: msg.subgroupId,
-                        workflowId: msg.workflowId,
-                      }) : null,
-                    ]);
-                  }
-                })
-              ),
+              // Sequence nodes and messages
+              ...positionedMessages.map((msg, index) => {
+                const stepY = 90;
+                const sequencedLabel = msg.label; // Use the already formatted label
+
+                if (msg.self) {
+                  const loopHeight = stepY * 0.8;
+                  return React.createElement(React.Fragment, { key: index }, [
+                    React.createElement(SequenceNode, {
+                      key: `activation-start-${index}`,
+                      actorIndex: msg.from,
+                      yPos: msg.yPos,
+                      color: actors[msg.from].color,
+                      actorsCount: actorsCount,
+                    }),
+                    React.createElement(SequenceNode, {
+                      key: `activation-end-${index}`,
+                      actorIndex: msg.from,
+                      yPos: msg.yPos + loopHeight,
+                      color: actors[msg.from].color,
+                      actorsCount: actorsCount,
+                    }),
+                    React.createElement(SelfMessage, {
+                      key: `self-message-${index}`,
+                      label: sequencedLabel,
+                      labelText: msg.labelText,
+                      actorIndex: msg.from,
+                      yPos: msg.yPos,
+                      height: loopHeight,
+                      actorsCount: actorsCount,
+                      sequenceId: msg.sequenceId,
+                      subgroupId: msg.subgroupId,
+                      workflowId: msg.workflowId,
+                    }),
+                  ]);
+                } else {
+                  return React.createElement(React.Fragment, { key: index }, [
+                    React.createElement(SequenceNode, {
+                      key: `activation-from-${index}`,
+                      actorIndex: msg.from,
+                      yPos: msg.yPos,
+                      color: actors[msg.from].color,
+                      actorsCount: actorsCount,
+                    }),
+                    React.createElement(SequenceNode, {
+                      key: `activation-to-${index}`,
+                      actorIndex: msg.to,
+                      yPos: msg.yPos,
+                      color: actors[msg.to].color,
+                      actorsCount: actorsCount,
+                    }),
+                    // Conditionally render old CSS arrows (hidden when using SVG)
+                    !USE_SVG_ARROWS ? React.createElement(Message, {
+                      key: `message-${index}`,
+                      label: sequencedLabel,
+                      labelText: msg.labelText,
+                      from: msg.from,
+                      to: msg.to,
+                      yPos: msg.yPos,
+                      dashed: !!msg.dashed,
+                      actorsCount: actorsCount,
+                      sequenceId: msg.sequenceId,
+                      subgroupId: msg.subgroupId,
+                      workflowId: msg.workflowId,
+                    }) : null,
+                  ]);
+                }
+              })
             ]
           ),
         ]
