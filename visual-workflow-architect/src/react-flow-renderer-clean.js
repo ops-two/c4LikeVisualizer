@@ -1654,7 +1654,7 @@ window.SequenceDiagramRenderer = {
                   style: {
                     position: "absolute",
                     left: `${midX}px`,
-                    top: `${msg.yPos - 29}px`,
+                    top: `${msg.yPos - 35}px`,
                     transform: "translateX(-50%)",
                     maxWidth: "90%",
                     textAlign: "center",
