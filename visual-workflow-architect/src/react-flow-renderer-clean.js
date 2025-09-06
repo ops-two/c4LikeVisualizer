@@ -116,8 +116,8 @@ window.SequenceDiagramRenderer = {
       
       .sequence-node {
         position: absolute;
-        width: 16px; /* Increased size */
-        height: 16px; /* Increased size */
+        width: 24px; /* Enlarged from 16px */
+        height: 24px; /* Enlarged from 16px */
         border-radius: 50%;
         transform: translate(-50%, -50%);
         z-index: 2; /* Keep it above the lifeline (z-index: 1) and below the arrow (z-index: 3) */
