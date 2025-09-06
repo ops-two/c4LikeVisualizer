@@ -1106,6 +1106,9 @@ window.SequenceDiagramRenderer = {
 
     const actorsCount = actors.length;
 
+    // Phase 4: Feature flag for SVG arrows (set to true to use new system)
+    const USE_SVG_ARROWS = true;
+
     // Phase 2: SVG Overlay System - Coordinate calculation functions
     const laneToPixel = (laneIndex) => laneIndex * 180 + 90;
     const sequenceToY = (orderIndex) => 130 + orderIndex * 90;
@@ -1150,7 +1153,7 @@ window.SequenceDiagramRenderer = {
           x2: endEdge.x,
           y2: endEdge.y,
           stroke: "#555",
-          strokeWidth: "3",
+          strokeWidth: "2",
           strokeDasharray: strokeDashArray,
           markerEnd: "url(#arrowhead)"
         }),
@@ -1597,8 +1600,8 @@ window.SequenceDiagramRenderer = {
                 )
               ),
 
-              // SVG Overlay for precise arrows
-              React.createElement("svg", {
+              // SVG Overlay for precise arrows (conditionally rendered)
+              USE_SVG_ARROWS ? React.createElement("svg", {
                 key: "svg-overlay",
                 style: {
                   position: "absolute",
@@ -1611,21 +1614,21 @@ window.SequenceDiagramRenderer = {
                 },
                 viewBox: `0 0 ${actorsCount * 180} ${finalContainerHeight}`
               }, [
-                // Define arrowhead marker
+                // Define arrowhead marker (smaller size)
                 React.createElement("defs", { key: "defs" }, [
                   React.createElement("marker", {
                     key: "arrowhead",
                     id: "arrowhead",
-                    markerWidth: "12",
-                    markerHeight: "8",
-                    refX: "12",
-                    refY: "4",
+                    markerWidth: "8",
+                    markerHeight: "6",
+                    refX: "8",
+                    refY: "3",
                     orient: "auto",
                     markerUnits: "strokeWidth"
                   }, [
                     React.createElement("path", {
                       key: "arrow-path",
-                      d: "M0,0 L0,8 L12,4 z",
+                      d: "M0,0 L0,6 L8,3 z",
                       fill: "#555"
                     })
                   ])
@@ -1641,7 +1644,7 @@ window.SequenceDiagramRenderer = {
                     dashed: msg.dashed || false
                   })
                 )
-              ]),
+              ]) : null,
 
               // Messages and activation boxes
               React.createElement(
@@ -1696,7 +1699,8 @@ window.SequenceDiagramRenderer = {
                         color: actors[msg.to].color,
                         actorsCount: actorsCount,
                       }),
-                      React.createElement(Message, {
+                      // Conditionally render old CSS arrows (hidden when using SVG)
+                      !USE_SVG_ARROWS ? React.createElement(Message, {
                         key: `message-${index}`,
                         label: sequencedLabel,
                         labelText: msg.labelText,
@@ -1708,7 +1712,7 @@ window.SequenceDiagramRenderer = {
                         sequenceId: msg.sequenceId,
                         subgroupId: msg.subgroupId,
                         workflowId: msg.workflowId,
-                      }),
+                      }) : null,
                     ]);
                   }
                 })
