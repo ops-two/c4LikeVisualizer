@@ -143,6 +143,7 @@ window.SequenceDiagramRenderer = {
         padding: 2px 4px;
         border-radius: 3px;
         transition: background-color 0.2s;
+        position: relative;
       }
       
        .message-label.sequence-label:hover {
