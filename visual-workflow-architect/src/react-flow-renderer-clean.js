@@ -77,7 +77,7 @@ window.SequenceDiagramRenderer = {
         position: relative;
         width: fit-content;
         height: auto;
-        min-height: 600px;
+        min-height: auto;
         overflow: visible;
       }
 
@@ -86,7 +86,7 @@ window.SequenceDiagramRenderer = {
         flex-direction: column;
         align-items: center;
         position: relative;
-        min-height: 600px;
+        min-height: auto;
         width: 180px;
         flex-shrink: 0;
       }
@@ -109,7 +109,7 @@ window.SequenceDiagramRenderer = {
       .lifeline {
         width: 0px; /* The element itself has no width */
         height: 100%;
-        min-height: 600px; /* Will be updated dynamically */
+        min-height: auto; /* Will be updated dynamically */
         border-left: 2px dotted #cccccc; /* Create the line using a dotted border */
         z-index: 0;
       }
@@ -1102,7 +1102,7 @@ window.SequenceDiagramRenderer = {
         ? Math.max(...sequences.map((seq) => seq.orderIndex || 1))
         : 1;
 
-    const finalContainerHeight = Math.max(600, 130 + maxOrderIndex * 90 + 100);
+    const finalContainerHeight = Math.max(200, 130 + maxOrderIndex * 90 + 80);
 
     const actorsCount = actors.length;
 
