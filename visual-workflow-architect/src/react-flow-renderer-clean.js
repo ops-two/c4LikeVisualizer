@@ -1070,12 +1070,16 @@ window.SequenceDiagramRenderer = {
           return null;
         }
 
+        // Check if this is a self-referencing sequence (same container)
+        const isSelfMessage = fromActor.id === toActor.id;
+
         return {
           label: `${orderIndex}. ${labelText}`,
           labelText: labelText, // Pure label text for editing
           yPos: 130 + (orderIndex - 1) * 90, // Use orderIndex instead of array index
           from: actors.indexOf(fromActor),
           to: actors.indexOf(toActor),
+          self: isSelfMessage, // Mark as self-referencing
           dashed:
             sequence.dashed_text === "true" ||
             sequence.is_dashed_boolean ||
