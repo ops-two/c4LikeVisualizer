@@ -191,7 +191,7 @@ window.SequenceDiagramRenderer = {
         z-index: 10;
         opacity: 0;
         transform: translateY(-50%) scale(0.8);
-        transition: opacity 0.15s ease-out, transform 0.15s ease-out, background-color 0.15s;
+        transition: opacity 0.15s ease-out, transform 0.15s ease-out;
         pointer-events: none;
         top: 50%;
         right: -11px;
@@ -203,11 +203,6 @@ window.SequenceDiagramRenderer = {
         pointer-events: auto;
       }
 
-      .add-container-btn:hover {
-        background-color: #e9e9e9;
-        color: #333;
-      }
-
       .container-name {
         position: relative;
       }
@@ -215,7 +210,7 @@ window.SequenceDiagramRenderer = {
       .container-icon-button {
         position: absolute;
         top: 4px;
-        right: 4px;
+        right: 30px;
         width: 16px;
         height: 16px;
         background: rgba(255, 255, 255, 0.9);
