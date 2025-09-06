@@ -57,7 +57,7 @@ window.SequenceDiagramRenderer = {
         width: 100%;
         height: 100vh;
         max-height: none;
-        overflow-y: auto;
+        overflow-y: scroll;
         overflow-x: auto;
         min-height: 400px;
         background: #f8f9fa;
@@ -258,8 +258,8 @@ window.SequenceDiagramRenderer = {
         cursor: pointer;
         z-index: 15;
         pointer-events: none;
-        right: 8px;
-        top: 8px;
+        right: 4px;
+        top: 4px;
       }
 
       .sequence-label:hover .sequence-icon-button {
