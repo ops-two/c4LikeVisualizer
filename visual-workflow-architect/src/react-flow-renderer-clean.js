@@ -1005,7 +1005,8 @@ window.SequenceDiagramRenderer = {
           const maxActor = Math.max(...actorIndices);
           const WORKFLOW_PADDING = 20; // Visual breathing room
           const minX = minActor * 180 + 10 - WORKFLOW_PADDING;
-          const maxX = maxActor * 180 + 170 + WORKFLOW_PADDING;
+          // Stop workflow boundary before self-message loop area (which extends to +170)
+          const maxX = maxActor * 180 + 100 + WORKFLOW_PADDING;
 
           console.log(`DEBUG - Workflow ${workflowId} bounds calculation:`, {
             actorIndices,
