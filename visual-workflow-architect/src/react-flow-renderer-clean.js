@@ -986,13 +986,23 @@ window.SequenceDiagramRenderer = {
         if (allWorkflowPositions.length > 0) {
           const minY = Math.min(...allWorkflowPositions.map((pos) => pos.yPos));
           const maxY = Math.max(...allWorkflowPositions.map((pos) => pos.yPos));
-          const minX = 0;
-          const maxX = actors.length * 180;
+          
+          // PHASE 1: Dynamic workflow width calculation based on actual sequence positions
+          const actorIndices = [
+            ...new Set(
+              allWorkflowPositions.flatMap((pos) => [pos.from, pos.to])
+            ),
+          ];
+          const minActor = Math.min(...actorIndices);
+          const maxActor = Math.max(...actorIndices);
+          const WORKFLOW_PADDING = 20; // Visual breathing room
+          const minX = minActor * 180 + 10 - WORKFLOW_PADDING;
+          const maxX = maxActor * 180 + 170 + WORKFLOW_PADDING;
 
           workflowBounds[workflowId] = {
             x: minX,
             y: minY - 50,
-            width: maxX,
+            width: maxX - minX,
             height: maxY - minY + 120,
             workflow: workflowGroup.workflow,
           };
