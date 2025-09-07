@@ -983,6 +983,14 @@ window.SequenceDiagramRenderer = {
           allWorkflowSequences.some((seq) => seq.id === msg.sequenceId) && !msg.self
         );
 
+        console.log(`DEBUG - Workflow ${workflowId} sequence analysis:`, {
+          totalSequences: allWorkflowSequences.length,
+          totalPositionedMessages: positionedMessages.length,
+          filteredWorkflowPositions: allWorkflowPositions.length,
+          selfMessages: positionedMessages.filter(msg => msg.self).length,
+          workflowName: workflowGroup.workflow.name
+        });
+
         if (allWorkflowPositions.length > 0) {
           const minY = Math.min(...allWorkflowPositions.map((pos) => pos.yPos));
           const maxY = Math.max(...allWorkflowPositions.map((pos) => pos.yPos));
@@ -999,6 +1007,17 @@ window.SequenceDiagramRenderer = {
           const minX = minActor * 180 + 10 - WORKFLOW_PADDING;
           const maxX = maxActor * 180 + 170 + WORKFLOW_PADDING;
 
+          console.log(`DEBUG - Workflow ${workflowId} bounds calculation:`, {
+            actorIndices,
+            minActor,
+            maxActor,
+            minX,
+            maxX,
+            width: maxX - minX,
+            allWorkflowPositionsCount: allWorkflowPositions.length,
+            workflowName: workflowGroup.workflow.name
+          });
+
           workflowBounds[workflowId] = {
             x: minX,
             y: minY - 50,
@@ -1006,6 +1025,14 @@ window.SequenceDiagramRenderer = {
             height: maxY - minY + 120,
             workflow: workflowGroup.workflow,
           };
+        } else {
+          // PHASE 1 FIX: Handle workflows with only self-messages - don't render background
+          console.log(`DEBUG - Workflow ${workflowId} has no non-self sequences, skipping background:`, {
+            totalSequences: allWorkflowSequences.length,
+            selfOnlyWorkflow: true,
+            workflowName: workflowGroup.workflow.name
+          });
+          // Don't add to workflowBounds - this prevents background rendering
         }
       });
 
