@@ -12,11 +12,11 @@ window.WorkflowArchitectSequenceDragDrop = {
   },
 
   setupSequenceDragging: function () {
-    const sequenceMessages = this.container.querySelectorAll(
-      ".message, .sequence-message"
-    );
+    // MODIFICATION: Target the new .sequence-label elements, which are the interactive parts.
+    // This also correctly targets the labels for self-messages.
+    const sequenceLabels = this.container.querySelectorAll(".sequence-label");
 
-    sequenceMessages.forEach((message) => {
+    sequenceLabels.forEach((message) => {
       if (message.dataset.dragSetup === "true") return;
       message.dataset.dragSetup = "true";
 
