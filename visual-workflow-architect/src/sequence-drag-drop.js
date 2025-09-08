@@ -77,23 +77,32 @@ window.WorkflowArchitectSequenceDragDrop = {
       message.draggable = true;
 
       // DRAG START: Set the dragged item and create a custom ghost image
+      // DRAG START: Set the dragged item and create a custom ghost image
       message.addEventListener("dragstart", (e) => {
         e.stopPropagation();
         this.draggedSequence = message;
         setTimeout(() => message.classList.add("dragging"), 0);
         e.dataTransfer.setData("text/plain", message.dataset.sequenceId);
 
-        // --- NEW: Create and set the custom drag image ---
+        // --- CORRECTED: Create, append, and set the custom drag image ---
 
-        // 1. Get the pure label text from the data attribute
         const labelText = message.dataset.labelText || "Sequence";
-
-        // 2. Call our new helper function to generate the canvas
         const dragImage = this.createDragImageCanvas(labelText);
 
-        // 3. Set the custom ghost image. The offsets move the image relative to the cursor.
-        // (x: 70 puts the cursor roughly over the start of the text, y: 17 centers it vertically)
+        // Style the canvas to be invisible and off-screen
+        dragImage.style.position = "absolute";
+        dragImage.style.top = "-1000px";
+
+        // Add it to the DOM
+        document.body.appendChild(dragImage);
+
+        // Set the custom ghost image
         e.dataTransfer.setDragImage(dragImage, 70, 17);
+
+        // Clean up the DOM on the next tick
+        setTimeout(() => {
+          document.body.removeChild(dragImage);
+        }, 0);
       });
 
       // DRAG END: Clean up all visuals
