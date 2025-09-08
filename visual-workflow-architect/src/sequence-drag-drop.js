@@ -10,7 +10,61 @@ window.WorkflowArchitectSequenceDragDrop = {
     this.container = container;
     this.setupSequenceDragging();
   },
+  createDragImageCanvas: function (labelText) {
+    const PADDING = 10;
+    const FONT_SIZE = 14;
+    const FONT = `${FONT_SIZE}px Arial`;
+    const ARROW_LENGTH = 50;
+    const ARROW_HEAD_SIZE = 5;
 
+    // 1. Create a temporary canvas to measure text
+    const tempCtx = document.createElement("canvas").getContext("2d");
+    tempCtx.font = FONT;
+    const textWidth = tempCtx.measureText(labelText).width;
+
+    // 2. Define final canvas dimensions
+    const canvas = document.createElement("canvas");
+    canvas.width = ARROW_LENGTH + textWidth + PADDING * 2;
+    canvas.height = FONT_SIZE + PADDING * 2;
+    const ctx = canvas.getContext("2d");
+
+    // 3. Style the drawing
+    ctx.font = FONT;
+    ctx.fillStyle = "#333";
+    ctx.strokeStyle = "#333";
+    ctx.lineWidth = 2;
+
+    // 4. Draw the arrow line
+    const startY = canvas.height / 2;
+    const startX = PADDING;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(startX + ARROW_LENGTH, startY);
+    ctx.stroke();
+
+    // 5. Draw the arrowhead
+    ctx.beginPath();
+    ctx.moveTo(startX + ARROW_LENGTH, startY);
+    ctx.lineTo(
+      startX + ARROW_LENGTH - ARROW_HEAD_SIZE,
+      startY - ARROW_HEAD_SIZE
+    );
+    ctx.lineTo(
+      startX + ARROW_LENGTH - ARROW_HEAD_SIZE,
+      startY + ARROW_HEAD_SIZE
+    );
+    ctx.closePath();
+    ctx.fill();
+
+    // 6. Draw the text
+    ctx.fillText(
+      labelText,
+      startX + ARROW_LENGTH + PADDING / 2,
+      startY + FONT_SIZE / 3
+    );
+
+    return canvas;
+  },
   setupSequenceDragging: function () {
     // MODIFICATION: Target the new .sequence-label elements, which are the interactive parts.
     // This also correctly targets the labels for self-messages.
@@ -22,12 +76,24 @@ window.WorkflowArchitectSequenceDragDrop = {
 
       message.draggable = true;
 
-      // DRAG START: Set the dragged item and add a visual class
+      // DRAG START: Set the dragged item and create a custom ghost image
       message.addEventListener("dragstart", (e) => {
         e.stopPropagation();
         this.draggedSequence = message;
         setTimeout(() => message.classList.add("dragging"), 0);
         e.dataTransfer.setData("text/plain", message.dataset.sequenceId);
+
+        // --- NEW: Create and set the custom drag image ---
+
+        // 1. Get the pure label text from the data attribute
+        const labelText = message.dataset.labelText || "Sequence";
+
+        // 2. Call our new helper function to generate the canvas
+        const dragImage = this.createDragImageCanvas(labelText);
+
+        // 3. Set the custom ghost image. The offsets move the image relative to the cursor.
+        // (x: 70 puts the cursor roughly over the start of the text, y: 17 centers it vertically)
+        e.dataTransfer.setDragImage(dragImage, 70, 17);
       });
 
       // DRAG END: Clean up all visuals
