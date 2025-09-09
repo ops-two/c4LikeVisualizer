@@ -66,78 +66,73 @@ window.WorkflowArchitectSequenceDragDrop = {
     return canvas;
   },
   setupSequenceDragging: function () {
-    // MODIFICATION: Target the new .sequence-label elements, which are the interactive parts.
-    // This also correctly targets the labels for self-messages.
     const sequenceLabels = this.container.querySelectorAll(".sequence-label");
+    const dropZones = this.container.querySelectorAll(".sequence-drop-zone");
+    const diagramContainer = this.container.querySelector(".diagram-container");
 
-    sequenceLabels.forEach((message) => {
-      if (message.dataset.dragSetup === "true") return;
-      message.dataset.dragSetup = "true";
+    // Setup listeners for the draggable labels
+    sequenceLabels.forEach((label) => {
+      if (label.dataset.dragSetup === "true") return;
+      label.dataset.dragSetup = "true";
+      label.draggable = true;
 
-      message.draggable = true;
-
-      // DRAG START: Set the dragged item and create a custom ghost image
-      // DRAG START: Set the dragged item and create a custom ghost image
-      message.addEventListener("dragstart", (e) => {
+      label.addEventListener("dragstart", (e) => {
         e.stopPropagation();
-        this.draggedSequence = message;
-        setTimeout(() => message.classList.add("dragging"), 0);
-        e.dataTransfer.setData("text/plain", message.dataset.sequenceId);
+        this.draggedSequence = label;
+        setTimeout(() => {
+          label.classList.add("dragging");
+          if (diagramContainer) {
+            // Activate pointer events on drop zones
+            diagramContainer.classList.add("sequence-drag-active");
+          }
+        }, 0);
+        e.dataTransfer.setData("text/plain", label.dataset.sequenceId);
 
-        // --- CORRECTED: Create, append, and set the custom drag image ---
-
-        const labelText = message.dataset.labelText || "Sequence";
+        const labelText = label.dataset.labelText || "Sequence";
         const dragImage = this.createDragImageCanvas(labelText);
-
-        // Style the canvas to be invisible and off-screen
         dragImage.style.position = "absolute";
         dragImage.style.top = "-1000px";
-
-        // Add it to the DOM
         document.body.appendChild(dragImage);
-
-        // Set the custom ghost image
         e.dataTransfer.setDragImage(dragImage, 70, 17);
-
-        // Clean up the DOM on the next tick
         setTimeout(() => {
           document.body.removeChild(dragImage);
         }, 0);
       });
 
-      // DRAG END: Clean up all visuals
-      message.addEventListener("dragend", (e) => {
+      label.addEventListener("dragend", (e) => {
         e.stopPropagation();
-        // A failsafe to ensure dragging class is removed
         if (this.draggedSequence) {
           this.draggedSequence.classList.remove("dragging");
         }
-        document
-          .querySelectorAll(".drag-over")
-          .forEach((el) => el.classList.remove("drag-over"));
+        if (diagramContainer) {
+          // Deactivate pointer events on drop zones
+          diagramContainer.classList.remove("sequence-drag-active");
+        }
+        // Failsafe cleanup for any leftover visual indicators
+        dropZones.forEach((zone) => zone.classList.remove("drag-over"));
         this.draggedSequence = null;
       });
+    });
 
-      // DRAG OVER: Add visual feedback to the potential drop target
-      message.addEventListener("dragover", (e) => {
-        if (this.draggedSequence && this.draggedSequence !== message) {
-          e.preventDefault();
-          message.classList.add("drag-over");
-        }
+    // Setup listeners for the drop zones
+    dropZones.forEach((zone) => {
+      zone.addEventListener("dragover", (e) => {
+        e.preventDefault(); // This is crucial to allow a drop
+        zone.classList.add("drag-over");
       });
 
-      // DRAG LEAVE: Remove visual feedback
-      message.addEventListener("dragleave", (e) => {
-        message.classList.remove("drag-over");
+      zone.addEventListener("dragleave", (e) => {
+        zone.classList.remove("drag-over");
       });
 
-      // DROP: Handle the reordering logic
-      message.addEventListener("drop", (e) => {
+      zone.addEventListener("drop", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        message.classList.remove("drag-over");
+        zone.classList.remove("drag-over");
         if (this.draggedSequence) {
-          this.handleDrop(message);
+          // We will implement this in the next step.
+          // For now, it just finalizes the drop visually.
+          console.log("Dropped on zone:", zone.dataset);
         }
       });
     });
