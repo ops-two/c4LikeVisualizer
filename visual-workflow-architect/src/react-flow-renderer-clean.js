@@ -832,7 +832,10 @@ window.SequenceDiagramRenderer = {
 
     // Add CSS styles with default height (will be updated later)
     this.addStyles();
-
+    const container = targetElement[0] || targetElement;
+    if (container) {
+      container.classList.add("sequence-diagram-container");
+    }
     // Initialize data store if available
     if (
       window.WorkflowArchitectDataStore &&
