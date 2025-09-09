@@ -1133,70 +1133,45 @@ window.SequenceDiagramRenderer = {
     };
 
     // Create positioned messages from sequences
+    // Create positioned messages from sequences
     const positionedMessages = sequences
       .map((sequence, index) => {
-        const fromActor = actors.find(
-          (a) =>
-            a.id === (sequence.fromContainerId || sequence.from_container_id)
-        );
-        const toActor = actors.find(
-          (a) => a.id === (sequence.toContainerId || sequence.to_container_id)
-        );
-
-        const positionalIndex = index + 1;
-        let labelText = sequence.label_text || sequence.label || "Sequence";
-
-        // Debug logging to see what's happening
-        console.log("DEBUG - Processing sequence:", {
-          id: sequence.id,
-          raw_label_text: sequence.label_text,
-          raw_label: sequence.label,
-          orderIndex: orderIndex,
-          labelText_before_strip: labelText,
-          workflowId: sequence.workflowId,
-        });
-
-        // Strip any existing order index prefix from label text to prevent duplication
-        // Matches patterns like "1. ", "2. ", etc. at the start of the string
-        labelText = labelText.replace(/^\d+\.\s*/, "");
-
-        console.log("DEBUG - After stripping:", {
-          labelText_after_strip: labelText,
-          final_label: `${orderIndex}. ${labelText}`,
-        });
+        const fromActor = actors.find((a) => a.id === sequence.fromContainerId);
+        const toActor = actors.find((a) => a.id === sequence.toContainerId);
 
         if (!fromActor || !toActor) {
-          console.warn("DEBUG - Skipping sequence due to missing actors:", {
-            sequenceId: sequence.id,
-            fromActor: !!fromActor,
-            toActor: !!toActor,
-          });
+          console.warn("Skipping sequence due to missing actors:", sequence.id);
           return null;
         }
 
-        // Check if this is a self-referencing sequence (same container)
+        // Use the simple array index for positioning and display numbering.
+        const positionalIndex = index + 1;
+        const yPos = 130 + index * 90;
+        let labelText = sequence.label || "Sequence";
+
+        // Strip any pre-existing numbers from the label to avoid duplication.
+        labelText = labelText.replace(/^\d+\.\s*/, "");
+
         const isSelfMessage = fromActor.id === toActor.id;
 
         return {
-          originalOrderIndex: sequence.orderIndex, // Pass the TRUE sort orderIndex through for drop zone calculation
-          label: `${positionalIndex}. ${labelText}`, // FIX: Use positional index for display
-          labelText: labelText, // Pure label text for editing
-          yPos: 130 + index * 90, // FIX: Use the 0-based array index for y-position calculation
+          // Pass the TRUE database sort orderIndex for drop zone calculations.
+          originalOrderIndex: sequence.orderIndex,
+          // Use the simple positional index for the visible label.
+          label: `${positionalIndex}. ${labelText}`,
+          labelText: labelText,
+          // Use the simple array index for the Y-position calculation.
+          yPos: yPos,
           from: actors.indexOf(fromActor),
           to: actors.indexOf(toActor),
-          self: isSelfMessage, // Mark as self-referencing
-          dashed:
-            sequence.dashed_text === "true" ||
-            sequence.is_dashed_boolean ||
-            sequence.isDashed ||
-            false,
+          self: isSelfMessage,
+          dashed: sequence.isDashed || false,
           sequenceId: sequence.id,
           workflowId: sequence.workflowId,
           subgroupId: sequence.subgroupId,
         };
       })
       .filter((msg) => msg !== null);
-
     // Calculate workflow and subgroup boundaries
     const { workflowBounds, subgroupBounds } = calculateNestedBounds(
       workflowGroups,
