@@ -55,9 +55,8 @@ window.SequenceDiagramRenderer = {
     style.textContent = `
       .sequence-diagram-container {
         width: 100%;
-        height: 100vh;
         max-height: none;
-        overflow-y: scroll;
+        overflow-y: auto; /* Changed to auto for better behavior */
         overflow-x: hidden;
         min-height: 400px;
         background: #f8f9fa;
@@ -66,7 +65,6 @@ window.SequenceDiagramRenderer = {
       }
 
       .workflow-architect-container {
-        height: 100vh;
         overflow: hidden;
       }
 
