@@ -1815,7 +1815,12 @@ window.SequenceDiagramRenderer = {
                     .flatMap((msg, index, arr) => {
                       const startX = Math.min(msg.from, msg.to) * 180 + 90;
                       const endX = Math.max(msg.from, msg.to) * 180 + 90;
-                      const midX = (startX + endX) / 2;
+                      const midX =
+                        ((Math.min(msg.from, msg.to) +
+                          Math.max(msg.from, msg.to)) /
+                          2) *
+                          180 +
+                        90;
                       const width = endX - startX;
 
                       // Determine the orderIndex of the previous and current sequence
@@ -1829,9 +1834,10 @@ window.SequenceDiagramRenderer = {
                         key: `drop-zone-${index}`,
                         className: "sequence-drop-zone",
                         style: {
-                          left: `${startX}px`,
+                          // MODIFICATION: Make the drop zone span the full width for a better UX.
+                          left: "10px",
+                          width: "calc(100% - 20px)",
                           top: `${msg.yPos - 45}px`, // Position it exactly between sequences
-                          width: `${width}px`,
                         },
                         "data-order-before": orderBefore,
                         "data-order-after": orderAfter,
