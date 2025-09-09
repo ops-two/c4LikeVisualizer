@@ -455,26 +455,40 @@ window.SequenceDiagramRenderer = {
         transform: translateY(-50%);
         transition: background-color 0.2s ease;
       }
-      .sequence-drop-zone::before {
+.sequence-drop-zone::before {
         content: '';
         position: absolute;
         width: 100%;
-        height: 4px; /* The visible line height */
+        height: 2px; /* MODIFIED: Thinner line */
         top: 50%;
         left: 0;
         transform: translateY(-50%);
-        background-color: #1976d2; /* Blue color for the indicator */
-        border-radius: 2px;
+        background-color: rgba(25, 118, 210, 0.6); /* MODIFIED: Faded color */
+        border-radius: 1px;
         opacity: 0;
         transition: opacity 0.2s ease;
       }
-      /* This class will be added by JS during a drag operation */
-      .sequence-drop-zone.drag-over::before {
-        opacity: 1;
+      /* NEW: Styles for the 'Drop here' text label */
+      .sequence-drop-zone::after {
+        content: 'Drop Here';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(25, 118, 210, 0.9);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 500;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.2s ease;
       }
-      /* This class will be added to the main container during a drag operation */
-      .diagram-container.sequence-drag-active .sequence-drop-zone {
-        pointer-events: auto; /* Make zones interactive ONLY during a drag */
+      /* This class will be added by JS during a drag operation to show both indicators */
+      .sequence-drop-zone.drag-over::before,
+      .sequence-drop-zone.drag-over::after {
+        opacity: 1;
       }
   .add-container-btn {
         width: 24px;
