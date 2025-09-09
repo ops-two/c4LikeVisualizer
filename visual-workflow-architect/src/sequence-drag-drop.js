@@ -129,140 +129,65 @@ window.WorkflowArchitectSequenceDragDrop = {
         e.preventDefault();
         e.stopPropagation();
         zone.classList.remove("drag-over");
-        if (this.draggedSequence) {
-          // We will implement this in the next step.
-          // For now, it just finalizes the drop visually.
-          console.log("Dropped on zone:", zone.dataset);
+
+        if (!this.draggedSequence || this.isProcessing) return;
+
+        try {
+          this.isProcessing = true;
+          const draggedId = this.draggedSequence.dataset.sequenceId;
+
+          // 1. Read the pre-calculated order values directly from the drop zone.
+          const orderBefore = parseFloat(zone.dataset.orderBefore);
+          const orderAfter = parseFloat(zone.dataset.orderAfter);
+          const newOrderValue = (orderBefore + orderAfter) / 2;
+
+          // 2. Read the parent workflow/subgroup info from the drop zone.
+          const newWorkflowId = zone.dataset.workflowId;
+          const newSubgroupId = zone.dataset.subgroupId || null; // Handle empty subgroup
+
+          // 3. Prepare the complete payload for Bubble.
+          const fullSequenceData =
+            window.WorkflowArchitectDataStore.getSequenceForUpdate(draggedId);
+          if (fullSequenceData) {
+            fullSequenceData.order_index = newOrderValue;
+            fullSequenceData.workflow_custom_workflows = newWorkflowId;
+            fullSequenceData.subgroup_custom_subgroup = newSubgroupId;
+          }
+
+          const payload = {
+            entityType: "sequence",
+            entityId: draggedId,
+            fieldName: "order_index_and_parents", // A comprehensive name for the update
+            newValue: newOrderValue,
+            allData: fullSequenceData,
+          };
+
+          // 4. Perform optimistic UI update.
+          window.WorkflowArchitectDataStore.updateSequenceOrder(
+            draggedId,
+            newOrderValue,
+            newSubgroupId
+          );
+          const localSeq =
+            window.WorkflowArchitectDataStore.getSequence(draggedId);
+          if (localSeq) {
+            localSeq.workflowId = newWorkflowId; // Ensure workflow is also updated locally
+          }
+
+          // 5. Dispatch events to re-render and save to Bubble.
+          document.dispatchEvent(
+            new CustomEvent("workflow-architect:rerender", { detail: {} })
+          );
+          if (window.WorkflowArchitectEventBridge) {
+            window.WorkflowArchitectEventBridge.handleSequenceDragDrop(payload);
+          }
+        } catch (error) {
+          console.error("Error during sequence drop:", error);
+        } finally {
+          this.isProcessing = false;
         }
       });
     });
-  },
-
-  handleDrop: function (target) {
-    if (this.isProcessing || !this.draggedSequence) return;
-
-    try {
-      this.isProcessing = true;
-      const draggedId = this.draggedSequence.dataset.sequenceId;
-      const targetId = target.dataset.sequenceId;
-
-      if (!draggedId || !targetId || draggedId === targetId) {
-        this.isProcessing = false;
-        return;
-      }
-
-      const allSequences =
-        window.WorkflowArchitectDataStore.getSequencesArray();
-      const draggedSeq = allSequences.find((s) => s.id === draggedId);
-      const targetSeq = allSequences.find((s) => s.id === targetId);
-
-      if (!draggedSeq || !targetSeq) {
-        this.isProcessing = false;
-        return;
-      }
-
-      // ALWAYS determine the workflow from the TARGET sequence. This is the key to fixing both bugs.
-      const targetWorkflowId = targetSeq.workflowId;
-
-      let newOrderValue;
-
-      // This logic now correctly handles reordering within a workflow, or dropping into a new one.
-      const targetWorkflowSequences = allSequences
-        .filter((s) => s.workflowId === targetWorkflowId)
-        .sort((a, b) => a.orderIndex - b.orderIndex);
-
-      // We must remove the dragged item if it was already in this list to calculate the index correctly.
-      const listWithoutDragged = targetWorkflowSequences.filter(
-        (s) => s.id !== draggedId
-      );
-      const targetIndex = listWithoutDragged.findIndex(
-        (item) => item.id === targetId
-      );
-
-      if (targetIndex === -1 && listWithoutDragged.length > 0) {
-        // Failsafe if target isn't found, drop at the end.
-        const lastItem = listWithoutDragged[listWithoutDragged.length - 1];
-        newOrderValue = lastItem.orderIndex + 10;
-      } else if (listWithoutDragged.length === 0) {
-        // Dropping into an empty workflow
-        newOrderValue = 10;
-      } else {
-        // Use mouse position for a more intuitive drop, like the storymapper
-        const targetRect = target.getBoundingClientRect();
-        const dropOnTopHalf =
-          event.clientY < targetRect.top + targetRect.height / 2;
-
-        if (dropOnTopHalf) {
-          // Drop BEFORE the target
-          if (targetIndex === 0) {
-            newOrderValue = listWithoutDragged[targetIndex].orderIndex / 2;
-          } else {
-            const prevItem = listWithoutDragged[targetIndex - 1];
-            newOrderValue =
-              (prevItem.orderIndex +
-                listWithoutDragged[targetIndex].orderIndex) /
-              2;
-          }
-        } else {
-          // Drop AFTER the target
-          const nextItem = listWithoutDragged[targetIndex + 1];
-          if (nextItem) {
-            newOrderValue =
-              (listWithoutDragged[targetIndex].orderIndex +
-                nextItem.orderIndex) /
-              2;
-          } else {
-            newOrderValue = listWithoutDragged[targetIndex].orderIndex + 10;
-          }
-        }
-      }
-
-      // --- PREPARE A COMPLETE PAYLOAD ---
-      const fullSequenceData =
-        window.WorkflowArchitectDataStore.getSequenceForUpdate(draggedId);
-      if (fullSequenceData) {
-        fullSequenceData.order_index_number = newOrderValue;
-        // This is the critical fix: ALWAYS include the target workflow ID.
-        fullSequenceData.workflow_custom_workflows = targetWorkflowId;
-      }
-
-      const payload = {
-        entityType: "sequence",
-        entityId: draggedId,
-        // Tell Bubble to update both fields, preventing data loss.
-        fieldName: "order_index_and_workflow",
-        newValue: newOrderValue,
-        workflowId: targetWorkflowId, // CORRECTED: Renamed 'newParentId' to 'workflowId' for backend compatibility
-        oldValue: draggedSeq.orderIndex,
-        allData: fullSequenceData,
-      };
-
-      // --- DISPATCH AND RENDER ---
-      // 1. Optimistically update the local data store, including the new workflow.
-      const localSeq = window.WorkflowArchitectDataStore.getSequence(draggedId);
-      if (localSeq) {
-        localSeq.workflowId = targetWorkflowId;
-      }
-      window.WorkflowArchitectDataStore.updateSequenceOrder(
-        draggedId,
-        newOrderValue
-      );
-
-      // 2. Trigger an immediate, optimistic re-render.
-      document.dispatchEvent(
-        new CustomEvent("workflow-architect:rerender", { detail: {} })
-      );
-
-      // 3. Send the complete update to Bubble.
-      if (window.WorkflowArchitectEventBridge) {
-        window.WorkflowArchitectEventBridge.handleSequenceDragDrop(payload);
-      }
-    } catch (error) {
-      console.error("Error during sequence drop:", error);
-    } finally {
-      this.isProcessing = false;
-      this.draggedSequence = null;
-    }
   },
 
   destroy: function () {
