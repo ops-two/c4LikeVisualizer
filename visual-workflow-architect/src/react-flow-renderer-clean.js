@@ -1143,8 +1143,7 @@ window.SequenceDiagramRenderer = {
           (a) => a.id === (sequence.toContainerId || sequence.to_container_id)
         );
 
-        const orderIndex =
-          sequence.order_number || sequence.order_index || index + 1;
+        const positionalIndex = index + 1;
         let labelText = sequence.label_text || sequence.label || "Sequence";
 
         // Debug logging to see what's happening
@@ -1179,10 +1178,10 @@ window.SequenceDiagramRenderer = {
         const isSelfMessage = fromActor.id === toActor.id;
 
         return {
-          originalOrderIndex: orderIndex, // Pass this through for drop zone calculation
-          label: `${orderIndex}. ${labelText}`,
+          originalOrderIndex: sequence.orderIndex, // Pass the TRUE sort orderIndex through for drop zone calculation
+          label: `${positionalIndex}. ${labelText}`, // FIX: Use positional index for display
           labelText: labelText, // Pure label text for editing
-          yPos: 130 + (orderIndex - 1) * 90, // Use orderIndex instead of array index
+          yPos: 130 + index * 90, // FIX: Use the 0-based array index for y-position calculation
           from: actors.indexOf(fromActor),
           to: actors.indexOf(toActor),
           self: isSelfMessage, // Mark as self-referencing
@@ -1219,7 +1218,10 @@ window.SequenceDiagramRenderer = {
         ? Math.max(...sequences.map((seq) => seq.orderIndex || 1))
         : 1;
 
-    const finalContainerHeight = Math.max(200, 130 + maxOrderIndex * 90 + 80);
+    const finalContainerHeight =
+      sequences.length > 0
+        ? 130 + (sequences.length - 1) * 90 + 90 + 80 // Base + (last item pos) + (last item height) + (buffer)
+        : 400;
 
     const actorsCount = actors.length;
 
