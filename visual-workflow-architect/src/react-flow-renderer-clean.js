@@ -56,8 +56,8 @@ window.SequenceDiagramRenderer = {
       .sequence-diagram-container {
         width: 100%;
         max-height: none;
-        overflow-y: auto; 
-        overflow-x: hidden;
+        overflow-y: hidden !important; 
+        overflow-x: scroll !important;
         min-height: 400px;
         background: #f8f9fa;
         position: relative;
