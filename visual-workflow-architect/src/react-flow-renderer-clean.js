@@ -494,6 +494,40 @@ window.SequenceDiagramRenderer = {
       .sequence-drop-zone.drag-over::before {
         opacity: 1;
       }
+         .empty-workflows-container {
+        padding: 0 20px;
+        margin-top: 20px;
+      }
+      .empty-workflow-wrapper {
+        background-color: #f0f4f8;
+        border: 2px dashed #b0c4de;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 15px;
+      }
+      .empty-workflow-wrapper h4 {
+        margin: 0 0 10px 5px;
+        font-size: 13px;
+        color: #4a6a8a;
+        font-weight: 600;
+      }
+      .empty-workflow-drop-zone {
+        padding: 25px;
+        text-align: center;
+        border-radius: 6px;
+        background-color: rgba(255,255,255, 0.6);
+        transition: background-color 0.2s ease;
+        position: relative; /* Needed for pseudo-elements */
+      }
+      .empty-workflow-drop-zone.drag-over {
+        background-color: #e3f2fd;
+      }
+      .empty-workflow-drop-zone span {
+        font-size: 14px;
+        font-weight: 500;
+        color: #7b98b7;
+        pointer-events: none; /* Make sure the span doesn't interfere with drop events */
+      }
       /* This class will be added to the main container during a drag operation */
       .diagram-container.sequence-drag-active .sequence-drop-zone {
         pointer-events: auto; /* Make zones interactive ONLY during a drag */
@@ -1576,6 +1610,69 @@ window.SequenceDiagramRenderer = {
                     ),
                   ]
                 )
+              ),
+
+              // --- NEW: Render Empty Workflow Drop Zones ---
+              React.createElement(
+                "div",
+                {
+                  key: "empty-workflows",
+                  className: "empty-workflows-container",
+                },
+                (() => {
+                  // 1. Get all workflow IDs from the data store
+                  const allWorkflowIds = Object.keys(
+                    window.WorkflowArchitectDataStore.data.workflows
+                  );
+                  // 2. Get IDs of workflows that are NOT empty (we know this from workflowBounds)
+                  const populatedWorkflowIds = Object.keys(workflowBounds);
+                  // 3. Find the difference to get the empty ones
+                  const emptyWorkflowIds = allWorkflowIds.filter(
+                    (id) => !populatedWorkflowIds.includes(id)
+                  );
+
+                  // 4. Get the full workflow objects and sort them by their order index
+                  const emptyWorkflows = emptyWorkflowIds
+                    .map((id) =>
+                      window.WorkflowArchitectDataStore.getWorkflow(id)
+                    )
+                    .sort((a, b) => a.orderIndex - b.orderIndex);
+
+                  // 5. Render a drop zone for each empty workflow
+                  return emptyWorkflows.map((workflow) => {
+                    return React.createElement(
+                      "div",
+                      {
+                        key: `empty-wf-${workflow.id}`,
+                        className: "empty-workflow-wrapper",
+                      },
+                      [
+                        React.createElement(
+                          "h4",
+                          { key: "title" },
+                          workflow.name
+                        ),
+                        React.createElement(
+                          "div",
+                          {
+                            key: "drop-zone",
+                            className:
+                              "empty-workflow-drop-zone sequence-drop-zone", // Has BOTH classes
+                            "data-order-before": 0,
+                            "data-order-after": 20,
+                            "data-workflow-id": workflow.id,
+                            "data-subgroup-id": "",
+                          },
+                          React.createElement(
+                            "span",
+                            null,
+                            "Drop Sequence Here"
+                          )
+                        ),
+                      ]
+                    );
+                  });
+                })()
               ),
 
               // Subgroup backgrounds (render after workflows, before actor lanes)
