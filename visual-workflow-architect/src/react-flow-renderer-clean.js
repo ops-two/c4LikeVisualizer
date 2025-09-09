@@ -447,6 +447,35 @@ window.SequenceDiagramRenderer = {
         border-bottom: 3px solid transparent; 
         border-right: 8px solid #555;
       }
+        .sequence-drop-zone {
+        position: absolute;
+        height: 20px; /* The clickable/hoverable height */
+        z-index: 4; /* Above backgrounds but below labels */
+        pointer-events: none; /* Initially not interactive */
+        transform: translateY(-50%);
+        transition: background-color 0.2s ease;
+      }
+      .sequence-drop-zone::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 4px; /* The visible line height */
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        background-color: #1976d2; /* Blue color for the indicator */
+        border-radius: 2px;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+      /* This class will be added by JS during a drag operation */
+      .sequence-drop-zone.drag-over::before {
+        opacity: 1;
+      }
+      /* This class will be added to the main container during a drag operation */
+      .diagram-container.sequence-drag-active .sequence-drop-zone {
+        pointer-events: auto; /* Make zones interactive ONLY during a drag */
+      }
   .add-container-btn {
         width: 24px;
         height: 24px;
@@ -939,8 +968,10 @@ window.SequenceDiagramRenderer = {
         // Calculate subgroup bounds first - optimized to span only relevant actor lanes
         Object.keys(workflowGroup.subgroups).forEach((subgroupId) => {
           const subgroupData = workflowGroup.subgroups[subgroupId];
-          const subgroupSequencePositions = positionedMessages.filter((msg) =>
-            subgroupData.sequences.some((seq) => seq.id === msg.sequenceId) && !msg.self
+          const subgroupSequencePositions = positionedMessages.filter(
+            (msg) =>
+              subgroupData.sequences.some((seq) => seq.id === msg.sequenceId) &&
+              !msg.self
           );
 
           if (subgroupSequencePositions.length > 0) {
@@ -979,22 +1010,24 @@ window.SequenceDiagramRenderer = {
         });
 
         // Calculate workflow bounds based on all sequences in the workflow (excluding self-messages)
-        const allWorkflowPositions = positionedMessages.filter((msg) =>
-          allWorkflowSequences.some((seq) => seq.id === msg.sequenceId) && !msg.self
+        const allWorkflowPositions = positionedMessages.filter(
+          (msg) =>
+            allWorkflowSequences.some((seq) => seq.id === msg.sequenceId) &&
+            !msg.self
         );
 
         console.log(`DEBUG - Workflow ${workflowId} sequence analysis:`, {
           totalSequences: allWorkflowSequences.length,
           totalPositionedMessages: positionedMessages.length,
           filteredWorkflowPositions: allWorkflowPositions.length,
-          selfMessages: positionedMessages.filter(msg => msg.self).length,
-          workflowName: workflowGroup.workflow.name
+          selfMessages: positionedMessages.filter((msg) => msg.self).length,
+          workflowName: workflowGroup.workflow.name,
         });
 
         if (allWorkflowPositions.length > 0) {
           const minY = Math.min(...allWorkflowPositions.map((pos) => pos.yPos));
           const maxY = Math.max(...allWorkflowPositions.map((pos) => pos.yPos));
-          
+
           // PHASE 1: Dynamic workflow width calculation based on actual sequence positions
           const actorIndices = [
             ...new Set(
@@ -1016,7 +1049,7 @@ window.SequenceDiagramRenderer = {
             maxX,
             width: maxX - minX,
             allWorkflowPositionsCount: allWorkflowPositions.length,
-            workflowName: workflowGroup.workflow.name
+            workflowName: workflowGroup.workflow.name,
           });
 
           workflowBounds[workflowId] = {
@@ -1028,11 +1061,14 @@ window.SequenceDiagramRenderer = {
           };
         } else {
           // PHASE 1 FIX: Handle workflows with only self-messages - don't render background
-          console.log(`DEBUG - Workflow ${workflowId} has no non-self sequences, skipping background:`, {
-            totalSequences: allWorkflowSequences.length,
-            selfOnlyWorkflow: true,
-            workflowName: workflowGroup.workflow.name
-          });
+          console.log(
+            `DEBUG - Workflow ${workflowId} has no non-self sequences, skipping background:`,
+            {
+              totalSequences: allWorkflowSequences.length,
+              selfOnlyWorkflow: true,
+              workflowName: workflowGroup.workflow.name,
+            }
+          );
           // Don't add to workflowBounds - this prevents background rendering
         }
       });
@@ -1087,6 +1123,7 @@ window.SequenceDiagramRenderer = {
         const isSelfMessage = fromActor.id === toActor.id;
 
         return {
+          originalOrderIndex: orderIndex, // Pass this through for drop zone calculation
           label: `${orderIndex}. ${labelText}`,
           labelText: labelText, // Pure label text for editing
           yPos: 130 + (orderIndex - 1) * 90, // Use orderIndex instead of array index
@@ -1201,14 +1238,14 @@ window.SequenceDiagramRenderer = {
       const centerX = actorIndex * 180 + 90;
       const circleRadius = 19;
       const loopWidth = 80; // Increased width to prevent workflow conflicts
-      
+
       // Calculate path points
       const startX = centerX + circleRadius;
       const endX = centerX + circleRadius;
       const rightX = centerX + loopWidth;
       const topY = yPos;
       const bottomY = yPos + height;
-      
+
       const strokeDashArray = dashed ? "5,5" : "none";
 
       return [
@@ -1742,49 +1779,184 @@ window.SequenceDiagramRenderer = {
                         ),
                       ]),
                       // Render SVG arrows - ONLY for non-self messages
-                      ...positionedMessages.filter(msg => !msg.self).map((msg, index) =>
-                        React.createElement(SVGArrow, {
-                          key: `svg-arrow-${index}`,
-                          from: msg.from,
-                          to: msg.to,
-                          yPos: msg.yPos,
-                          label: msg.label,
-                          dashed: msg.dashed,
-                        })
-                      ),
+                      ...positionedMessages
+                        .filter((msg) => !msg.self)
+                        .map((msg, index) =>
+                          React.createElement(SVGArrow, {
+                            key: `svg-arrow-${index}`,
+                            from: msg.from,
+                            to: msg.to,
+                            yPos: msg.yPos,
+                            label: msg.label,
+                            dashed: msg.dashed,
+                          })
+                        ),
                       // Render SVG self-messages
-                      ...positionedMessages.filter(msg => msg.self).map((msg, index) =>
-                        React.createElement(SVGSelfMessage, {
-                          key: `svg-self-${index}`,
-                          actorIndex: msg.from,
-                          yPos: msg.yPos,
-                          height: 90 * 0.8,
-                          dashed: msg.dashed,
-                        })
-                      ),
+                      ...positionedMessages
+                        .filter((msg) => msg.self)
+                        .map((msg, index) =>
+                          React.createElement(SVGSelfMessage, {
+                            key: `svg-self-${index}`,
+                            actorIndex: msg.from,
+                            yPos: msg.yPos,
+                            height: 90 * 0.8,
+                            dashed: msg.dashed,
+                          })
+                        ),
                     ]
                   )
                 : null,
 
               // Interactive HTML sequence labels overlay (when using SVG arrows) - ONLY for non-self messages
+              // Interactive HTML sequence labels AND DROP ZONES (when using SVG arrows)
               USE_SVG_ARROWS
-                ? positionedMessages.filter(msg => !msg.self).map((msg, index) => {
-                    const startX = msg.from * 180 + 90;
-                    const endX = msg.to * 180 + 90;
-                    const midX = (startX + endX) / 2;
+                ? positionedMessages
+                    .filter((msg) => !msg.self)
+                    .flatMap((msg, index, arr) => {
+                      const startX = Math.min(msg.from, msg.to) * 180 + 90;
+                      const endX = Math.max(msg.from, msg.to) * 180 + 90;
+                      const midX = (startX + endX) / 2;
+                      const width = endX - startX;
 
-                    return React.createElement(
+                      // Determine the orderIndex of the previous and current sequence
+                      const prevMsg = arr[index - 1];
+                      const orderBefore = prevMsg
+                        ? prevMsg.originalOrderIndex
+                        : msg.originalOrderIndex - 10;
+                      const orderAfter = msg.originalOrderIndex;
+
+                      const dropZone = React.createElement("div", {
+                        key: `drop-zone-${index}`,
+                        className: "sequence-drop-zone",
+                        style: {
+                          left: `${startX}px`,
+                          top: `${msg.yPos - 45}px`, // Position it exactly between sequences
+                          width: `${width}px`,
+                        },
+                        "data-order-before": orderBefore,
+                        "data-order-after": orderAfter,
+                        "data-workflow-id": msg.workflowId,
+                        "data-subgroup-id": msg.subgroupId || "",
+                      });
+
+                      const sequenceLabel = React.createElement(
+                        "div",
+                        {
+                          key: `sequence-label-${index}`,
+                          className: "message-label sequence-label",
+                          style: {
+                            position: "absolute",
+                            left: `${midX}px`,
+                            top: `${msg.yPos - 35}px`,
+                            transform: "translateX(-50%)",
+                            maxWidth: "90%",
+                            textAlign: "center",
+                            zIndex: 5,
+                            pointerEvents: "auto",
+                          },
+                          "data-sequence-id": msg.sequenceId,
+                          "data-label-text": msg.labelText,
+                          title: "Double-click to edit",
+                        },
+                        [
+                          msg.label,
+                          React.createElement(
+                            "div",
+                            {
+                              key: "icon-button",
+                              className: "sequence-icon-button",
+                              onClick: (e) => {
+                                e.stopPropagation();
+                                console.log(
+                                  `SEQUENCE ICON CLICKED: ${msg.sequenceId}`
+                                );
+                                if (window.WorkflowArchitectEventBridge) {
+                                  window.WorkflowArchitectEventBridge.handleSequenceClick(
+                                    msg.sequenceId
+                                  );
+                                }
+                              },
+                            },
+                            React.createElement(
+                              "svg",
+                              {
+                                viewBox: "0 0 24 24",
+                                fill: "none",
+                                stroke: "currentColor",
+                                strokeWidth: "2",
+                              },
+                              [
+                                React.createElement("path", {
+                                  key: "path1",
+                                  d: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z",
+                                }),
+                                React.createElement("polyline", {
+                                  key: "path2",
+                                  points: "14,2 14,8 20,8",
+                                }),
+                                React.createElement("line", {
+                                  key: "path3",
+                                  x1: "16",
+                                  y1: "13",
+                                  x2: "8",
+                                  y2: "13",
+                                }),
+                                React.createElement("line", {
+                                  key: "path4",
+                                  x1: "16",
+                                  y1: "17",
+                                  x2: "8",
+                                  y2: "17",
+                                }),
+                                React.createElement("polyline", {
+                                  key: "path5",
+                                  points: "10,9 9,9 8,9",
+                                }),
+                              ]
+                            )
+                          ),
+                        ]
+                      );
+
+                      // Return both the drop zone and the label
+                      return [dropZone, sequenceLabel];
+                    })
+                : null,
+
+              // Sequence nodes and labels - self-messages now use SVG arrows only
+              ...positionedMessages.map((msg, index) => {
+                const stepY = 90;
+                const sequencedLabel = msg.label; // Use the already formatted label
+
+                if (msg.self) {
+                  const loopHeight = stepY * 0.8;
+                  return React.createElement(React.Fragment, { key: index }, [
+                    React.createElement(SequenceNode, {
+                      key: `activation-start-${index}`,
+                      actorIndex: msg.from,
+                      yPos: msg.yPos,
+                      color: actors[msg.from].color,
+                      actorsCount: actorsCount,
+                    }),
+                    React.createElement(SequenceNode, {
+                      key: `activation-end-${index}`,
+                      actorIndex: msg.from,
+                      yPos: msg.yPos + loopHeight,
+                      color: actors[msg.from].color,
+                      actorsCount: actorsCount,
+                    }),
+                    // Self-message label positioned to the right of the loop
+                    React.createElement(
                       "div",
                       {
-                        key: `sequence-label-${index}`,
+                        key: `self-label-${index}`,
                         className: "message-label sequence-label",
                         style: {
                           position: "absolute",
-                          left: `${midX}px`,
-                          top: `${msg.yPos - 35}px`,
-                          transform: "translateX(-50%)",
-                          maxWidth: "90%",
-                          textAlign: "center",
+                          left: `${msg.from * 180 + 90 + 90}px`, // Position to the right of the loop with more spacing
+                          top: `${msg.yPos + loopHeight / 2 - 12}px`, // Center vertically
+                          maxWidth: "200px",
+                          textAlign: "left",
                           zIndex: 5,
                           pointerEvents: "auto",
                         },
@@ -1793,7 +1965,7 @@ window.SequenceDiagramRenderer = {
                         title: "Double-click to edit",
                       },
                       [
-                        msg.label,
+                        sequencedLabel,
                         React.createElement(
                           "div",
                           {
@@ -1850,94 +2022,7 @@ window.SequenceDiagramRenderer = {
                           )
                         ),
                       ]
-                    );
-                  })
-                : null,
-
-              // Sequence nodes and labels - self-messages now use SVG arrows only
-              ...positionedMessages.map((msg, index) => {
-                const stepY = 90;
-                const sequencedLabel = msg.label; // Use the already formatted label
-
-                if (msg.self) {
-                  const loopHeight = stepY * 0.8;
-                  return React.createElement(React.Fragment, { key: index }, [
-                    React.createElement(SequenceNode, {
-                      key: `activation-start-${index}`,
-                      actorIndex: msg.from,
-                      yPos: msg.yPos,
-                      color: actors[msg.from].color,
-                      actorsCount: actorsCount,
-                    }),
-                    React.createElement(SequenceNode, {
-                      key: `activation-end-${index}`,
-                      actorIndex: msg.from,
-                      yPos: msg.yPos + loopHeight,
-                      color: actors[msg.from].color,
-                      actorsCount: actorsCount,
-                    }),
-                    // Self-message label positioned to the right of the loop
-                    React.createElement("div", {
-                      key: `self-label-${index}`,
-                      className: "message-label sequence-label",
-                      style: {
-                        position: "absolute",
-                        left: `${msg.from * 180 + 90 + 90}px`, // Position to the right of the loop with more spacing
-                        top: `${msg.yPos + loopHeight / 2 - 12}px`, // Center vertically
-                        maxWidth: "200px",
-                        textAlign: "left",
-                        zIndex: 5,
-                        pointerEvents: "auto"
-                      },
-                      "data-sequence-id": msg.sequenceId,
-                      "data-label-text": msg.labelText,
-                      title: "Double-click to edit"
-                    }, [
-                      sequencedLabel,
-                      React.createElement("div", {
-                        key: "icon-button",
-                        className: "sequence-icon-button",
-                        onClick: (e) => {
-                          e.stopPropagation();
-                          console.log(`SEQUENCE ICON CLICKED: ${msg.sequenceId}`);
-                          if (window.WorkflowArchitectEventBridge) {
-                            window.WorkflowArchitectEventBridge.handleSequenceClick(msg.sequenceId);
-                          }
-                        }
-                      }, React.createElement("svg", { 
-                        viewBox: "0 0 24 24", 
-                        fill: "none", 
-                        stroke: "currentColor", 
-                        strokeWidth: "2" 
-                      }, [
-                        React.createElement("path", { 
-                          key: "path1", 
-                          d: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" 
-                        }),
-                        React.createElement("polyline", { 
-                          key: "path2", 
-                          points: "14,2 14,8 20,8" 
-                        }),
-                        React.createElement("line", { 
-                          key: "path3", 
-                          x1: "16", 
-                          y1: "13", 
-                          x2: "8", 
-                          y2: "13" 
-                        }),
-                        React.createElement("line", { 
-                          key: "path4", 
-                          x1: "16", 
-                          y1: "17", 
-                          x2: "8", 
-                          y2: "17" 
-                        }),
-                        React.createElement("polyline", { 
-                          key: "path5", 
-                          points: "10,9 9,9 8,9" 
-                        })
-                      ]))
-                    ])
+                    ),
                   ]);
                 } else {
                   return React.createElement(React.Fragment, { key: index }, [
