@@ -2123,6 +2123,52 @@ window.SequenceDiagramRenderer = {
               }),
             ]
           ),
+
+          React.createElement(
+            "div",
+            {
+              key: "empty-workflows",
+              className: "empty-workflows-container",
+            },
+            (() => {
+              // 1. Get all workflow objects from the data store
+              const allWorkflows =
+                window.WorkflowArchitectDataStore.getWorkflowsArray();
+              // 2. Get IDs of workflows that are NOT empty (we know this from workflowBounds)
+              const populatedWorkflowIds = Object.keys(workflowBounds);
+              // 3. Filter to get the empty ones
+              const emptyWorkflows = allWorkflows
+                .filter((wf) => !populatedWorkflowIds.includes(wf.id))
+                .sort((a, b) => a.orderIndex - b.orderIndex);
+
+              // 4. Render a drop zone for each empty workflow
+              return emptyWorkflows.map((workflow) => {
+                return React.createElement(
+                  "div",
+                  {
+                    key: `empty-wf-${workflow.id}`,
+                    className: "empty-workflow-wrapper",
+                  },
+                  [
+                    React.createElement("h4", { key: "title" }, workflow.name),
+                    React.createElement(
+                      "div",
+                      {
+                        key: "drop-zone",
+                        className:
+                          "empty-workflow-drop-zone sequence-drop-zone", // Has BOTH classes
+                        "data-order-before": 0,
+                        "data-order-after": 20,
+                        "data-workflow-id": workflow.id,
+                        "data-subgroup-id": "",
+                      },
+                      React.createElement("span", null, "Drop Sequence Here")
+                    ),
+                  ]
+                );
+              });
+            })()
+          ),
         ]
       );
     };
