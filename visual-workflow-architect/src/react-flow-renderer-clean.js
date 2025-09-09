@@ -455,7 +455,7 @@ window.SequenceDiagramRenderer = {
         transform: translateY(-50%);
         transition: background-color 0.2s ease;
       }
-.sequence-drop-zone::before {
+   .sequence-drop-zone::before {
         content: '';
         position: absolute;
         width: 100%;
@@ -489,6 +489,14 @@ window.SequenceDiagramRenderer = {
       .sequence-drop-zone.drag-over::before,
       .sequence-drop-zone.drag-over::after {
         opacity: 1;
+      }
+      /* This class will be added by JS during a drag operation */
+      .sequence-drop-zone.drag-over::before {
+        opacity: 1;
+      }
+      /* This class will be added to the main container during a drag operation */
+      .diagram-container.sequence-drag-active .sequence-drop-zone {
+        pointer-events: auto; /* Make zones interactive ONLY during a drag */
       }
   .add-container-btn {
         width: 24px;
