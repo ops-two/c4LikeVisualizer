@@ -1602,7 +1602,7 @@ window.SequenceDiagramRenderer = {
                         ),
                       ]),
                       // Render SVG arrows - ONLY for non-self messages
-                      ...positionedMessages
+                      ...allPositionedMessages
                         .filter((msg) => !msg.self)
                         .map((msg, index) =>
                           React.createElement(SVGArrow, {
@@ -1615,7 +1615,7 @@ window.SequenceDiagramRenderer = {
                           })
                         ),
                       // Render SVG self-messages
-                      ...positionedMessages
+                      ...allPositionedMessages
                         .filter((msg) => msg.self)
                         .map((msg, index) =>
                           React.createElement(SVGSelfMessage, {
@@ -1633,7 +1633,7 @@ window.SequenceDiagramRenderer = {
               // Interactive HTML sequence labels overlay (when using SVG arrows) - ONLY for non-self messages
               // Interactive HTML sequence labels AND DROP ZONES (when using SVG arrows)
               USE_SVG_ARROWS
-                ? positionedMessages
+                ? allPositionedMessages
                     .filter((msg) => !msg.self)
                     .flatMap((msg, index, arr) => {
                       const startX = Math.min(msg.from, msg.to) * 180 + 90;
@@ -1753,7 +1753,7 @@ window.SequenceDiagramRenderer = {
                 : null,
 
               // Sequence nodes and labels - self-messages now use SVG arrows only
-              ...positionedMessages.map((msg, index) => {
+              ...allPositionedMessages.map((msg, index) => {
                 const stepY = 90;
                 const sequencedLabel = msg.label; // Use the already formatted label
 
