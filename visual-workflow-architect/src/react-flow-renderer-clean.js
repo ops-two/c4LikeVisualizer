@@ -1067,8 +1067,6 @@ window.SequenceDiagramRenderer = {
       }
     });
 
-    // Update container height based on content
-    // The final container height is now simply the last value of our incremental Y position.
     const finalContainerHeight = currentY;
     const actorsCount = actors.length;
 
