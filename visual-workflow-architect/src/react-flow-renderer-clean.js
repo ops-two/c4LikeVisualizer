@@ -953,8 +953,13 @@ window.SequenceDiagramRenderer = {
       id: container.id || container.container_id,
     }));
 
-    console.log("DEBUG - Actors created:", actors.length);
-    console.log("DEBUG - About to start sequence grouping...");
+    // --- PREPARATION FOR PHASE 1: UNIFIED WORKFLOW LAYOUT ---
+    const allWorkflowsSorted =
+      window.WorkflowArchitectDataStore.getWorkflowsArray();
+    let currentY = 130; // This will track our vertical layout position.
+    let allPositionedMessages = []; // This will store the final calculated positions of all sequences.
+    let allWorkflowBounds = {}; // This will store the final calculated bounds of all workflow backgrounds.
+    // --- END OF PREPARATION BLOCK ---
 
     // Group sequences by workflow and subgroup (nested structure)
     const groupSequencesByWorkflowAndSubgroup = (
