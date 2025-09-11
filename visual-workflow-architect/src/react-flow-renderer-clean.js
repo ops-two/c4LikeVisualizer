@@ -179,46 +179,51 @@ window.SequenceDiagramRenderer = {
         box-shadow: 0 2px 8px rgba(0,0,0,0.15);
       }
 
-      .add-container-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        background-color: transparent;
-        border: none;
-        color: #888;
-        border-radius: 4px;
-        font-size: 22px;
-        font-weight: normal;
-        line-height: 20px;
-        cursor: pointer;
-        z-index: 10;
-        opacity: 0;
-        transform: translateY(-50%) scale(0.8);
-        transition: opacity 0.15s ease-out, transform 0.15s ease-out, background-color 0.15s;
-        pointer-events: none;
-        top: 50%;
-        right: -40px;
-
-      }
-
-      .container-name:hover .add-container-btn {
-        opacity: 1;
-        transform: translateY(-50%) scale(1);
-        pointer-events: auto;
-      }
+     
 
       .add-container-btn:hover {
         background-color: #e9e9e9;
         color: #333;
       }
-
-     .container-name {
+        .container-name-wrapper {
         position: relative;
+        display: inline-block; /* Allows the wrapper to size to its content */
+      }
+
+      .add-container-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 1px solid #cccccc;
+        background-color: white;
+        color: #888888;
+        font-size: 18px;
         cursor: pointer;
-        padding: 2px 40px 2px 4px; /* FIX: Increased right padding to cover the button area */
+        transition: all 0.2s ease-in-out;
+        top: 50%;
+        /* Positioned relative to the new wrapper */
+        left: 100%; 
+        margin-left: 8px;
+        transform: translateY(-50%) scale(0.8);
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* The hover trigger is now on the WRAPPER */
+      .container-name-wrapper:hover .add-container-btn {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+        pointer-events: auto;
+      }
+
+      .container-name {
+        /* No longer needs to be relative or have extra padding */
+        cursor: pointer;
+        padding: 2px 4px;
         border-radius: 3px;
         transition: background-color 0.2s;
       }
@@ -1490,19 +1495,28 @@ window.SequenceDiagramRenderer = {
                   },
                   [
                     React.createElement(
-                      "h3",
+                      "div",
                       {
-                        key: "title",
-                        className: "container-name",
-                        "data-container-id": actor.id,
-                        style: {
-                          backgroundColor: actor.color + "20",
-                          borderColor: actor.color,
-                          color: actor.color,
-                        },
+                        key: "container-wrapper",
+                        className: "container-name-wrapper",
                       },
                       [
-                        actor.name,
+                        // The H3 now only contains the text
+                        React.createElement(
+                          "h3",
+                          {
+                            key: "title",
+                            className: "container-name",
+                            "data-container-id": actor.id,
+                            style: {
+                              backgroundColor: actor.color + "20",
+                              borderColor: actor.color,
+                              color: actor.color,
+                            },
+                          },
+                          actor.name
+                        ),
+                        // The button is now a sibling to the H3, inside the wrapper
                         React.createElement(
                           "button",
                           {
