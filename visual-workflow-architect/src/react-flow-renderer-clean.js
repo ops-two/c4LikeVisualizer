@@ -191,7 +191,7 @@ window.SequenceDiagramRenderer = {
 
       .add-container-btn {
         position: absolute; /* Positioned relative to the .container-name parent */
-        right: -36px; /* Position it inside the padding area */
+        right: -37px; /* Position it inside the padding area */
         top: 50%;
         transform: translateY(-50%); /* Center it vertically */
         
@@ -208,7 +208,7 @@ window.SequenceDiagramRenderer = {
         font-size: 18px;
         cursor: pointer;
         transition: all 0.2s ease-in-out;
-        
+        margin: 0 10px;
         opacity: 0;
         pointer-events: none;
       }
@@ -218,6 +218,8 @@ window.SequenceDiagramRenderer = {
         opacity: 1;
         pointer-events: auto;
       }
+
+     
 
       .container-icon-button {
         position: absolute;
