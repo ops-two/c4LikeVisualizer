@@ -1901,8 +1901,8 @@ window.SequenceDiagramRenderer = {
               // 1. Get all workflow objects from the data store
               const allWorkflows =
                 window.WorkflowArchitectDataStore.getWorkflowsArray();
-              // 2. Get IDs of workflows that are NOT empty (we know this from workflowBounds)
-              const populatedWorkflowIds = Object.keys(workflowBounds);
+              // 2. Get IDs of workflows that are NOT empty
+              const populatedWorkflowIds = Object.keys(allWorkflowBounds); // FIX: Use allWorkflowBounds
               // 3. Filter to get the empty ones
               const emptyWorkflows = allWorkflows
                 .filter((wf) => !populatedWorkflowIds.includes(wf.id))
