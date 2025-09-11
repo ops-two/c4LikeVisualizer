@@ -961,7 +961,7 @@ window.SequenceDiagramRenderer = {
     let allWorkflowBounds = {}; // This will store the final calculated bounds of all workflow backgrounds.
     // --- END OF PREPARATION BLOCK ---
     // --- PHASE 2: The New Unified Rendering Loop and its constants ---
-    const WORKFLOW_MARGIN = 40;
+    const WORKFLOW_MARGIN = 20;
     const WORKFLOW_PADDING_TOP = 50;
     const WORKFLOW_PADDING_BOTTOM = 70;
     const SEQUENCE_HEIGHT = 90;
@@ -1073,8 +1073,6 @@ window.SequenceDiagramRenderer = {
     console.log("DEBUG - Sequence grouping completed successfully");
 
     // Add margin between workflow groups and subgroups (matching mockup spacing)
-    const WORKFLOW_MARGIN = 20;
-    const SUBGROUP_MARGIN = 10;
 
     // Calculate workflow and subgroup boundaries from sequence positions
     const calculateNestedBounds = (workflowGroups, positionedMessages) => {
