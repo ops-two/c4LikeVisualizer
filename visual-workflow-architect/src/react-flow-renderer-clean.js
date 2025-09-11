@@ -875,13 +875,10 @@ window.SequenceDiagramRenderer = {
         {}
       );
     } else {
-      // Fallback if data store is not ready (should not happen in normal flow)
       containers = data.containers || [];
       allSequences = data.sequences || [];
       workflows = {};
       subgroups = {};
-      // Note: Raw Bubble data transformation logic is omitted here for clarity,
-      // as the data store should always be the primary source.
     }
 
     console.log("DEBUG - About to create actors...");
@@ -954,10 +951,12 @@ window.SequenceDiagramRenderer = {
           ...new Set(
             sequencesInWorkflow
               .flatMap((s) => {
-                const fromIndex = allContainers.findIndex(
+                const fromIndex = containers.findIndex(
+                  // FIX: Use 'containers'
                   (c) => c.id === s.fromContainerId
                 );
-                const toIndex = allContainers.findIndex(
+                const toIndex = containers.findIndex(
+                  // FIX: Use 'containers'
                   (c) => c.id === s.toContainerId
                 );
                 return [fromIndex, toIndex];
