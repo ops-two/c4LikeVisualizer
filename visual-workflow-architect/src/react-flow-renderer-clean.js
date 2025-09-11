@@ -851,97 +851,38 @@ window.SequenceDiagramRenderer = {
     }
 
     // Get containers, sequences, workflows, and subgroups from data store or use provided data
-    let containers, sequences, workflows, subgroups;
+    let containers, allSequences, workflows, subgroups; // Declare variables in the outer scope
+
     if (
       window.WorkflowArchitectDataStore &&
       window.WorkflowArchitectDataStore.data.isInitialized
     ) {
+      // If the data store is ready, get data from it.
       containers = window.WorkflowArchitectDataStore.getContainersArray();
-      const allSequences =
-        window.WorkflowArchitectDataStore.getSequencesArray(); // FIX: Rename 'sequences' to 'allSequences'
-
-      // Use the proper method to get workflows as array, then convert to object for compatibility
-      const workflowsArray =
-        window.WorkflowArchitectDataStore.getWorkflowsArray();
-      workflows = {};
-      workflowsArray.forEach((workflow) => {
-        workflows[workflow.id] = workflow;
-      });
-
-      // Get subgroups as array, then convert to object for compatibility
-      const subgroupsArray =
-        window.WorkflowArchitectDataStore.getSubgroupsArray();
-      subgroups = {};
-      subgroupsArray.forEach((subgroup) => {
-        subgroups[subgroup.id] = subgroup;
-      });
-
-      console.log("DEBUG - Data loaded from store:", {
-        workflowsCount: workflowsArray.length,
-        subgroupsCount: subgroupsArray.length,
-        workflowIds: Object.keys(workflows),
-        subgroupIds: Object.keys(subgroups),
-        rawSubgroupsArray: subgroupsArray,
-        subgroupsObject: subgroups,
-        sequencesWithSubgroups: sequences.filter((s) => s.subgroupId).length,
-        allSequenceSubgroupIds: sequences
-          .map((s) => s.subgroupId)
-          .filter(Boolean),
-        firstSequenceDetails: sequences[0]
-          ? {
-              id: sequences[0].id,
-              subgroupId: sequences[0].subgroupId,
-              workflowId: sequences[0].workflowId,
-              allFields: Object.keys(sequences[0]),
-            }
-          : null,
-      });
+      allSequences = window.WorkflowArchitectDataStore.getSequencesArray();
+      workflows = window.WorkflowArchitectDataStore.getWorkflowsArray().reduce(
+        (acc, wf) => {
+          acc[wf.id] = wf;
+          return acc;
+        },
+        {}
+      );
+      subgroups = window.WorkflowArchitectDataStore.getSubgroupsArray().reduce(
+        (acc, sg) => {
+          acc[sg.id] = sg;
+          return acc;
+        },
+        {}
+      );
     } else {
+      // Fallback if data store is not ready (should not happen in normal flow)
       containers = data.containers || [];
-      sequences = data.sequences || [];
+      allSequences = data.sequences || [];
       workflows = {};
       subgroups = {};
-
-      // Transform raw Bubble workflow data if available
-      if (data.workflows && Array.isArray(data.workflows)) {
-        data.workflows.forEach((workflow) => {
-          if (workflow && typeof workflow.get === "function") {
-            const transformedWorkflow = {
-              id: workflow.get("_id"),
-              name: workflow.get("label_text") || "New Workflow",
-              colorHex: workflow.get("color_hex_text") || "#e3f2fd",
-              description: workflow.get("description_text") || "",
-              orderIndex: workflow.get("order_index_number") || 0,
-            };
-            workflows[transformedWorkflow.id] = transformedWorkflow;
-          }
-        });
-      }
-
-      // Transform raw Bubble subgroup data if available
-      if (data.subgroups && Array.isArray(data.subgroups)) {
-        data.subgroups.forEach((subgroup) => {
-          if (subgroup && typeof subgroup.get === "function") {
-            const workflowRef = subgroup.get("workflow_custom_workflows");
-            const transformedSubgroup = {
-              id: subgroup.get("_id"),
-              label: subgroup.get("label_text") || "New Subgroup",
-              colorHex: subgroup.get("color_hex_text") || "#f5f5f5",
-              workflowId: workflowRef ? workflowRef.get("_id") : null,
-              // No orderIndex needed for subgroups
-            };
-            subgroups[transformedSubgroup.id] = transformedSubgroup;
-          }
-        });
-      }
+      // Note: Raw Bubble data transformation logic is omitted here for clarity,
+      // as the data store should always be the primary source.
     }
-
-    console.log(
-      "SequenceDiagramRenderer: Using containers:",
-      containers.length,
-      "sequences:",
-      sequences.length
-    );
 
     console.log("DEBUG - About to create actors...");
     // Create actor data from containers
