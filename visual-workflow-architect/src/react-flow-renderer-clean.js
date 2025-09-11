@@ -191,7 +191,7 @@ window.SequenceDiagramRenderer = {
 
       .add-container-btn {
         position: absolute; /* Positioned relative to the .container-name parent */
-        right: 8px; /* Position it inside the padding area */
+        right: -36px; /* Position it inside the padding area */
         top: 50%;
         transform: translateY(-50%); /* Center it vertically */
         
@@ -209,7 +209,6 @@ window.SequenceDiagramRenderer = {
         cursor: pointer;
         transition: all 0.2s ease-in-out;
         
-        /* Hide by default */
         opacity: 0;
         pointer-events: none;
       }
@@ -530,28 +529,7 @@ window.SequenceDiagramRenderer = {
       .diagram-container.sequence-drag-active .sequence-drop-zone {
         pointer-events: auto; /* Make zones interactive ONLY during a drag */
       }
-  .add-container-btn {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        border: 1px solid #cccccc;
-        background-color: white;
-        color: #888888;
-        font-size: 18px;
-        font-weight: bold;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 10px;
-        transition: all 0.2s ease-in-out;
-      }
-      .add-container-btn:hover {
-        background-color: #f0f0f0;
-        border-color: #aaaaaa;
-        color: #333333;
-      }
-
+ 
     `;
     document.head.appendChild(style);
   },
