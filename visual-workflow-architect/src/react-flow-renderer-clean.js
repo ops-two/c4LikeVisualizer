@@ -215,8 +215,12 @@ window.SequenceDiagramRenderer = {
         color: #333;
       }
 
-      .container-name {
+     .container-name {
         position: relative;
+        cursor: pointer;
+        padding: 2px 40px 2px 4px; /* FIX: Increased right padding to cover the button area */
+        border-radius: 3px;
+        transition: background-color 0.2s;
       }
 
       .container-icon-button {
