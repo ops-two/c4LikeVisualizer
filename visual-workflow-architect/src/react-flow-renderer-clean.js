@@ -179,22 +179,26 @@ window.SequenceDiagramRenderer = {
         box-shadow: 0 2px 8px rgba(0,0,0,0.15);
       }
 
-     
-
-      .add-container-btn:hover {
-        background-color: #e9e9e9;
-        color: #333;
-      }
-        .container-name-wrapper {
-        position: relative;
-        display: inline-block; /* Allows the wrapper to size to its content */
+    .container-name {
+        position: relative; /* Essential for positioning the child button */
+        cursor: pointer;
+        padding: 8px 32px 8px 16px; /* Create a "fat" parent with space on the right */
+        border-radius: 6px;
+        transition: background-color 0.2s;
+        display: inline-flex; /* Helps with vertical alignment */
+        align-items: center;
       }
 
       .add-container-btn {
+        position: absolute; /* Positioned relative to the .container-name parent */
+        right: 8px; /* Position it inside the padding area */
+        top: 50%;
+        transform: translateY(-50%); /* Center it vertically */
+        
+        /* Standard styles for the button */
         display: flex;
         align-items: center;
         justify-content: center;
-        position: absolute;
         width: 24px;
         height: 24px;
         border-radius: 50%;
@@ -204,28 +208,16 @@ window.SequenceDiagramRenderer = {
         font-size: 18px;
         cursor: pointer;
         transition: all 0.2s ease-in-out;
-        top: 50%;
-        /* Positioned relative to the new wrapper */
-        left: 100%; 
-        margin-left: 8px;
-        transform: translateY(-50%) scale(0.8);
+        
+        /* Hide by default */
         opacity: 0;
         pointer-events: none;
       }
-
-      /* The hover trigger is now on the WRAPPER */
-      .container-name-wrapper:hover .add-container-btn {
+      
+      /* The hover trigger is now back on the container-name itself */
+      .container-name:hover .add-container-btn {
         opacity: 1;
-        transform: translateY(-50%) scale(1);
         pointer-events: auto;
-      }
-
-      .container-name {
-        /* No longer needs to be relative or have extra padding */
-        cursor: pointer;
-        padding: 2px 4px;
-        border-radius: 3px;
-        transition: background-color 0.2s;
       }
 
       .container-icon-button {
@@ -1495,28 +1487,20 @@ window.SequenceDiagramRenderer = {
                   },
                   [
                     React.createElement(
-                      "div",
+                      "h3",
                       {
-                        key: "container-wrapper",
-                        className: "container-name-wrapper",
+                        key: "title",
+                        className: "container-name",
+                        "data-container-id": actor.id,
+                        style: {
+                          backgroundColor: actor.color + "20",
+                          borderColor: actor.color,
+                          color: actor.color,
+                        },
                       },
                       [
-                        // The H3 now only contains the text
-                        React.createElement(
-                          "h3",
-                          {
-                            key: "title",
-                            className: "container-name",
-                            "data-container-id": actor.id,
-                            style: {
-                              backgroundColor: actor.color + "20",
-                              borderColor: actor.color,
-                              color: actor.color,
-                            },
-                          },
-                          actor.name
-                        ),
-                        // The button is now a sibling to the H3, inside the wrapper
+                        // The button is now back inside the H3
+                        actor.name,
                         React.createElement(
                           "button",
                           {
