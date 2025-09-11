@@ -908,33 +908,27 @@ window.SequenceDiagramRenderer = {
     for (const id in sequencesByWorkflow) {
       const sequences = sequencesByWorkflow[id];
       if (id === "ungrouped") {
-        // These are individual, ungrouped sequences
-        sequences.forEach((seq) => {
+        sequences.forEach((seq) =>
           renderList.push({
             type: "SEQUENCE",
             data: seq,
             sortKey: seq.orderIndex,
-          });
-        });
+          })
+        );
       } else {
-        // This is a block of sequences belonging to a workflow
         const workflow = window.WorkflowArchitectDataStore.getWorkflow(id);
         if (workflow) {
-          // Sort sequences within the workflow block
           sequences.sort((a, b) => a.orderIndex - b.orderIndex);
           renderList.push({
             type: "WORKFLOW_BLOCK",
             data: { workflow: workflow, sequences: sequences },
-            sortKey: sequences[0].orderIndex, // Sort the whole block by its first sequence
+            sortKey: sequences[0].orderIndex,
           });
         }
       }
     }
-
-    // Globally sort the render list
     renderList.sort((a, b) => a.sortKey - b.sortKey);
 
-    // --- PHASE 2: NEW LAYOUT CALCULATION LOOPS ---
     let currentY = 130;
     let allPositionedMessages = [];
     let allWorkflowBounds = {};
@@ -942,7 +936,14 @@ window.SequenceDiagramRenderer = {
     const WORKFLOW_PADDING_TOP = 50;
     const WORKFLOW_PADDING_BOTTOM = 70;
     const SEQUENCE_HEIGHT = 90;
-
+    const allWorkflowObjects =
+      window.WorkflowArchitectDataStore.getWorkflowsArray();
+    const populatedWorkflowIds = Object.keys(sequencesByWorkflow).filter(
+      (id) => id !== "ungrouped"
+    );
+    const emptyWorkflows = allWorkflowObjects
+      .filter((wf) => !populatedWorkflowIds.includes(wf.id))
+      .sort((a, b) => a.orderIndex - b.orderIndex);
     // Loop 1: Process the interleaved list of sequences and populated workflow blocks
     renderList.forEach((item) => {
       const startY = currentY;
