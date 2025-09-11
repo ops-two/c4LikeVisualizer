@@ -1435,62 +1435,6 @@ window.SequenceDiagramRenderer = {
                 }
               }),
 
-              // Subgroup backgrounds (render after workflows, before actor lanes)
-              ...Object.keys(subgroupBounds).map((subgroupId) => {
-                return React.createElement(
-                  "div",
-                  {
-                    key: `subgroup-${subgroupId}`,
-                    className: "subgroup-background",
-                    style: {
-                      left: `${subgroupBounds[subgroupId].x}px`,
-                      top: `${subgroupBounds[subgroupId].y}px`,
-                      width: `${subgroupBounds[subgroupId].width}px`,
-                      height: `${subgroupBounds[subgroupId].height}px`,
-                      backgroundColor:
-                        (subgroupBounds[subgroupId].subgroup.colorHex ||
-                          "#f5f5f5") + "26", // 0.15 opacity in hex
-                      borderColor:
-                        (subgroupBounds[subgroupId].subgroup.colorHex ||
-                          "#f5f5f5") + "80", // 0.5 opacity for better visibility
-                      borderStyle: "dashed", // Dashed border for visual distinction
-                      borderWidth: "2px",
-                      borderRadius: "8px",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                      zIndex: 10, // Above workflows but below sequences
-                      pointerEvents: "none", // Disable interaction
-                    },
-                  },
-                  [
-                    React.createElement(
-                      "div",
-                      {
-                        key: "label",
-                        className: "subgroup-label",
-                        style: {
-                          backgroundColor:
-                            subgroupBounds[subgroupId].subgroup.colorHex ||
-                            "#9e9e9e",
-                          color: "#fff",
-                          fontSize: "11px",
-                          fontWeight: "600",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                          padding: "4px 8px",
-                          borderRadius: "4px",
-                          position: "absolute",
-                          top: "-12px",
-                          left: "8px",
-                          boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-                          pointerEvents: "none",
-                        },
-                      },
-                      subgroupBounds[subgroupId].subgroup.label || "Subgroup"
-                    ),
-                  ]
-                );
-              }),
-
               // Actor lanes
               ...actors.map((actor, index) =>
                 React.createElement(
