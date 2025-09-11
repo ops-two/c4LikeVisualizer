@@ -960,53 +960,112 @@ window.SequenceDiagramRenderer = {
     let allPositionedMessages = []; // This will store the final calculated positions of all sequences.
     let allWorkflowBounds = {}; // This will store the final calculated bounds of all workflow backgrounds.
     // --- END OF PREPARATION BLOCK ---
+    // --- PHASE 2: The New Unified Rendering Loop and its constants ---
+    const WORKFLOW_MARGIN = 40;
+    const WORKFLOW_PADDING_TOP = 50;
+    const WORKFLOW_PADDING_BOTTOM = 70;
+    const SEQUENCE_HEIGHT = 90;
 
-    // Group sequences by workflow and subgroup (nested structure)
-    const groupSequencesByWorkflowAndSubgroup = (
-      sequences,
-      workflows,
-      subgroups
-    ) => {
-      const workflowGroups = {};
-      const ungroupedSequences = [];
+    allWorkflowsSorted.forEach((workflow) => {
+      const sequencesInWorkflow = allSequences.filter(
+        (s) => s.workflowId === workflow.id
+      );
 
-      sequences.forEach((sequence) => {
-        if (sequence.workflowId && workflows[sequence.workflowId]) {
-          // Initialize workflow group if not exists
-          if (!workflowGroups[sequence.workflowId]) {
-            workflowGroups[sequence.workflowId] = {
-              workflow: workflows[sequence.workflowId],
-              subgroups: {},
-              ungroupedSequences: [],
-            };
-          }
+      if (sequencesInWorkflow.length > 0) {
+        // --- LOGIC FOR POPULATED WORKFLOWS ---
+        const startY = currentY;
 
-          const workflowGroup = workflowGroups[sequence.workflowId];
+        // A. Position the sequences that belong to this workflow
+        sequencesInWorkflow.forEach((sequence, index) => {
+          const fromActor = actors.find(
+            (a) => a.id === sequence.fromContainerId
+          );
+          const toActor = actors.find((a) => a.id === sequence.toContainerId);
+          if (!fromActor || !toActor) return; // Skip if actors are missing
 
-          if (sequence.subgroupId && subgroups[sequence.subgroupId]) {
-            // Sequence belongs to a subgroup within this workflow
-            if (!workflowGroup.subgroups[sequence.subgroupId]) {
-              workflowGroup.subgroups[sequence.subgroupId] = {
-                subgroup: subgroups[sequence.subgroupId],
-                sequences: [],
-              };
-            }
-            workflowGroup.subgroups[sequence.subgroupId].sequences.push(
-              sequence
-            );
-          } else {
-            // Sequence belongs to workflow but no subgroup
-            workflowGroup.ungroupedSequences.push(sequence);
-          }
-        } else {
-          // Sequence has no workflow
-          ungroupedSequences.push(sequence);
-        }
-      });
+          // The visible number should be based on the total count of sequences rendered so far
+          const positionalIndex = allPositionedMessages.length + 1;
+          let labelText = (sequence.label || "Sequence").replace(
+            /^\d+\.\s*/,
+            ""
+          );
+          const isSelfMessage = fromActor.id === toActor.id;
 
-      return { workflowGroups, ungroupedSequences };
-    };
+          allPositionedMessages.push({
+            originalOrderIndex: sequence.orderIndex,
+            label: `${positionalIndex}. ${labelText}`,
+            labelText: labelText,
+            // The Y position is based on the workflow's startY and the sequence's local index
+            yPos: startY + WORKFLOW_PADDING_TOP + index * SEQUENCE_HEIGHT,
+            from: actors.indexOf(fromActor),
+            to: actors.indexOf(toActor),
+            self: isSelfMessage,
+            dashed: sequence.isDashed || false,
+            sequenceId: sequence.id,
+            workflowId: sequence.workflowId,
+            subgroupId: sequence.subgroupId,
+          });
+        });
 
+        // B. Calculate this workflow's background bounds
+        const actorIndicesInWorkflow = [
+          ...new Set(
+            sequencesInWorkflow
+              .flatMap((s) => {
+                const fromIndex = allContainers.findIndex(
+                  (c) => c.id === s.fromContainerId
+                );
+                const toIndex = allContainers.findIndex(
+                  (c) => c.id === s.toContainerId
+                );
+                return [fromIndex, toIndex];
+              })
+              .filter((i) => i !== -1)
+          ),
+        ];
+
+        const minActor = Math.min(...actorIndicesInWorkflow);
+        const maxActor = Math.max(...actorIndicesInWorkflow);
+        const PADDING = 20;
+        const minX = minActor * 180 + 10 - PADDING;
+        const maxX = maxActor * 180 + 100 + PADDING;
+        const workflowHeight =
+          WORKFLOW_PADDING_TOP +
+          sequencesInWorkflow.length * SEQUENCE_HEIGHT +
+          WORKFLOW_PADDING_BOTTOM -
+          SEQUENCE_HEIGHT;
+
+        allWorkflowBounds[workflow.id] = {
+          x: minX,
+          y: startY,
+          width: maxX - minX,
+          height: workflowHeight,
+          workflow: workflow,
+        };
+
+        // C. Update the master Y position for the next workflow
+        currentY += workflowHeight + WORKFLOW_MARGIN;
+      } else {
+        // --- LOGIC FOR EMPTY WORKFLOWS ---
+        const EMPTY_WORKFLOW_HEIGHT = 100;
+        const startY = currentY;
+
+        // A. Create the bounds for the empty workflow's background and drop zone.
+        allWorkflowBounds[workflow.id] = {
+          x: 10,
+          y: startY,
+          width: "calc(100% - 20px)",
+          height: EMPTY_WORKFLOW_HEIGHT,
+          workflow: workflow,
+          // Add a flag so the renderer knows to use the special "empty" component.
+          isEmpty: true,
+        };
+
+        // B. Update the master Y position for the next workflow.
+        currentY += EMPTY_WORKFLOW_HEIGHT + WORKFLOW_MARGIN;
+      }
+    });
+    // --- END OF NEW MASTER LOOP ---
     // Group sequences by workflow and subgroup
     console.log("DEBUG - Calling groupSequencesByWorkflowAndSubgroup...");
     const { workflowGroups, ungroupedSequences } =
@@ -1192,17 +1251,8 @@ window.SequenceDiagramRenderer = {
     });
 
     // Update container height based on content
-    // Calculate max order index for height calculation using actual sequence data
-    const maxOrderIndex =
-      sequences.length > 0
-        ? Math.max(...sequences.map((seq) => seq.orderIndex || 1))
-        : 1;
-
-    const finalContainerHeight =
-      sequences.length > 0
-        ? 130 + (sequences.length - 1) * 90 + 90 + 80 // Base + (last item pos) + (last item height) + (buffer)
-        : 400;
-
+    // The final container height is now simply the last value of our incremental Y position.
+    const finalContainerHeight = currentY;
     const actorsCount = actors.length;
 
     // Phase 4: Feature flag for SVG arrows (set to true to use new system)
@@ -1557,26 +1607,63 @@ window.SequenceDiagramRenderer = {
             },
             [
               // Workflow backgrounds (render first, behind everything)
-              ...Object.keys(workflowBounds).map((workflowId) =>
-                React.createElement(
-                  "div",
-                  {
-                    key: `workflow-${workflowId}`,
-                    className: "workflow-background",
-                    style: {
-                      left: `${workflowBounds[workflowId].x}px`,
-                      top: `${workflowBounds[workflowId].y}px`,
-                      width: `${workflowBounds[workflowId].width}px`,
-                      height: `${workflowBounds[workflowId].height}px`,
-                      backgroundColor:
-                        (workflowBounds[workflowId].workflow.colorHex ||
-                          "#e3f2fd") + "1A", // 0.10 opacity in hex
-                      borderColor:
-                        (workflowBounds[workflowId].workflow.colorHex ||
-                          "#e3f2fd") + "33", // 0.2 opacity in hex
+              // --- NEW: RENDER ALL WORKFLOW BACKGROUNDS (POPULATED AND EMPTY) ---
+              ...Object.values(allWorkflowBounds).map((bounds) => {
+                if (bounds.isEmpty) {
+                  // Render the new integrated "empty workflow" component
+                  return React.createElement(
+                    "div",
+                    {
+                      key: `empty-wf-bg-${bounds.workflow.id}`,
+                      className: "empty-workflow-wrapper",
+                      style: {
+                        position: "absolute",
+                        top: `${bounds.y}px`,
+                        left: `${bounds.x}px`,
+                        width: bounds.width,
+                        height: `${bounds.height}px`,
+                        backgroundColor: bounds.workflow.colorHex || "#f0f4f8",
+                      },
                     },
-                  },
-                  [
+                    [
+                      React.createElement(
+                        "h4",
+                        { key: "title" },
+                        bounds.workflow.name
+                      ),
+                      React.createElement(
+                        "div",
+                        {
+                          key: "drop-zone",
+                          className:
+                            "empty-workflow-drop-zone sequence-drop-zone",
+                          "data-order-before": 0,
+                          "data-order-after": 20,
+                          "data-workflow-id": bounds.workflow.id,
+                          "data-subgroup-id": "",
+                        },
+                        React.createElement("span", null, "Drop Sequence Here")
+                      ),
+                    ]
+                  );
+                } else {
+                  // Render the standard "populated workflow" background
+                  return React.createElement(
+                    "div",
+                    {
+                      key: `workflow-${bounds.workflow.id}`,
+                      className: "workflow-background",
+                      style: {
+                        left: `${bounds.x}px`,
+                        top: `${bounds.y}px`,
+                        width: `${bounds.width}px`,
+                        height: `${bounds.height}px`,
+                        backgroundColor:
+                          (bounds.workflow.colorHex || "#e3f2fd") + "1A",
+                        borderColor:
+                          (bounds.workflow.colorHex || "#e3f2fd") + "33",
+                      },
+                    },
                     React.createElement(
                       "div",
                       {
@@ -1584,15 +1671,14 @@ window.SequenceDiagramRenderer = {
                         className: "workflow-label",
                         style: {
                           backgroundColor:
-                            workflowBounds[workflowId].workflow.colorHex ||
-                            "#4caf50",
+                            bounds.workflow.colorHex || "#4caf50",
                         },
                       },
-                      workflowBounds[workflowId].workflow.name || "Workflow"
-                    ),
-                  ]
-                )
-              ),
+                      bounds.workflow.name || "Workflow"
+                    )
+                  );
+                }
+              }),
 
               // Subgroup backgrounds (render after workflows, before actor lanes)
               ...Object.keys(subgroupBounds).map((subgroupId) => {
