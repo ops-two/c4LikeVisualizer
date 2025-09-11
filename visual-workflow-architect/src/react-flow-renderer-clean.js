@@ -214,22 +214,16 @@ window.SequenceDiagramRenderer = {
       }
       
       /* The hover trigger is now back on the container-name itself */
-      .container-name:hover .add-container-btn {
-        opacity: 1;
-        pointer-events: auto;
-      }
-
-     
-
-      .container-icon-button {
+     .container-icon-button {
         position: absolute;
-        top: 4px;
-        right: 30px;
-        width: 16px;
-        height: 16px;
+        right: 35px; /* Position it to the left of the '+' button */
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
         background: rgba(255, 255, 255, 0.9);
         border: 1px solid #ddd;
-        border-radius: 3px;
+        border-radius: 4px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -238,8 +232,6 @@ window.SequenceDiagramRenderer = {
         cursor: pointer;
         z-index: 15;
         pointer-events: none;
-        right: 8px;
-        top: 8px;
       }
 
       .container-name:hover .container-icon-button {
@@ -250,7 +242,11 @@ window.SequenceDiagramRenderer = {
       .container-icon-button:hover {
         background-color: #f5f5f5;
       }
-
+      
+      .container-icon-button svg {
+          width: 14px;
+          height: 14px;
+      }
       .sequence-icon-button {
         position: absolute;
         width: 16px;
@@ -1484,6 +1480,43 @@ window.SequenceDiagramRenderer = {
                           "span",
                           { key: "actor-name" },
                           actor.name
+                        ),
+                        React.createElement(
+                          "div",
+                          {
+                            key: `doc-icon-${actor.id}`,
+                            className: "container-icon-button",
+                            onClick: (e) => {
+                              e.stopPropagation();
+                              console.log(
+                                `CONTAINER ICON CLICKED: ${actor.id}`
+                              );
+                              if (window.WorkflowArchitectEventBridge) {
+                                window.WorkflowArchitectEventBridge.handleContainerClick(
+                                  actor.id
+                                );
+                              }
+                            },
+                          },
+                          React.createElement(
+                            "svg",
+                            {
+                              viewBox: "0 0 24 24",
+                              fill: "none",
+                              stroke: "currentColor",
+                              strokeWidth: "2",
+                            },
+                            [
+                              React.createElement("path", {
+                                key: "path1",
+                                d: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z",
+                              }),
+                              React.createElement("polyline", {
+                                key: "path2",
+                                points: "14,2 14,8 20,8",
+                              }),
+                            ]
+                          )
                         ),
                         React.createElement(
                           "button",
