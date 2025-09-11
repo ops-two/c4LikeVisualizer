@@ -1499,8 +1499,12 @@ window.SequenceDiagramRenderer = {
                         },
                       },
                       [
-                        // The button is now back inside the H3
-                        actor.name,
+                        // Wrap the text in a span for better layout control
+                        React.createElement(
+                          "span",
+                          { key: "actor-name" },
+                          actor.name
+                        ),
                         React.createElement(
                           "button",
                           {
