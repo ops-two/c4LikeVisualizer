@@ -125,7 +125,7 @@ window.WorkflowArchitectSequenceDragDrop = {
         zone.classList.remove("drag-over");
       });
 
-      zone.addEventListener("drop", (e) => {
+      zone.addEventListener("drop", e => {
         e.preventDefault();
         e.stopPropagation();
         zone.classList.remove("drag-over");
@@ -133,58 +133,49 @@ window.WorkflowArchitectSequenceDragDrop = {
         if (!this.draggedSequence || this.isProcessing) return;
 
         try {
-          this.isProcessing = true;
-          const draggedId = this.draggedSequence.dataset.sequenceId;
+            this.isProcessing = true;
+            const draggedId = this.draggedSequence.dataset.sequenceId;
+            
+            // 1. Read the new position and parent info directly from the drop zone.
+            const orderBefore = parseFloat(zone.dataset.orderBefore);
+            const orderAfter = parseFloat(zone.dataset.orderAfter);
+            const newOrderValue = (orderBefore + orderAfter) / 2;
+            const newWorkflowId = zone.dataset.workflowId || null;
+            const newSubgroupId = zone.dataset.subgroupId || null;
 
-          // 1. Read the pre-calculated order values directly from the drop zone.
-          const orderBefore = parseFloat(zone.dataset.orderBefore);
-          const orderAfter = parseFloat(zone.dataset.orderAfter);
-          const newOrderValue = (orderBefore + orderAfter) / 2;
+            // 2. --- FIX: Perform the optimistic UI update FIRST ---
+            // This ensures the data store has the correct, new information.
+            const localSeq = window.WorkflowArchitectDataStore.getSequence(draggedId);
+            if (localSeq) {
+                localSeq.orderIndex = newOrderValue;
+                localSeq.workflowId = newWorkflowId;
+                localSeq.subgroupId = newSubgroupId;
+            }
+            
+            // 3. --- NOW, prepare the payload from the UPDATED data ---
+            const fullSequenceData = window.WorkflowArchitectDataStore.getSequenceForUpdate(draggedId);
 
-          // 2. Read the parent workflow/subgroup info from the drop zone.
-          const newWorkflowId = zone.dataset.workflowId;
-          const newSubgroupId = zone.dataset.subgroupId || null; // Handle empty subgroup
+            const payload = {
+                entityType: "sequence",
+                entityId: draggedId,
+                fieldName: "order_index_and_parents",
+                newValue: newOrderValue,
+                allData: fullSequenceData, // This will now contain the correct new workflowId
+                // Add top-level keys for easy backend parsing
+                order_index: newOrderValue,
+                workflowId: newWorkflowId,
+                subgroupId: newSubgroupId
+            };
 
-          // 3. Prepare the complete payload for Bubble.
-          const fullSequenceData =
-            window.WorkflowArchitectDataStore.getSequenceForUpdate(draggedId);
-          if (fullSequenceData) {
-            fullSequenceData.order_index = newOrderValue;
-            fullSequenceData.workflow_custom_workflows = newWorkflowId;
-            fullSequenceData.subgroup_custom_subgroup = newSubgroupId;
-          }
-
-          const payload = {
-            entityType: "sequence",
-            entityId: draggedId,
-            fieldName: "order_index_and_parents", // A comprehensive name for the update
-            newValue: newOrderValue,
-            allData: fullSequenceData,
-          };
-
-          // 4. Perform optimistic UI update.
-          window.WorkflowArchitectDataStore.updateSequenceOrder(
-            draggedId,
-            newOrderValue,
-            newSubgroupId
-          );
-          const localSeq =
-            window.WorkflowArchitectDataStore.getSequence(draggedId);
-          if (localSeq) {
-            localSeq.workflowId = newWorkflowId; // Ensure workflow is also updated locally
-          }
-
-          // 5. Dispatch events to re-render and save to Bubble.
-          document.dispatchEvent(
-            new CustomEvent("workflow-architect:rerender", { detail: {} })
-          );
-          if (window.WorkflowArchitectEventBridge) {
-            window.WorkflowArchitectEventBridge.handleSequenceDragDrop(payload);
-          }
+            // 4. Dispatch events to re-render and save to Bubble.
+            document.dispatchEvent(new CustomEvent("workflow-architect:rerender", { detail: {} }));
+            if (window.WorkflowArchitectEventBridge) {
+                window.WorkflowArchitectEventBridge.handleSequenceDragDrop(payload);
+            }
         } catch (error) {
-          console.error("Error during sequence drop:", error);
+            console.error("Error during sequence drop:", error);
         } finally {
-          this.isProcessing = false;
+            this.isProcessing = false;
         }
       });
     });
