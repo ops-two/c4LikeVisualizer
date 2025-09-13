@@ -188,7 +188,7 @@ window.SequenceDiagramRenderer = {
       .actor-lane h3.container-name {
         /* The visible box */
         margin-top: 0;
-        padding: 8px 30px 8px 16px; /* Add padding on the right for the doc icon to appear in */
+        padding: 8px 16px 8px 16px; /* Add padding on the right for the doc icon to appear in */
         max-width: 170px;
         text-align: center;
         border-radius: 6px;
@@ -208,12 +208,11 @@ window.SequenceDiagramRenderer = {
         /* Positioned absolutely, relative to the wrapper */
         position: absolute;
         top: 50%;
-        right: 8px; /* Position INSIDE the h3's padding area */
+        right: 4px; /* Position INSIDE the h3's padding area */
         transform: translateY(-50%);
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.2s ease-in-out;
-        /* Visuals */
         width: 24px; 
         height: 24px; 
         border-radius: 50%; 
@@ -252,11 +251,12 @@ window.SequenceDiagramRenderer = {
         line-height: 1;
       }
 
-      /* THE HOVER TRIGGER IS THE MASTER WRAPPER */
-      .container-master-wrapper:hover .container-icon-button,
-      .container-master-wrapper:hover .add-container-btn {
+      /* VISIBILITY IS NOW CONTROLLED BY THIS JS-ADDED CLASS */
+      .container-master-wrapper.is-visible .container-icon-button,
+      .container-master-wrapper.is-visible .add-container-btn {
         opacity: 1;
         pointer-events: auto;
+        transform: translateY(-50%) scale(1); /* Ensure this is present for the '+' icon */
       }
       
       .container-icon-button svg {
@@ -818,6 +818,44 @@ window.SequenceDiagramRenderer = {
   },
 
   // Step 5: Main render function
+  // JavaScript logic to handle hover with delay
+  initContainerHoverLogic: function(container) {
+    const wrappers = container.querySelectorAll('.container-master-wrapper');
+    wrappers.forEach(wrapper => {
+      // Prevent adding listeners multiple times
+      if (wrapper.dataset.hoverInit === 'true') return;
+      wrapper.dataset.hoverInit = 'true';
+
+      const docIcon = wrapper.querySelector('.container-icon-button');
+      const addBtn = wrapper.querySelector('.add-container-btn');
+      let hideTimer;
+
+      const showIcons = () => {
+        clearTimeout(hideTimer);
+        wrapper.classList.add('is-visible');
+      };
+
+      const startHideTimer = () => {
+        hideTimer = setTimeout(() => {
+          wrapper.classList.remove('is-visible');
+        }, 100); // 100ms delay
+      };
+
+      wrapper.addEventListener('mouseenter', showIcons);
+      wrapper.addEventListener('mouseleave', startHideTimer);
+
+      // Make the icons "self-aware"
+      if (docIcon) {
+        docIcon.addEventListener('mouseenter', showIcons);
+        docIcon.addEventListener('mouseleave', startHideTimer);
+      }
+      if (addBtn) {
+        addBtn.addEventListener('mouseenter', showIcons);
+        addBtn.addEventListener('mouseleave', startHideTimer);
+      }
+    });
+  },
+
   render: function (data, targetElement) {
     console.log(
       "SequenceDiagramRenderer: Rendering proper sequence diagram",
@@ -1501,55 +1539,70 @@ window.SequenceDiagramRenderer = {
                             },
                           },
                           [
-                            React.createElement('span', { 
-                              key: 'actor-name' 
-                            }, actor.name)
+                            React.createElement(
+                              "span",
+                              {
+                                key: "actor-name",
+                              },
+                              actor.name
+                            ),
                           ]
                         ),
                         // 2. The Document Icon - sibling to the H3.
-                        React.createElement('div', {
+                        React.createElement(
+                          "div",
+                          {
                             key: `doc-icon-${actor.id}`,
-                            className: 'container-icon-button',
-                            onClick: (e) => { 
-                              e.stopPropagation(); 
-                              if (window.WorkflowArchitectEventBridge) { 
-                                window.WorkflowArchitectEventBridge.handleContainerClick(actor.id); 
-                              } 
-                            }
-                        }, 
-                          React.createElement('svg', { 
-                            viewBox: '0 0 24 24', 
-                            fill: 'none', 
-                            stroke: 'currentColor', 
-                            strokeWidth: '2' 
-                          }, [
-                            React.createElement('path', { 
-                              key: 'path1', 
-                              d: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z' 
-                            }),
-                            React.createElement('polyline', { 
-                              key: 'path2', 
-                              points: '14,2 14,8 20,8' 
-                            })
-                          ])
+                            className: "container-icon-button",
+                            onClick: (e) => {
+                              e.stopPropagation();
+                              if (window.WorkflowArchitectEventBridge) {
+                                window.WorkflowArchitectEventBridge.handleContainerClick(
+                                  actor.id
+                                );
+                              }
+                            },
+                          },
+                          React.createElement(
+                            "svg",
+                            {
+                              viewBox: "0 0 24 24",
+                              fill: "none",
+                              stroke: "currentColor",
+                              strokeWidth: "2",
+                            },
+                            [
+                              React.createElement("path", {
+                                key: "path1",
+                                d: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z",
+                              }),
+                              React.createElement("polyline", {
+                                key: "path2",
+                                points: "14,2 14,8 20,8",
+                              }),
+                            ]
+                          )
                         ),
                         // 3. The Plus Button - sibling to the H3.
-                        React.createElement( 
-                          "button", 
-                          { 
-                            key: `add-btn-${index}`, 
-                            className: "add-container-btn", 
-                            title: "Add container after", 
-                            onClick: (e) => { 
-                              e.stopPropagation(); 
-                              handleAddContainerAfter(index); 
-                            } 
-                          }, 
+                        React.createElement(
+                          "button",
+                          {
+                            key: `add-btn-${index}`,
+                            className: "add-container-btn",
+                            title: "Add container after",
+                            onClick: (e) => {
+                              e.stopPropagation();
+                              handleAddContainerAfter(index);
+                            },
+                          },
                           "+"
                         ),
                       ]
                     ),
-                    React.createElement("div", { key: "lifeline", className: "lifeline" }),
+                    React.createElement("div", {
+                      key: "lifeline",
+                      className: "lifeline",
+                    }),
                   ]
                 )
               ),
@@ -1729,13 +1782,16 @@ window.SequenceDiagramRenderer = {
           "SequenceDiagramRenderer: Successfully rendered sequence diagram"
         );
 
-        // Initialize drag and drop functionality (following storymap pattern)
-        if (window.WorkflowArchitectSequenceDragDrop) {
-          setTimeout(() => {
+        // Initialize interactive modules
+        setTimeout(() => {
+          if (window.WorkflowArchitectSequenceDragDrop) {
             window.WorkflowArchitectSequenceDragDrop.init(container);
             console.log("SequenceDiagramRenderer: Drag and drop initialized");
-          }, 100); // Small delay to ensure DOM is ready
-        }
+          }
+          // Initialize hover logic
+          this.initContainerHoverLogic(container);
+          console.log("SequenceDiagramRenderer: Container hover logic initialized");
+        }, 100); // Small delay to ensure DOM is ready
       } else {
         console.error("SequenceDiagramRenderer: Target container not found");
       }
