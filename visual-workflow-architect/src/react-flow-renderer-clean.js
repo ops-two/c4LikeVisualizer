@@ -186,69 +186,67 @@ window.SequenceDiagramRenderer = {
       }
 
       .actor-lane h3.container-name {
-        /* This is the visible box. We add padding on the right to make space for the doc icon. */
-        margin: 0;
-        padding: 8px 16px 8px 16px; /* More padding on right for the doc icon */
+        /* The visible box needs padding for the internal doc icon */
+        padding: 8px 32px 8px 16px; 
         max-width: 170px;
+        /* Other styles */
+        margin: 0;
         text-align: center;
         border-radius: 6px;
-        border: 1px solid;
         transition: background-color 0.2s;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
+        display: block;
       }
       
       .container-name span {
-        flex-grow: 1;
+        display: block;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
 
-      .container-icon-button {
-        /* Positioned absolutely, relative to the wrapper */
+      .container-icon-button, .add-container-btn {
         position: absolute;
         top: 50%;
-        right: 4px; /* Position INSIDE the h3, to the left of the '+' icon */
         transform: translateY(-50%) scale(0.8);
         opacity: 0;
         pointer-events: none;
         transition: all 0.2s ease-in-out;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background-color: white;
-        border: 1px solid #ddd;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
         z-index: 10;
+        /* Visuals */
+        width: 24px; 
+        height: 24px; 
+        border-radius: 50%; 
+        background-color: white;
+        border: 1px solid #cccccc; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        cursor: pointer;
+      }
+
+      /* Precise positioning */
+      .container-icon-button {
+        right: 8px; 
+      }
+      .add-container-btn {
+        right: -12px; /* Positioned half-way over the border */
+        font-size: 18px;
+        color: #888888;
       }
       
-      .add-container-btn {
-        /* Positioned absolutely, relative to the wrapper */
-        position: absolute;
-        top: 50%;
-        right: -16px; /* Position ON the border of the h3's parent wrapper */
-        transform: translate(50%, -50%) scale(0.8); /* Center it on the border */
-        opacity: 0;
-        pointer-events: none;
-        transition: all 0.2s ease-in-out;
-        /* Visuals */
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        border: 1px solid #cccccc;
-        background-color: white;
-        color: #888888;
-        font-size: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        z-index: 10;
+      /* VISIBILITY IS NOW CONTROLLED BY THIS JS-ADDED CLASS */
+      .container-master-wrapper.is-visible .container-icon-button,
+      .container-master-wrapper.is-visible .add-container-btn {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(-50%) scale(1);
+      }
+      
+      .container-icon-button svg {
+        width: 14px;
+        height: 14px;
+        color: #555;
+      }
 
       }
 
@@ -828,42 +826,34 @@ window.SequenceDiagramRenderer = {
     };
   },
 
-  // Step 5: Main render function
   // JavaScript logic to handle hover with delay
   initContainerHoverLogic: function (container) {
-    const wrappers = container.querySelectorAll(".container-master-wrapper");
-    wrappers.forEach((wrapper) => {
-      // Prevent adding listeners multiple times
-      if (wrapper.dataset.hoverInit === "true") return;
-      wrapper.dataset.hoverInit = "true";
+    const wrappers = container.querySelectorAll('.container-master-wrapper');
+    wrappers.forEach(wrapper => {
+      if (wrapper.dataset.hoverInit === 'true') return;
+      wrapper.dataset.hoverInit = 'true';
 
-      const docIcon = wrapper.querySelector(".container-icon-button");
-      const addBtn = wrapper.querySelector(".add-container-btn");
+      const icons = wrapper.querySelectorAll('.container-icon-button, .add-container-btn');
       let hideTimer;
 
       const showIcons = () => {
         clearTimeout(hideTimer);
-        wrapper.classList.add("is-visible");
+        wrapper.classList.add('is-visible');
       };
 
       const startHideTimer = () => {
         hideTimer = setTimeout(() => {
-          wrapper.classList.remove("is-visible");
-        }, 500); // INCREASED: 500ms delay
+          wrapper.classList.remove('is-visible');
+        }, 300); // 300ms delay
       };
 
-      wrapper.addEventListener("mouseenter", showIcons);
-      wrapper.addEventListener("mouseleave", startHideTimer);
+      wrapper.addEventListener('mouseenter', showIcons);
+      wrapper.addEventListener('mouseleave', startHideTimer);
 
-      // Make the icons "self-aware"
-      if (docIcon) {
-        docIcon.addEventListener("mouseenter", showIcons);
-        docIcon.addEventListener("mouseleave", startHideTimer);
-      }
-      if (addBtn) {
-        addBtn.addEventListener("mouseenter", showIcons);
-        addBtn.addEventListener("mouseleave", startHideTimer);
-      }
+      icons.forEach(icon => {
+        icon.addEventListener('mouseenter', showIcons);
+        icon.addEventListener('mouseleave', startHideTimer);
+      });
     });
   },
 
@@ -1547,14 +1537,6 @@ window.SequenceDiagramRenderer = {
                               backgroundColor: actor.color + "20",
                               borderColor: actor.color,
                               color: actor.color,
-                            },
-                            onClick: (e) => {
-                              e.stopPropagation();
-                              if (window.WorkflowArchitectEventBridge) {
-                                window.WorkflowArchitectEventBridge.handleContainerClick(
-                                  actor.id
-                                );
-                              }
                             },
                           },
                           [
