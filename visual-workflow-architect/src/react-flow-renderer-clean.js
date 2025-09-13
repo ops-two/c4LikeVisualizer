@@ -96,7 +96,7 @@ window.SequenceDiagramRenderer = {
         font-weight: 500;
         font-size: 14px;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        max-width: 140px;
+        max-width: 170px; /* Increased from 140px to allow more text */
         text-align: center;
         line-height: 1.3;
         transition: all 0.2s ease-in-out;
@@ -184,21 +184,14 @@ window.SequenceDiagramRenderer = {
         display: flex;
         align-items: center;
         padding: 8px 12px;
-        margin: 0;
-        font-size: 14px;
-        font-weight: 500;
-        color: #333;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        border-radius: 4px;
+        border-radius: 6px;
         transition: background-color 0.2s;
-        cursor: pointer;
       }
 
       .container-name span {
         flex-grow: 1;
-        margin-right: 8px;
+        margin-right: 12px; /* Increased from 8px to push icons more to the right */
+        white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
@@ -209,13 +202,12 @@ window.SequenceDiagramRenderer = {
         align-items: center;
         justify-content: center;
         width: 0;
-        height: 24px;
         opacity: 0;
         padding: 0;
         border-radius: 50%;
-        border: 1px solid #cccccc;
-        background-color: white;
-        color: #888888;
+        background-color: transparent; /* Removed background */
+        border: none;                /* Removed border */
+        color: #555;                /* Darker icon color for better visibility */
         cursor: pointer;
         transition: all 0.2s ease-in-out;
         flex-shrink: 0;
@@ -226,7 +218,7 @@ window.SequenceDiagramRenderer = {
       .container-name:hover .add-container-btn {
         opacity: 1;
         width: 24px;
-        padding: 4px;
+        height: 24px;
         pointer-events: auto;
       }
       
@@ -235,12 +227,14 @@ window.SequenceDiagramRenderer = {
       }
 
       .container-icon-button svg {
-        width: 14px;
-        height: 14px;
+        width: 16px; /* Slightly larger icons */
+        height: 16px;
       }
       
       .add-container-btn {
-        font-size: 18px;
+        font-size: 20px;
+        font-weight: 300;
+        line-height: 1;
       }
 
       .container-icon-button:hover {
