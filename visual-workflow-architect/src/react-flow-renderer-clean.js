@@ -522,6 +522,7 @@ window.SequenceDiagramRenderer = {
 
       /* New styles for empty workflow drop message */
       .empty-workflow-drop-message {
+        position: relative; /* FIX: Establish a positioning context */
         font-size: 14px;
         font-weight: 500;
         color: #7b98b7;
