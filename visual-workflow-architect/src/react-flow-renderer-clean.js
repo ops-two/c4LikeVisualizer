@@ -1449,77 +1449,7 @@ window.SequenceDiagramRenderer = {
               style: { height: `${finalContainerHeight}px` },
             },
             [
-              // --- RENDER ALL WORKFLOW BACKGROUNDS (POPULATED AND EMPTY) ---
-              ...Object.values(allWorkflowBounds).map((bounds) => {
-                if (bounds.isEmpty) {
-                  // Render empty workflows using a clean Flexbox column layout
-                  return React.createElement(
-                    "div",
-                    {
-                      key: `workflow-${bounds.workflow.id}`,
-                      className: "workflow-background empty-workflow-background",
-                      style: {
-                        position: "absolute",
-                        left: `${bounds.x}px`,
-                        top: `${bounds.y}px`,
-                        width: bounds.width,
-                        height: `${bounds.height}px`,
-                        backgroundColor: (bounds.workflow.colorHex || "#e3f2fd") + "1A",
-                        borderColor: (bounds.workflow.colorHex || "#e3f2fd") + "33",
-                      },
-                    },
-                    [
-                      // Use a simple H4 for the title, not the absolutely positioned label
-                      React.createElement('h4', { key: 'title', className: 'empty-workflow-title' }, bounds.workflow.name || 'Workflow'),
-                      React.createElement(
-                        "div",
-                        {
-                          key: "drop-zone",
-                          className: "empty-workflow-drop-message sequence-drop-zone",
-                          "data-order-before": 0,
-                          "data-order-after": 20,
-                          "data-workflow-id": bounds.workflow.id,
-                          "data-subgroup-id": "",
-                        },
-                        "Drop Sequence Here"
-                      ),
-                    ]
-                  );
-                } else {
-                  // Render the standard "populated workflow" background
-                  return React.createElement(
-                    "div",
-                    {
-                      key: `workflow-${bounds.workflow.id}`,
-                      className: "workflow-background",
-                      style: {
-                        left: `${bounds.x}px`,
-                        top: `${bounds.y}px`,
-                        width: `${bounds.width}px`,
-                        height: `${bounds.height}px`,
-                        backgroundColor:
-                          (bounds.workflow.colorHex || "#e3f2fd") + "1A",
-                        borderColor:
-                          (bounds.workflow.colorHex || "#e3f2fd") + "33",
-                      },
-                    },
-                    React.createElement(
-                      "div",
-                      {
-                        key: "label",
-                        className: "workflow-label",
-                        style: {
-                          backgroundColor:
-                            bounds.workflow.colorHex || "#4caf50",
-                        },
-                      },
-                      bounds.workflow.name || "Workflow"
-                    )
-                  );
-                }
-              }),
-
-              // Actor lanes
+              // Render Actor Lanes first, they are the base layer
               ...actors.map((actor, index) =>
                 React.createElement(
                   "div",
@@ -1533,11 +1463,10 @@ window.SequenceDiagramRenderer = {
                     React.createElement(
                       "div",
                       {
-                        key: "container-master-wrapper",
+                        key: `wrapper-${actor.id}`,
                         className: "container-master-wrapper",
                       },
                       [
-                        // 1. The visible, colored box (H3) - now only contains the text.
                         React.createElement(
                           "h3",
                           {
@@ -1553,14 +1482,11 @@ window.SequenceDiagramRenderer = {
                           [
                             React.createElement(
                               "span",
-                              {
-                                key: "actor-name",
-                              },
+                              { key: "actor-name" },
                               actor.name
                             ),
                           ]
                         ),
-                        // 2. The Document Icon - sibling to the H3.
                         React.createElement(
                           "div",
                           {
@@ -1595,17 +1521,12 @@ window.SequenceDiagramRenderer = {
                             ]
                           )
                         ),
-                        // 3. The Plus Button - sibling to the H3.
                         React.createElement(
                           "button",
                           {
                             key: `add-btn-${index}`,
                             className: "add-container-btn",
                             title: "Add container after",
-                            onClick: (e) => {
-                              e.stopPropagation();
-                              handleAddContainerAfter(index);
-                            },
                           },
                           "+"
                         ),
@@ -1618,6 +1539,174 @@ window.SequenceDiagramRenderer = {
                   ]
                 )
               ),
+
+              // Render all workflow backgrounds from our calculated bounds
+              ...Object.values(allWorkflowBounds).map((bounds) => {
+                if (bounds.isEmpty) {
+                  return React.createElement(
+                    "div",
+                    {
+                      key: `empty-wf-${bounds.workflow.id}`,
+                      className:
+                        "workflow-background empty-workflow-background",
+                      style: {
+                        position: "absolute",
+                        left: `${bounds.x}px`,
+                        top: `${bounds.y}px`,
+                        width: bounds.width,
+                        height: `${bounds.height}px`,
+                        backgroundColor:
+                          (bounds.workflow.colorHex || "#e3f2fd") + "1A",
+                        borderColor:
+                          (bounds.workflow.colorHex || "#e3f2fd") + "33",
+                      },
+                    },
+                    [
+                      React.createElement(
+                        "h4",
+                        { key: "title", className: "empty-workflow-title" },
+                        bounds.workflow.name || "Workflow"
+                      ),
+                      React.createElement(
+                        "div",
+                        {
+                          key: "drop-zone",
+                          className:
+                            "empty-workflow-drop-message sequence-drop-zone",
+                          "data-order-before": 0,
+                          "data-order-after": 20,
+                          "data-workflow-id": bounds.workflow.id,
+                          "data-subgroup-id": "",
+                        },
+                        "Drop Sequence Here"
+                      ),
+                    ]
+                  );
+                } else {
+                  return React.createElement(
+                    "div",
+                    {
+                      key: `wf-bg-${bounds.workflow.id}`,
+                      className: "workflow-background",
+                      style: {
+                        left: `${bounds.x}px`,
+                        top: `${bounds.y}px`,
+                        width: `${bounds.width}px`,
+                        height: `${bounds.height}px`,
+                        backgroundColor:
+                          (bounds.workflow.colorHex || "#e3f2fd") + "1A",
+                        borderColor:
+                          (bounds.workflow.colorHex || "#e3f2fd") + "33",
+                      },
+                    },
+                    React.createElement(
+                      "div",
+                      {
+                        key: "label",
+                        className: "workflow-label",
+                        style: {
+                          backgroundColor:
+                            bounds.workflow.colorHex || "#4caf50",
+                        },
+                      },
+                      bounds.workflow.name || "Workflow"
+                    )
+                  );
+                }
+              }),
+
+              // Render all sequences (SVG arrows, HTML labels, nodes, and drop zones) from our calculated positions
+              ...allPositionedMessages.flatMap((msg, index, arr) => {
+                const prevMsg = arr[index - 1];
+                const orderBefore = prevMsg
+                  ? prevMsg.originalOrderIndex
+                  : msg.originalOrderIndex - 10;
+
+                const dropZone = React.createElement("div", {
+                  key: `drop-zone-${msg.sequenceId}`,
+                  className: "sequence-drop-zone",
+                  style: {
+                    left: "10px",
+                    width: "calc(100% - 20px)",
+                    top: `${msg.yPos - SEQUENCE_HEIGHT / 2}px`,
+                  },
+                  "data-order-before": orderBefore,
+                  "data-order-after": msg.originalOrderIndex,
+                  "data-workflow-id": msg.workflowId || "",
+                  "data-subgroup-id": msg.subgroupId || "",
+                });
+
+                const sequenceLabel = React.createElement(
+                  "div",
+                  {
+                    key: `label-${msg.sequenceId}`,
+                    className: "message-label sequence-label",
+                    style: {
+                      position: "absolute",
+                      left: `${((msg.from + msg.to) / 2) * 180 + 90}px`,
+                      top: `${msg.yPos - 35}px`,
+                      transform: "translateX(-50%)",
+                      zIndex: 5,
+                    },
+                    "data-sequence-id": msg.sequenceId,
+                    "data-label-text": msg.labelText,
+                  },
+                  msg.label
+                );
+
+                const svgArrow = msg.self
+                  ? React.createElement(SVGSelfMessage, {
+                      key: `svg-${msg.sequenceId}`,
+                      actorIndex: msg.from,
+                      yPos: msg.yPos,
+                      height: SEQUENCE_HEIGHT * 0.8,
+                      dashed: msg.dashed,
+                    })
+                  : React.createElement(SVGArrow, {
+                      key: `svg-${msg.sequenceId}`,
+                      from: msg.from,
+                      to: msg.to,
+                      yPos: msg.yPos,
+                      dashed: msg.dashed,
+                    });
+
+                const fromNode = React.createElement(SequenceNode, {
+                  key: `from-node-${msg.sequenceId}`,
+                  actorIndex: msg.from,
+                  yPos: msg.yPos,
+                  color: actors[msg.from].color,
+                });
+
+                const toNode = React.createElement(SequenceNode, {
+                  key: `to-node-${msg.sequenceId}`,
+                  actorIndex: msg.to,
+                  yPos: msg.yPos,
+                  color: actors[msg.to].color,
+                });
+
+                return [dropZone, sequenceLabel, svgArrow, fromNode, toNode];
+              }),
+
+              // Add a final drop zone after the last item in the list
+              (() => {
+                if (allPositionedMessages.length === 0) return null; // No sequences, no final drop zone
+                const lastMsg =
+                  allPositionedMessages[allPositionedMessages.length - 1];
+                const finalY = lastMsg.yPos + SEQUENCE_HEIGHT / 2;
+                return React.createElement("div", {
+                  key: `drop-zone-final`,
+                  className: "sequence-drop-zone",
+                  style: {
+                    left: "10px",
+                    width: "calc(100% - 20px)",
+                    top: `${finalY}px`,
+                  },
+                  "data-order-before": lastMsg.originalOrderIndex,
+                  "data-order-after": lastMsg.originalOrderIndex + 20,
+                  "data-workflow-id": lastMsg.workflowId || "",
+                  "data-subgroup-id": lastMsg.subgroupId || "",
+                });
+              })(),
 
               // SVG Overlay for all arrows
               React.createElement(
