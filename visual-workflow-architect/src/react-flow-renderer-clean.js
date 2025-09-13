@@ -1232,52 +1232,60 @@ window.SequenceDiagramRenderer = {
     const SelfMessage = this.createSelfMessage();
 
     // Toolbar event handlers
-    // ... existing code
+    const handleAddContainer = () => {
+      const feature = window.WorkflowArchitectDataStore?.getFeature();
+      if (!feature || !feature.id) {
+        console.error("Cannot add container: missing feature context.");
+        return;
+      }
+      
+      const containers = window.WorkflowArchitectDataStore?.getContainersArray() || [];
+      const lastContainer = containers[containers.length - 1];
+      const newOrderIndex = lastContainer ? lastContainer.order_index1_number + 10 : 10;
+      
+      const newContainerData = {
+        name_text: "New Container",
+        color_hex: "#3ea50b",
+        feature_id: feature.id,
+        order_index: newOrderIndex,
+      };
+
+      if (window.WorkflowArchitectEventBridge) {
+        window.WorkflowArchitectEventBridge.handleContainerAdd(newContainerData);
+      }
+    };
+    
     const handleAddContainerAfter = (index) => {
       const feature = window.WorkflowArchitectDataStore?.getFeature();
       if (!feature || !feature.id) {
+        console.error("Cannot add container: missing feature context.");
         return;
       }
 
       console.log("Adding container after index:", index);
+      const containers = window.WorkflowArchitectDataStore?.getContainersArray() || [];
       console.log("Containers array:", containers);
-      console.log("Container at index:", containers[index]);
-
-      // Calculate order_index to insert container after the specified index
-      // Following storymap-grid pattern with beforeOrder/afterOrder
-      let newOrderIndex;
-      const currentContainer = containers[index];
-      const nextContainer = containers[index + 1];
-
-      // Use correct Bubble property name: order_index1_number
-      const currentOrder =
-        currentContainer?.order_index1_number ||
-        currentContainer?.orderIndex ||
-        currentContainer?.order ||
-        (index + 1) * 10;
-
-      let nextOrder;
-      if (nextContainer) {
-        // There is a next container, insert between current and next
-        nextOrder =
-          nextContainer.order_index1_number ||
-          nextContainer.orderIndex ||
-          nextContainer.order ||
-          (index + 2) * 10;
-        newOrderIndex = (currentOrder + nextOrder) / 2;
-      } else {
-        // This is the last container, add after it
-        newOrderIndex = currentOrder + 1;
+      
+      if (index < 0 || index >= containers.length) {
+        console.error("Invalid container index:", index);
+        return;
       }
 
-      console.log(
-        "Current order:",
-        currentOrder,
-        "Next order:",
-        nextOrder,
-        "New order:",
-        newOrderIndex
-      );
+      // Calculate the order_index to insert the new container after the current one.
+      const currentContainer = containers[index];
+      const nextContainer = containers[index + 1];
+      
+      const currentOrder = currentContainer ? (currentContainer.order_index1_number || (index + 1) * 10) : 0;
+      
+      let newOrderIndex;
+      if (nextContainer) {
+        // If there is a next container, place the new one between the current and the next.
+        const nextOrder = nextContainer.order_index1_number || (index + 2) * 10;
+        newOrderIndex = (currentOrder + nextOrder) / 2;
+      } else {
+        // If this is the last container, place the new one 10 units after.
+        newOrderIndex = currentOrder + 10;
+      }
 
       console.log("Calculated new order index:", newOrderIndex);
 
@@ -1291,27 +1299,7 @@ window.SequenceDiagramRenderer = {
       console.log("Sending container data:", newContainerData);
 
       if (window.WorkflowArchitectEventBridge) {
-        window.WorkflowArchitectEventBridge.handleContainerAdd(
-          newContainerData
-        );
-      }
-    };
-
-    const handleAddContainer = () => {
-      const feature = window.WorkflowArchitectDataStore?.getFeature();
-      if (!feature || !feature.id) {
-        return;
-      }
-      const newContainerData = {
-        name_text: "New Container",
-        color_hex: "#3ea50b",
-        feature_id: feature.id,
-      };
-      if (window.WorkflowArchitectEventBridge) {
-        // CORRECTED: Call the specific handleContainerAdd function
-        window.WorkflowArchitectEventBridge.handleContainerAdd(
-          newContainerData
-        );
+        window.WorkflowArchitectEventBridge.handleContainerAdd(newContainerData);
       }
     };
     const handleAddSequence = () => {
@@ -1527,6 +1515,10 @@ window.SequenceDiagramRenderer = {
                             key: `add-btn-${index}`,
                             className: "add-container-btn",
                             title: "Add container after",
+                            onClick: (e) => {
+                              e.stopPropagation();
+                              handleAddContainerAfter(index);
+                            }
                           },
                           "+"
                         ),
