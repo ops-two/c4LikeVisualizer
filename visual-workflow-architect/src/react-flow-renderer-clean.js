@@ -1,28 +1,17 @@
 // Visual Workflow Architect - Proper Sequence Diagram Renderer
 // Based on SequenceFlow.html structure using React + CSS positioning (NOT React Flow)
 
-console.log("DEBUG: react-flow-renderer-clean.js script is loading...");
-
 // Add rerender event listener (following storymap-grid pattern)
 document.addEventListener("workflow-architect:rerender", function (event) {
-  console.log("RERENDER: Event received with data:", event.detail);
-
   // Find the container and re-render
   const container = document.getElementById("sequence-diagram-container");
-  console.log("RERENDER: Container found:", !!container);
-  console.log(
-    "RERENDER: SequenceDiagramRenderer available:",
-    !!window.SequenceDiagramRenderer
-  );
 
   if (container && window.SequenceDiagramRenderer) {
     // Clear existing content
     container.innerHTML = "";
-    console.log("RERENDER: Container cleared, calling render...");
 
     // Re-render with new data
     window.SequenceDiagramRenderer.render(container, event.detail);
-    console.log("RERENDER: UI re-rendered successfully");
   } else {
     console.warn("RERENDER: Container or renderer not found for rerender");
   }
@@ -36,10 +25,6 @@ if (window.WorkflowArchitectInlineEdit) {
 window.SequenceDiagramRenderer = {
   // Initialize the renderer
   init: function (containerId) {
-    console.log(
-      "SequenceDiagramRenderer: Initializing for container:",
-      containerId
-    );
     this.containerId = containerId;
     this.isInitialized = true;
     return true;
@@ -47,9 +32,6 @@ window.SequenceDiagramRenderer = {
 
   // Step 1: Add CSS styles to document (now empty - styles moved to main.css)
   addStyles: function (containerHeight = 600) {
-    console.log(
-      "SequenceDiagramRenderer: CSS styles now loaded from main.css - skipping injection"
-    );
     return;
   },
 
@@ -502,7 +484,9 @@ window.SequenceDiagramRenderer = {
           subgroupId: sequence.subgroupId,
         });
 
-        currentY += SEQUENCE_HEIGHT; // Increment Y by the height of a single sequence
+        // Adjust Y increment based on sequence type - self-messages need more space
+        const yIncrement = isSelfMessage ? SEQUENCE_HEIGHT * 1.2 : SEQUENCE_HEIGHT;
+        currentY += yIncrement;
       } else if (item.type === "WORKFLOW_BLOCK") {
         const { workflow, sequences } = item.data;
         const workflowHeight =
@@ -1219,7 +1203,7 @@ window.SequenceDiagramRenderer = {
                 const prevMsg = arr[index - 1];
                 const nextMsg = arr[index + 1];
                 const isLastSequence = index === arr.length - 1;
-                
+
                 const orderBefore = prevMsg
                   ? prevMsg.originalOrderIndex
                   : msg.originalOrderIndex - 10;
@@ -1249,7 +1233,9 @@ window.SequenceDiagramRenderer = {
                     top: `${msg.yPos + SEQUENCE_HEIGHT / 2}px`,
                   },
                   "data-order-before": msg.originalOrderIndex,
-                  "data-order-after": nextMsg ? nextMsg.originalOrderIndex : msg.originalOrderIndex + 10,
+                  "data-order-after": nextMsg
+                    ? nextMsg.originalOrderIndex
+                    : msg.originalOrderIndex + 10,
                   "data-workflow-id": msg.workflowId || "",
                   "data-subgroup-id": msg.subgroupId || "",
                 });
@@ -1411,14 +1397,4 @@ window.SequenceDiagramRenderer = {
   },
 };
 
-// Create alias for backward compatibility
 window.WorkflowArchitectRenderer = window.SequenceDiagramRenderer;
-
-console.log(
-  "DEBUG: sequence-diagram-renderer.js script loaded successfully. SequenceDiagramRenderer object created:",
-  typeof window.SequenceDiagramRenderer
-);
-console.log(
-  "DEBUG: WorkflowArchitectRenderer alias created:",
-  typeof window.WorkflowArchitectRenderer
-);
