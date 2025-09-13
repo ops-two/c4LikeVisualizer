@@ -1547,6 +1547,47 @@ window.SequenceDiagramRenderer = {
                   );
                 }
               }),
+
+              // Add top and bottom drop zones for populated workflows
+              ...Object.values(allWorkflowBounds).flatMap(bounds => {
+                if (bounds.isEmpty) return []; // Skip empty workflows - they already have their own drop zone
+                
+                const workflowSequences = allPositionedMessages.filter(msg => msg.workflowId === bounds.workflow.id);
+                if (workflowSequences.length === 0) return []; // No sequences in this workflow
+                
+                const firstSequence = workflowSequences[0];
+                const lastSequence = workflowSequences[workflowSequences.length - 1];
+                
+                const topDropZone = React.createElement('div', {
+                  key: `top-drop-zone-${bounds.workflow.id}`,
+                  className: 'sequence-drop-zone',
+                  style: { 
+                    left: '10px', 
+                    width: 'calc(100% - 20px)', 
+                    top: `${bounds.y + 30}px` // Position below workflow label
+                  },
+                  'data-order-before': firstSequence.originalOrderIndex - 10,
+                  'data-order-after': firstSequence.originalOrderIndex,
+                  'data-workflow-id': bounds.workflow.id,
+                  'data-subgroup-id': ''
+                });
+                
+                const bottomDropZone = React.createElement('div', {
+                  key: `bottom-drop-zone-${bounds.workflow.id}`,
+                  className: 'sequence-drop-zone',
+                  style: { 
+                    left: '10px', 
+                    width: 'calc(100% - 20px)', 
+                    top: `${bounds.y + bounds.height - 30}px` // Position near workflow bottom
+                  },
+                  'data-order-before': lastSequence.originalOrderIndex,
+                  'data-order-after': lastSequence.originalOrderIndex + 10,
+                  'data-workflow-id': bounds.workflow.id,
+                  'data-subgroup-id': ''
+                });
+                
+                return [topDropZone, bottomDropZone];
+              }),
               
               // SVG Overlay to contain all arrows
               React.createElement("svg", { key: "svg-overlay", style: { position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 2 }, viewBox: `0 0 ${actors.length * 180} ${finalContainerHeight}` },
@@ -1567,7 +1608,7 @@ window.SequenceDiagramRenderer = {
                 const prevMsg = arr[index - 1];
                 const orderBefore = prevMsg ? prevMsg.originalOrderIndex : msg.originalOrderIndex - 10;
 
-                const dropZone = React.createElement('div', { key: `drop-zone-${msg.sequenceId}`, className: 'sequence-drop-zone', style: { left: '10px', width: 'calc(100% - 20px)', top: `${msg.yPos - (SEQUENCE_HEIGHT/2)}px` }, 'data-order-before': orderBefore, 'data-order-after': msg.originalOrderIndex, 'data-workflow-id': msg.workflowId || '', 'data-subgroup-id': msg.subgroupId || '' });
+                const dropZone = React.createElement('div', { key: `drop-zone-${msg.sequenceId}`, className: 'sequence-drop-zone', style: { left: '10px', width: 'calc(100% - 20px)', top: `${msg.yPos - (SEQUENCE_HEIGHT/4)}px` }, 'data-order-before': orderBefore, 'data-order-after': msg.originalOrderIndex, 'data-workflow-id': msg.workflowId || '', 'data-subgroup-id': msg.subgroupId || '' });
 
                 const labelLeft = msg.self ? (msg.from * 180 + 90 + 50) : (((msg.from + msg.to) / 2) * 180 + 90);
                 const labelTop = msg.self ? (msg.yPos + (SEQUENCE_HEIGHT * 0.8 / 2)) : (msg.yPos - 35);
