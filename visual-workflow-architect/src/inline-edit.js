@@ -16,14 +16,25 @@ window.WorkflowArchitectInlineEdit = {
   setupEventListeners() {
     // Double-click editing for container names and sequence labels
     document.addEventListener("dblclick", (e) => {
-      if (e.target.classList.contains("container-name")) {
+      // Check if target is a container name or a span inside a container
+      if (e.target.classList.contains("container-name") || 
+          (e.target.dataset.containerId && e.target.dataset.labelText)) {
         e.preventDefault();
         e.stopPropagation();
-        this.startEdit(e.target, "container");
-      } else if (e.target.classList.contains("sequence-label")) {
+        // If clicking on span, find the parent container element for consistent behavior
+        const containerElement = e.target.classList.contains("container-name") 
+          ? e.target 
+          : e.target.closest(".container-name") || e.target;
+        this.startEdit(containerElement, "container");
+      } else if (e.target.classList.contains("sequence-label") ||
+                 (e.target.dataset.sequenceId && e.target.dataset.labelText)) {
         e.preventDefault();
         e.stopPropagation();
-        this.startEdit(e.target, "sequence");
+        // If clicking on span, find the parent sequence element for consistent behavior
+        const sequenceElement = e.target.classList.contains("sequence-label")
+          ? e.target
+          : e.target.closest(".sequence-label") || e.target;
+        this.startEdit(sequenceElement, "sequence");
       }
     });
 
