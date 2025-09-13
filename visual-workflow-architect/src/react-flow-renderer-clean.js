@@ -1238,11 +1238,14 @@ window.SequenceDiagramRenderer = {
         console.error("Cannot add container: missing feature context.");
         return;
       }
-      
-      const containers = window.WorkflowArchitectDataStore?.getContainersArray() || [];
+
+      const containers =
+        window.WorkflowArchitectDataStore?.getContainersArray() || [];
       const lastContainer = containers[containers.length - 1];
-      const newOrderIndex = lastContainer ? lastContainer.order_index1_number + 10 : 10;
-      
+      const newOrderIndex = lastContainer
+        ? lastContainer.order_index1_number + 10
+        : 10;
+
       const newContainerData = {
         name_text: "New Container",
         color_hex: "#3ea50b",
@@ -1251,10 +1254,12 @@ window.SequenceDiagramRenderer = {
       };
 
       if (window.WorkflowArchitectEventBridge) {
-        window.WorkflowArchitectEventBridge.handleContainerAdd(newContainerData);
+        window.WorkflowArchitectEventBridge.handleContainerAdd(
+          newContainerData
+        );
       }
     };
-    
+
     const handleAddContainerAfter = (index) => {
       const feature = window.WorkflowArchitectDataStore?.getFeature();
       if (!feature || !feature.id) {
@@ -1263,9 +1268,10 @@ window.SequenceDiagramRenderer = {
       }
 
       console.log("Adding container after index:", index);
-      const containers = window.WorkflowArchitectDataStore?.getContainersArray() || [];
+      const containers =
+        window.WorkflowArchitectDataStore?.getContainersArray() || [];
       console.log("Containers array:", containers);
-      
+
       if (index < 0 || index >= containers.length) {
         console.error("Invalid container index:", index);
         return;
@@ -1274,9 +1280,11 @@ window.SequenceDiagramRenderer = {
       // Calculate the order_index to insert the new container after the current one.
       const currentContainer = containers[index];
       const nextContainer = containers[index + 1];
-      
-      const currentOrder = currentContainer ? (currentContainer.order_index1_number || (index + 1) * 10) : 0;
-      
+
+      const currentOrder = currentContainer
+        ? currentContainer.order_index1_number || (index + 1) * 10
+        : 0;
+
       let newOrderIndex;
       if (nextContainer) {
         // If there is a next container, place the new one between the current and the next.
@@ -1299,7 +1307,9 @@ window.SequenceDiagramRenderer = {
       console.log("Sending container data:", newContainerData);
 
       if (window.WorkflowArchitectEventBridge) {
-        window.WorkflowArchitectEventBridge.handleContainerAdd(newContainerData);
+        window.WorkflowArchitectEventBridge.handleContainerAdd(
+          newContainerData
+        );
       }
     };
     const handleAddSequence = () => {
@@ -1518,7 +1528,7 @@ window.SequenceDiagramRenderer = {
                             onClick: (e) => {
                               e.stopPropagation();
                               handleAddContainerAfter(index);
-                            }
+                            },
                           },
                           "+"
                         ),
@@ -1533,156 +1543,275 @@ window.SequenceDiagramRenderer = {
               ),
 
               // Render all workflow backgrounds
-              ...Object.values(allWorkflowBounds).map(bounds => {
+              ...Object.values(allWorkflowBounds).map((bounds) => {
                 if (bounds.isEmpty) {
-                  return React.createElement('div', { key: `empty-wf-${bounds.workflow.id}`, className: "workflow-background empty-workflow-background", style: { position: "absolute", left: `${bounds.x}px`, top: `${bounds.y}px`, width: bounds.width, height: `${bounds.height}px`, backgroundColor: (bounds.workflow.colorHex || "#e3f2fd") + "1A", borderColor: (bounds.workflow.colorHex || "#e3f2fd") + "33" }},
+                  return React.createElement(
+                    "div",
+                    {
+                      key: `empty-wf-${bounds.workflow.id}`,
+                      className:
+                        "workflow-background empty-workflow-background",
+                      style: {
+                        position: "absolute",
+                        left: `${bounds.x}px`,
+                        top: `${bounds.y}px`,
+                        width: bounds.width,
+                        height: `${bounds.height}px`,
+                        backgroundColor:
+                          (bounds.workflow.colorHex || "#e3f2fd") + "1A",
+                        borderColor:
+                          (bounds.workflow.colorHex || "#e3f2fd") + "33",
+                      },
+                    },
                     [
-                      React.createElement('h4', { key: 'title', className: 'empty-workflow-title' }, bounds.workflow.name || "Workflow"),
-                      React.createElement("div", { key: "drop-zone", className: "empty-workflow-drop-message sequence-drop-zone", 'data-order-before': 0, 'data-order-after': 20, 'data-workflow-id': bounds.workflow.id, 'data-subgroup-id': "" }, "Drop Sequence Here")
+                      React.createElement(
+                        "h4",
+                        { key: "title", className: "empty-workflow-title" },
+                        bounds.workflow.name || "Workflow"
+                      ),
+                      React.createElement(
+                        "div",
+                        {
+                          key: "drop-zone",
+                          className:
+                            "empty-workflow-drop-message sequence-drop-zone",
+                          "data-order-before": 0,
+                          "data-order-after": 20,
+                          "data-workflow-id": bounds.workflow.id,
+                          "data-subgroup-id": "",
+                        },
+                        "Drop Sequence Here"
+                      ),
                     ]
                   );
                 } else {
-                  return React.createElement('div', { key: `wf-bg-${bounds.workflow.id}`, className: "workflow-background", style: { left: `${bounds.x}px`, top: `${bounds.y}px`, width: `${bounds.width}px`, height: `${bounds.height}px`, backgroundColor: (bounds.workflow.colorHex || "#e3f2fd") + "1A", borderColor: (bounds.workflow.colorHex || "#e3f2fd") + "33" }},
-                    React.createElement('div', { key: 'label', className: 'workflow-label', style: { backgroundColor: bounds.workflow.colorHex || '#4caf50'}}, bounds.workflow.name || "Workflow")
+                  return React.createElement(
+                    "div",
+                    {
+                      key: `wf-bg-${bounds.workflow.id}`,
+                      className: "workflow-background",
+                      style: {
+                        left: `${bounds.x}px`,
+                        top: `${bounds.y}px`,
+                        width: `${bounds.width}px`,
+                        height: `${bounds.height}px`,
+                        backgroundColor:
+                          (bounds.workflow.colorHex || "#e3f2fd") + "1A",
+                        borderColor:
+                          (bounds.workflow.colorHex || "#e3f2fd") + "33",
+                      },
+                    },
+                    React.createElement(
+                      "div",
+                      {
+                        key: "label",
+                        className: "workflow-label",
+                        style: {
+                          backgroundColor:
+                            bounds.workflow.colorHex || "#4caf50",
+                        },
+                      },
+                      bounds.workflow.name || "Workflow"
+                    )
                   );
                 }
               }),
-              
+
               // SVG Overlay to contain all arrows (this can remain as a simple loop)
-              React.createElement("svg", { key: "svg-overlay", style: { position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 2 }, viewBox: `0 0 ${actors.length * 180} ${finalContainerHeight}` },
+              React.createElement(
+                "svg",
+                {
+                  key: "svg-overlay",
+                  style: {
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    pointerEvents: "none",
+                    zIndex: 2,
+                  },
+                  viewBox: `0 0 ${actors.length * 180} ${finalContainerHeight}`,
+                },
                 [
-                  React.createElement("defs", { key: "defs" }, [ React.createElement("marker", { key: "arrowhead", id: "arrowhead", markerWidth: "8", markerHeight: "6", refX: "8", refY: "3", orient: "auto" }, [ React.createElement("polygon", { key: "arrow-poly", points: "0 0, 8 3, 0 6", fill: "#555" }) ]) ]),
+                  React.createElement("defs", { key: "defs" }, [
+                    React.createElement(
+                      "marker",
+                      {
+                        key: "arrowhead",
+                        id: "arrowhead",
+                        markerWidth: "8",
+                        markerHeight: "6",
+                        refX: "8",
+                        refY: "3",
+                        orient: "auto",
+                      },
+                      [
+                        React.createElement("polygon", {
+                          key: "arrow-poly",
+                          points: "0 0, 8 3, 0 6",
+                          fill: "#555",
+                        }),
+                      ]
+                    ),
+                  ]),
                   ...allPositionedMessages.map((msg, index) => {
                     if (msg.self) {
-                      return React.createElement(SVGSelfMessage, { key: `svg-${index}`, actorIndex: msg.from, yPos: msg.yPos, height: SEQUENCE_HEIGHT * 0.8, dashed: msg.dashed });
+                      return React.createElement(SVGSelfMessage, {
+                        key: `svg-${index}`,
+                        actorIndex: msg.from,
+                        yPos: msg.yPos,
+                        height: SEQUENCE_HEIGHT * 0.8,
+                        dashed: msg.dashed,
+                      });
                     } else {
-                      return React.createElement(SVGArrow, { key: `svg-${index}`, from: msg.from, to: msg.to, yPos: msg.yPos, dashed: msg.dashed });
+                      return React.createElement(SVGArrow, {
+                        key: `svg-${index}`,
+                        from: msg.from,
+                        to: msg.to,
+                        yPos: msg.yPos,
+                        dashed: msg.dashed,
+                      });
                     }
-                  })
+                  }),
                 ]
               ),
 
-              // --- NEW WORKFLOW-AWARE RENDER LOOP ---
+              // --- NEW WORKFLOW-AWARE RENDER LOOP (CORRECTED) ---
               // This loop renders all HTML elements (Labels, Nodes, Drop Zones)
               ...renderList.flatMap(item => {
                 if (item.type === 'WORKFLOW_BLOCK') {
                   const { workflow, sequences } = item.data;
+                  if (!sequences || sequences.length === 0) return [];
                   const firstSeq = sequences[0];
                   const lastSeq = sequences[sequences.length - 1];
 
                   // Create a drop zone BEFORE the first sequence
-                  const startDropZone = React.createElement('div', {
-                    key: `start-drop-zone-${workflow.id}`,
-                    className: 'sequence-drop-zone',
+                  const startDropZone = React.createElement('div', { 
+                    key: `start-drop-zone-${workflow.id}`, 
+                    className: 'sequence-drop-zone', 
                     style: { 
                       left: '10px', 
                       width: 'calc(100% - 20px)', 
                       top: `${firstSeq.yPos - (SEQUENCE_HEIGHT / 2)}px` 
-                    },
-                    'data-order-before': firstSeq.originalOrderIndex - 10,
-                    'data-order-after': firstSeq.originalOrderIndex,
-                    'data-workflow-id': workflow.id
+                    }, 
+                    'data-order-before': firstSeq.originalOrderIndex - 10, 
+                    'data-order-after': firstSeq.originalOrderIndex, 
+                    'data-workflow-id': workflow.id 
                   });
 
                   // Create the sequences and the drop zones BETWEEN them
                   const middleContent = sequences.flatMap((msg, index) => {
+                    // FIX: Find actor indices here before rendering
+                    const fromActor = actors.find(a => a.id === msg.fromContainerId);
+                    const toActor = actors.find(a => a.id === msg.toContainerId);
+                    if (!fromActor || !toActor) return []; // Skip rendering if actors are missing
+                    const fromIndex = actors.indexOf(fromActor);
+                    const toIndex = actors.indexOf(toActor);
+                    
                     const prevMsg = sequences[index - 1];
                     const orderBefore = prevMsg ? prevMsg.originalOrderIndex : msg.originalOrderIndex - 10;
                     
-                    // This is for the one before this msg
-                    const dropZone = index > 0 ? React.createElement('div', {
-                      key: `drop-zone-${msg.sequenceId}`,
-                      className: 'sequence-drop-zone',
+                    const dropZone = index > 0 ? React.createElement('div', { 
+                      key: `drop-zone-${msg.sequenceId}`, 
+                      className: 'sequence-drop-zone', 
                       style: { 
                         left: '10px', 
                         width: 'calc(100% - 20px)', 
                         top: `${msg.yPos - (SEQUENCE_HEIGHT / 2)}px` 
-                      },
-                      'data-order-before': orderBefore,
-                      'data-order-after': msg.originalOrderIndex,
-                      'data-workflow-id': msg.workflowId || '',
-                      'data-subgroup-id': msg.subgroupId || ''
+                      }, 
+                      'data-order-before': orderBefore, 
+                      'data-order-after': msg.originalOrderIndex, 
+                      'data-workflow-id': msg.workflowId || '', 
+                      'data-subgroup-id': msg.subgroupId || '' 
                     }) : null;
 
-                    const sequenceLabel = React.createElement('div', {
-                      key: `label-${msg.sequenceId}`,
-                      className: 'message-label sequence-label',
+                    const sequenceLabel = React.createElement('div', { 
+                      key: `label-${msg.sequenceId}`, 
+                      className: 'message-label sequence-label', 
                       style: { 
                         position: 'absolute', 
-                        left: `${((msg.from + msg.to) / 2) * 180 + 90}px`, 
+                        left: `${((fromIndex + toIndex) / 2) * 180 + 90}px`, 
                         top: `${msg.yPos - 35}px`, 
                         transform: 'translateX(-50%)', 
                         zIndex: 5 
-                      },
-                      'data-sequence-id': msg.sequenceId,
-                      'data-label-text': msg.labelText
+                      }, 
+                      'data-sequence-id': msg.sequenceId, 
+                      'data-label-text': msg.labelText 
                     }, msg.label);
 
                     const nodes = [
                       React.createElement(SequenceNode, { 
                         key: `from-node-${msg.sequenceId}`, 
-                        actorIndex: msg.from, 
+                        actorIndex: fromIndex, 
                         yPos: msg.yPos, 
-                        color: actors[msg.from].color 
+                        color: fromActor.color 
                       }),
                       React.createElement(SequenceNode, { 
                         key: `to-node-${msg.sequenceId}`, 
-                        actorIndex: msg.to, 
+                        actorIndex: toIndex, 
                         yPos: msg.yPos, 
-                        color: actors[msg.to].color 
+                        color: toActor.color 
                       })
                     ];
 
                     return [dropZone, sequenceLabel, ...nodes].filter(Boolean);
                   });
-
+                  
                   // Create a drop zone AFTER the last sequence
-                  const endDropZone = React.createElement('div', {
-                    key: `end-drop-zone-${workflow.id}`,
-                    className: 'sequence-drop-zone',
+                  const endDropZone = React.createElement('div', { 
+                    key: `end-drop-zone-${workflow.id}`, 
+                    className: 'sequence-drop-zone', 
                     style: { 
                       left: '10px', 
                       width: 'calc(100% - 20px)', 
                       top: `${lastSeq.yPos + (SEQUENCE_HEIGHT / 2)}px` 
-                    },
-                    'data-order-before': lastSeq.originalOrderIndex,
-                    'data-order-after': lastSeq.originalOrderIndex + 10,
-                    'data-workflow-id': workflow.id
+                    }, 
+                    'data-order-before': lastSeq.originalOrderIndex, 
+                    'data-order-after': lastSeq.originalOrderIndex + 10, 
+                    'data-workflow-id': workflow.id 
                   });
 
                   return [startDropZone, ...middleContent, endDropZone];
+
                 } else if (item.type === 'SEQUENCE') {
-                  // Handle ungrouped sequences (future improvement, for now just render them)
                   const msg = item.data;
-                  const sequenceLabel = React.createElement('div', {
-                    key: `label-${msg.sequenceId}`,
-                    className: 'message-label sequence-label',
+                  // FIX: Find actor indices here before rendering
+                  const fromActor = actors.find(a => a.id === msg.fromContainerId);
+                  const toActor = actors.find(a => a.id === msg.toContainerId);
+                  if (!fromActor || !toActor) return []; // Skip rendering if actors are missing
+                  const fromIndex = actors.indexOf(fromActor);
+                  const toIndex = actors.indexOf(toActor);
+                  
+                  const sequenceLabel = React.createElement('div', { 
+                    key: `label-${msg.sequenceId}`, 
+                    className: 'message-label sequence-label', 
                     style: { 
                       position: 'absolute', 
-                      left: `${((msg.from + msg.to) / 2) * 180 + 90}px`, 
+                      left: `${((fromIndex + toIndex) / 2) * 180 + 90}px`, 
                       top: `${msg.yPos - 35}px`, 
                       transform: 'translateX(-50%)', 
                       zIndex: 5 
-                    },
-                    'data-sequence-id': msg.sequenceId,
-                    'data-label-text': msg.labelText
+                    }, 
+                    'data-sequence-id': msg.sequenceId, 
+                    'data-label-text': msg.labelText 
                   }, msg.label);
-
+                  
                   const nodes = [
                     React.createElement(SequenceNode, { 
                       key: `from-node-${msg.sequenceId}`, 
-                      actorIndex: msg.from, 
+                      actorIndex: fromIndex, 
                       yPos: msg.yPos, 
-                      color: actors[msg.from].color 
+                      color: fromActor.color 
                     }),
                     React.createElement(SequenceNode, { 
                       key: `to-node-${msg.sequenceId}`, 
-                      actorIndex: msg.to, 
+                      actorIndex: toIndex, 
                       yPos: msg.yPos, 
-                      color: actors[msg.to].color 
+                      color: toActor.color 
                     })
                   ];
-
+                  
                   return [sequenceLabel, ...nodes];
                 }
                 return [];
