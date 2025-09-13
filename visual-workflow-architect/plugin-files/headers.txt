@@ -6,6 +6,7 @@
 <!-- Plugin core modules -->
 <script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@main/visual-workflow-architect/src/data-store.js?cache=false&t=1735289049299"></script>
 <script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@main/visual-workflow-architect/src/event-bridge.js?cache=false&t=1735289049299"></script>
+<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@main/visual-workflow-architect/src/workflow-inline-edit.js?cache=false&t=1735289049299"></script>
 
 <!-- NEW: Proper sequence diagram renderer (React + CSS, not React Flow) -->
 <script src="https://cdn.jsdelivr.net/gh/erenyusufduran/workflow-visualizer@main/c4LikeVisualizer/visual-workflow-architect/src/react-flow-renderer-clean.js"></script>

@@ -485,7 +485,9 @@ window.SequenceDiagramRenderer = {
         });
 
         // Adjust Y increment based on sequence type - self-messages need more space
-        const yIncrement = isSelfMessage ? SEQUENCE_HEIGHT * 1.2 : SEQUENCE_HEIGHT;
+        const yIncrement = isSelfMessage
+          ? SEQUENCE_HEIGHT * 1.4
+          : SEQUENCE_HEIGHT;
         currentY += yIncrement;
       } else if (item.type === "WORKFLOW_BLOCK") {
         const { workflow, sequences } = item.data;
@@ -843,6 +845,51 @@ window.SequenceDiagramRenderer = {
         );
       }
     };
+    
+    const handleAddWorkflowAfter = (currentOrderIndex) => {
+      console.log("Add Workflow After clicked - order index:", currentOrderIndex);
+      
+      const feature = window.WorkflowArchitectDataStore?.getFeature();
+      if (!feature || !feature.id) {
+        console.error("No feature ID available for new workflow");
+        return;
+      }
+
+      // Get all workflows to calculate proper order index
+      const allWorkflows = window.WorkflowArchitectDataStore?.getWorkflowsArray() || [];
+      
+      // Find the next workflow after the current one
+      const sortedWorkflows = allWorkflows.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+      const currentIndex = sortedWorkflows.findIndex(w => (w.orderIndex || 0) === currentOrderIndex);
+      
+      let newOrderIndex;
+      if (currentIndex >= 0 && currentIndex < sortedWorkflows.length - 1) {
+        // There is a next workflow, insert between current and next
+        const nextWorkflow = sortedWorkflows[currentIndex + 1];
+        const nextOrder = nextWorkflow.orderIndex || ((currentIndex + 2) * 10);
+        newOrderIndex = (currentOrderIndex + nextOrder) / 2;
+      } else {
+        // This is the last workflow, add after it
+        newOrderIndex = currentOrderIndex + 10;
+      }
+
+      console.log("Calculated new workflow order index:", newOrderIndex);
+
+      const newWorkflowData = {
+        name: "New Workflow",
+        featureId: feature.id,
+        orderIndex: newOrderIndex,
+        colorHex: "#4caf50",
+      };
+
+      if (window.WorkflowArchitectEventBridge) {
+        window.WorkflowArchitectEventBridge.handleEntityAdd(
+          "workflow",
+          newWorkflowData
+        );
+      }
+    };
+    
     const handleAddSubgroup = () => {
       console.log("Add Subgroup clicked - triggering Bubble workflow");
 
@@ -890,11 +937,11 @@ window.SequenceDiagramRenderer = {
             React.createElement(
               "button",
               {
-                key: "add-container",
+                key: "add-workflow",
                 className: "toolbar-button",
-                onClick: handleAddContainer,
+                onClick: handleAddWorkflow,
               },
-              "+ Add Container"
+              "+ Add Workflow"
             ),
             React.createElement(
               "button",
@@ -1078,18 +1125,60 @@ window.SequenceDiagramRenderer = {
                           (bounds.workflow.colorHex || "#e3f2fd") + "33",
                       },
                     },
-                    React.createElement(
-                      "div",
-                      {
-                        key: "label",
-                        className: "workflow-label",
-                        style: {
-                          backgroundColor:
-                            bounds.workflow.colorHex || "#4caf50",
+                    [
+                      React.createElement(
+                        "div",
+                        {
+                          key: "label",
+                          className: "workflow-label",
+                          style: {
+                            backgroundColor:
+                              bounds.workflow.colorHex || "#4caf50",
+                          },
+                          "data-workflow-id": bounds.workflow.id,
+                          "data-label-text": bounds.workflow.name || "Workflow",
                         },
-                      },
-                      bounds.workflow.name || "Workflow"
-                    )
+                        bounds.workflow.name || "Workflow"
+                      ),
+                      React.createElement(
+                        "div",
+                        {
+                          key: "add-workflow-plus",
+                          className: "add-workflow-plus-icon",
+                          style: {
+                            position: "absolute",
+                            bottom: "-15px",
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            width: "24px",
+                            height: "24px",
+                            backgroundColor: "#4caf50",
+                            borderRadius: "50%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            fontSize: "14px",
+                            fontWeight: "bold",
+                            color: "white",
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                            zIndex: "10",
+                            transition: "all 0.2s ease",
+                          },
+                          "data-workflow-order": bounds.workflow.orderIndex || 0,
+                          onClick: (e) => handleAddWorkflowAfter(bounds.workflow.orderIndex || 0),
+                          onMouseEnter: (e) => {
+                            e.target.style.transform = "translateX(-50%) scale(1.1)";
+                            e.target.style.backgroundColor = "#45a049";
+                          },
+                          onMouseLeave: (e) => {
+                            e.target.style.transform = "translateX(-50%) scale(1)";
+                            e.target.style.backgroundColor = "#4caf50";
+                          },
+                        },
+                        "+"
+                      )
+                    ]
                   );
                 }
               }),

@@ -41,6 +41,26 @@ window.WorkflowArchitectEventBridge = {
     this.instance.triggerEvent("container_updated");
   },
 
+  // Handle workflow documentation click
+  handleWorkflowDocumentation: function (eventData) {
+    console.log(
+      "WorkflowArchitectEventBridge: Workflow documentation requested",
+      eventData
+    );
+    this.instance.publishState("pending_workflow_doc", JSON.stringify(eventData));
+    this.instance.triggerEvent("workflow_documentation_clicked");
+  },
+
+  // Handle workflow updates (from inline editing)
+  handleWorkflowUpdate: function (eventData) {
+    console.log(
+      "WorkflowArchitectEventBridge: Workflow update requested",
+      eventData
+    );
+    this.instance.publishState("pending_update", JSON.stringify(eventData));
+    this.instance.triggerEvent("workflow_updated");
+  },
+
   // Handle sequence creation
   handleSequenceAdd: function (eventData) {
     console.log(
