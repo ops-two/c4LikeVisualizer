@@ -179,18 +179,17 @@ window.SequenceDiagramRenderer = {
         box-shadow: 0 2px 8px rgba(0,0,0,0.15);
       }
 
-      .container-master-wrapper {
-        position: relative;
-        display: inline-block;
-        margin-top: 20px;
-      }
-
       .actor-lane h3.container-name {
-        /* This is the visible colored box */
-        display: flex;
-        align-items: center;
-        margin-top: 0;
-        padding: 8px 12px;
+        /* This is our parent 'card'. It MUST be a positioning context. */
+        position: relative; 
+        
+        /* Give it padding on the right to make space FOR the icon to appear in. */
+        padding: 8px 32px 8px 16px; 
+
+        /* All other existing styles are fine */
+        display: block;
+        text-align: center;
+        margin-top: 20px;
         max-width: 170px;
         border-radius: 6px;
         transition: background-color 0.2s;
@@ -198,71 +197,55 @@ window.SequenceDiagramRenderer = {
       }
       
       .container-name span {
-        flex-grow: 1;
+        /* This ensures the text truncates nicely and respects the padding */
+        display: block;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
 
-      /* Doc icon is INSIDE the flexbox, positioned by margin */
       .container-icon-button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        width: 0;
-        opacity: 0;
-        overflow: hidden;
-        transition: all 0.2s ease-in-out;
-        margin-left: 0;
-        background: transparent;
-        border: none;
-        cursor: pointer;
-      }
-      
-      /* '+' icon is OUTSIDE the box, positioned absolutely */
-      .add-container-btn {
+        /* This is the icon, positioned absolutely INSIDE the parent h3 */
         position: absolute;
-        left: 100%;
         top: 50%;
-        transform: translateY(-50%) scale(0.8);
-        margin-left: 8px;
+        right: 8px; /* Position it within the padding of the parent */
+        transform: translateY(-50%);
+
+        /* Hide by default */
         opacity: 0;
         pointer-events: none;
-        transition: all 0.2s ease-in-out;
+        transition: opacity 0.2s ease-in-out;
+        
         /* Visuals */
         display: flex;
         align-items: center;
         justify-content: center;
         width: 24px;
         height: 24px;
-        border-radius: 50%;
-        border: 1px solid #cccccc;
-        background-color: white;
-        color: #888888;
-        font-size: 18px;
+        border-radius: 4px;
+        background-color: rgba(0,0,0,0.05);
         cursor: pointer;
         z-index: 10;
       }
 
-      /* THE HOVER TRIGGER IS THE MASTER WRAPPER */
-      .container-master-wrapper:hover .container-icon-button {
-        width: 24px;
-        height: 24px;
-        opacity: 1;
-        margin-left: 8px; /* Appears with a gap */
-      }
-
-      .container-master-wrapper:hover .add-container-btn {
+      .container-name:hover .container-icon-button {
         opacity: 1;
         pointer-events: auto;
-        transform: translateY(-50%) scale(1);
       }
       
+      .container-icon-button:hover {
+        background-color: rgba(0,0,0,0.1);
+      }
+
       .container-icon-button svg {
         width: 16px;
         height: 16px;
-        color: #555;
+        color: #333;
+      }
+
+      /* Temporarily hide the '+' button so we can focus on one thing at a time */
+      .add-container-btn {
+        display: none;
       }
       .sequence-icon-button {
         position: absolute;
