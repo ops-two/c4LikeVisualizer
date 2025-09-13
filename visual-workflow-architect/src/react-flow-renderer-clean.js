@@ -187,7 +187,7 @@ window.SequenceDiagramRenderer = {
 
       .actor-lane h3.container-name {
         /* The visible box needs padding for the internal doc icon */
-        padding: 8px 32px 8px 16px; 
+        padding: 8px 16px 8px 16px; 
         max-width: 170px;
         /* Other styles */
         margin: 0;
@@ -213,8 +213,8 @@ window.SequenceDiagramRenderer = {
         transition: all 0.2s ease-in-out;
         z-index: 10;
         /* Visuals */
-        width: 24px; 
-        height: 24px; 
+        width: 22px; 
+        height: 22px; 
         border-radius: 50%; 
         background-color: white;
         border: 1px solid #cccccc; 
@@ -229,8 +229,8 @@ window.SequenceDiagramRenderer = {
         right: 8px; 
       }
       .add-container-btn {
-        right: -12px; /* Positioned half-way over the border */
-        font-size: 18px;
+        right: -4px; /* Positioned half-way over the border */
+        font-size: 16px;
         color: #888888;
       }
       
@@ -828,31 +828,33 @@ window.SequenceDiagramRenderer = {
 
   // JavaScript logic to handle hover with delay
   initContainerHoverLogic: function (container) {
-    const wrappers = container.querySelectorAll('.container-master-wrapper');
-    wrappers.forEach(wrapper => {
-      if (wrapper.dataset.hoverInit === 'true') return;
-      wrapper.dataset.hoverInit = 'true';
+    const wrappers = container.querySelectorAll(".container-master-wrapper");
+    wrappers.forEach((wrapper) => {
+      if (wrapper.dataset.hoverInit === "true") return;
+      wrapper.dataset.hoverInit = "true";
 
-      const icons = wrapper.querySelectorAll('.container-icon-button, .add-container-btn');
+      const icons = wrapper.querySelectorAll(
+        ".container-icon-button, .add-container-btn"
+      );
       let hideTimer;
 
       const showIcons = () => {
         clearTimeout(hideTimer);
-        wrapper.classList.add('is-visible');
+        wrapper.classList.add("is-visible");
       };
 
       const startHideTimer = () => {
         hideTimer = setTimeout(() => {
-          wrapper.classList.remove('is-visible');
+          wrapper.classList.remove("is-visible");
         }, 300); // 300ms delay
       };
 
-      wrapper.addEventListener('mouseenter', showIcons);
-      wrapper.addEventListener('mouseleave', startHideTimer);
+      wrapper.addEventListener("mouseenter", showIcons);
+      wrapper.addEventListener("mouseleave", startHideTimer);
 
-      icons.forEach(icon => {
-        icon.addEventListener('mouseenter', showIcons);
-        icon.addEventListener('mouseleave', startHideTimer);
+      icons.forEach((icon) => {
+        icon.addEventListener("mouseenter", showIcons);
+        icon.addEventListener("mouseleave", startHideTimer);
       });
     });
   },
