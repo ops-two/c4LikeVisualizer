@@ -180,41 +180,37 @@ window.SequenceDiagramRenderer = {
       }
 
       .actor-lane h3.container-name {
-        /* This is our parent 'card'. It MUST be a positioning context. */
-        position: relative; 
-        
-        /* Give it padding on the right to make space FOR the icon to appear in. */
-        padding: 8px 32px 8px 16px; 
-
-        /* All other existing styles are fine */
+        position: relative; /* The parent context for the absolute icon */
+        padding: 8px 16px; /* Symmetrical padding, no extra space on the right */
         display: block;
         text-align: center;
         margin-top: 20px;
         max-width: 170px;
         border-radius: 6px;
         transition: background-color 0.2s;
+        overflow: hidden; /* Important: Prevents content from spilling out */
         cursor: pointer;
       }
       
       .container-name span {
-        /* This ensures the text truncates nicely and respects the padding */
         display: block;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        transition: opacity 0.2s ease-in-out; /* Add transition for fading */
       }
 
       .container-icon-button {
-        /* This is the icon, positioned absolutely INSIDE the parent h3 */
+        /* Position the icon absolutely to overlay it on top of the text space */
         position: absolute;
         top: 50%;
-        right: 8px; /* Position it within the padding of the parent */
+        right: 12px; /* Position from the right edge */
         transform: translateY(-50%);
 
         /* Hide by default */
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.2s ease-in-out;
+        transition: opacity 0.2s ease-in-out; /* Add transition for fading */
         
         /* Visuals */
         display: flex;
@@ -227,9 +223,14 @@ window.SequenceDiagramRenderer = {
         cursor: pointer;
         z-index: 10;
       }
+      
+      /* --- THE REVEAL EFFECT --- */
+      .container-name:hover span {
+        opacity: 0.1; /* Fade out the text on hover */
+      }
 
       .container-name:hover .container-icon-button {
-        opacity: 1;
+        opacity: 1; /* Fade in the icon on hover */
         pointer-events: auto;
       }
       
