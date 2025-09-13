@@ -1132,6 +1132,20 @@ window.SequenceDiagramRenderer = {
       };
     };
 
+    // Helper function for circle edge calculation
+    const calculateCircleEdge = (centerX, centerY, targetX, targetY, radius) => {
+      const dx = targetX - centerX;
+      const dy = targetY - centerY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      if (distance === 0) return { x: centerX, y: centerY };
+      
+      return {
+        x: centerX + (dx / distance) * radius,
+        y: centerY + (dy / distance) * radius,
+      };
+    };
+
     // SVG Arrow Component for consistent arrow styling
     const SVGArrow = ({ from, to, yPos, dashed = false, sequenceId, labelText }) => {
       const startCenter = { x: from * 180 + 90, y: yPos };
@@ -1139,14 +1153,14 @@ window.SequenceDiagramRenderer = {
       const circleRadius = 19;
 
       // Calculate edge points to avoid overlap with circles
-      const startEdge = this.calculateCircleEdge(
+      const startEdge = calculateCircleEdge(
         startCenter.x,
         startCenter.y,
         endCenter.x,
         endCenter.y,
         circleRadius
       );
-      const endEdge = this.calculateCircleEdge(
+      const endEdge = calculateCircleEdge(
         endCenter.x,
         endCenter.y,
         startCenter.x,
@@ -1171,6 +1185,7 @@ window.SequenceDiagramRenderer = {
           className: "sequence-arrow",
           "data-sequence-id": sequenceId,
           "data-label-text": labelText,
+          "data-drag-target": `sequence-${sequenceId}`, // Shared drag target
         }),
         // Note: Label is now rendered as HTML overlay, not SVG text
       ];
@@ -1207,6 +1222,7 @@ window.SequenceDiagramRenderer = {
           className: "sequence-arrow",
           "data-sequence-id": sequenceId,
           "data-label-text": labelText,
+          "data-drag-target": `sequence-${sequenceId}`, // Shared drag target
         }),
         // Vertical line
         React.createElement("line", {
@@ -1222,6 +1238,7 @@ window.SequenceDiagramRenderer = {
           className: "sequence-arrow",
           "data-sequence-id": sequenceId,
           "data-label-text": labelText,
+          "data-drag-target": `sequence-${sequenceId}`, // Shared drag target
         }),
         // Bottom horizontal line (right arrow pointing into circle)
         React.createElement("line", {
@@ -1238,6 +1255,7 @@ window.SequenceDiagramRenderer = {
           className: "sequence-arrow",
           "data-sequence-id": sequenceId,
           "data-label-text": labelText,
+          "data-drag-target": `sequence-${sequenceId}`, // Shared drag target
         }),
       ];
     };
@@ -1643,7 +1661,7 @@ window.SequenceDiagramRenderer = {
 
                 const labelLeft = msg.self ? (msg.from * 180 + 90 + 50) : (((msg.from + msg.to) / 2) * 180 + 90);
                 const labelTop = msg.self ? (msg.yPos + (SEQUENCE_HEIGHT * 0.8 / 2)) : (msg.yPos - 35);
-                const sequenceLabel = React.createElement('div', { key: `label-${msg.sequenceId}`, className: 'message-label sequence-label', style: { position: 'absolute', left: `${labelLeft}px`, top: `${labelTop}px`, transform: 'translate(-50%, -50%)', zIndex: 5 }, 'data-sequence-id': msg.sequenceId, 'data-label-text': msg.labelText }, msg.label );
+                const sequenceLabel = React.createElement('div', { key: `label-${msg.sequenceId}`, className: 'message-label sequence-label', style: { position: 'absolute', left: `${labelLeft}px`, top: `${labelTop}px`, transform: 'translate(-50%, -50%)', zIndex: 5 }, 'data-sequence-id': msg.sequenceId, 'data-label-text': msg.labelText, 'data-drag-target': `sequence-${msg.sequenceId}` }, msg.label );
 
                 const nodes = msg.self ? [
                     React.createElement(SequenceNode, { key: `start-node-${index}`, actorIndex: msg.from, yPos: msg.yPos, color: actors[msg.from].color }),

@@ -69,92 +69,50 @@ window.WorkflowArchitectSequenceDragDrop = {
     const dropZones = this.container.querySelectorAll(".sequence-drop-zone");
     const diagramContainer = this.container.querySelector(".diagram-container");
 
-    // Setup listeners for the draggable labels
-    sequenceLabels.forEach((label) => {
-      if (label.dataset.dragSetup === "true") return;
-      label.dataset.dragSetup = "true";
-      label.draggable = true;
-
-      label.addEventListener("dragstart", (e) => {
-        e.stopPropagation();
-        this.draggedSequence = label;
-        setTimeout(() => {
-          label.classList.add("dragging");
-          if (diagramContainer) {
-            // Activate pointer events on drop zones
-            diagramContainer.classList.add("sequence-drag-active");
-          }
-        }, 0);
-        e.dataTransfer.setData("text/plain", label.dataset.sequenceId);
-
-        const labelText = label.dataset.labelText || "Sequence";
-        const dragImage = this.createDragImageCanvas(labelText);
-        dragImage.style.position = "absolute";
-        dragImage.style.top = "-1000px";
-        document.body.appendChild(dragImage);
-        e.dataTransfer.setDragImage(dragImage, 70, 17);
-        setTimeout(() => {
-          document.body.removeChild(dragImage);
-        }, 0);
-      });
-
-      label.addEventListener("dragend", (e) => {
-        e.stopPropagation();
-        if (this.draggedSequence) {
-          this.draggedSequence.classList.remove("dragging");
-        }
+    // Shared drag handler function
+    const handleDragStart = (element, e) => {
+      e.stopPropagation();
+      this.draggedSequence = element;
+      setTimeout(() => {
+        element.classList.add("dragging");
         if (diagramContainer) {
-          // Deactivate pointer events on drop zones
-          diagramContainer.classList.remove("sequence-drag-active");
+          diagramContainer.classList.add("sequence-drag-active");
         }
-        // Failsafe cleanup for any leftover visual indicators
-        dropZones.forEach((zone) => zone.classList.remove("drag-over"));
-        this.draggedSequence = null;
-      });
-    });
+      }, 0);
+      e.dataTransfer.setData("text/plain", element.dataset.sequenceId);
 
-    // Setup listeners for the draggable arrows
-    sequenceArrows.forEach((arrow) => {
-      if (arrow.dataset.dragSetup === "true") return;
-      arrow.dataset.dragSetup = "true";
-      arrow.draggable = true;
+      const labelText = element.dataset.labelText || "Sequence";
+      const dragImage = this.createDragImageCanvas(labelText);
+      dragImage.style.position = "absolute";
+      dragImage.style.top = "-1000px";
+      document.body.appendChild(dragImage);
+      e.dataTransfer.setDragImage(dragImage, 70, 17);
+      setTimeout(() => {
+        document.body.removeChild(dragImage);
+      }, 0);
+    };
 
-      arrow.addEventListener("dragstart", (e) => {
-        e.stopPropagation();
-        this.draggedSequence = arrow;
-        setTimeout(() => {
-          arrow.classList.add("dragging");
-          if (diagramContainer) {
-            // Activate pointer events on drop zones
-            diagramContainer.classList.add("sequence-drag-active");
-          }
-        }, 0);
-        e.dataTransfer.setData("text/plain", arrow.dataset.sequenceId);
+    const handleDragEnd = (element, e) => {
+      e.stopPropagation();
+      if (this.draggedSequence) {
+        this.draggedSequence.classList.remove("dragging");
+      }
+      if (diagramContainer) {
+        diagramContainer.classList.remove("sequence-drag-active");
+      }
+      dropZones.forEach((zone) => zone.classList.remove("drag-over"));
+      this.draggedSequence = null;
+    };
 
-        const labelText = arrow.dataset.labelText || "Sequence";
-        const dragImage = this.createDragImageCanvas(labelText);
-        dragImage.style.position = "absolute";
-        dragImage.style.top = "-1000px";
-        document.body.appendChild(dragImage);
-        e.dataTransfer.setDragImage(dragImage, 70, 17);
-        setTimeout(() => {
-          document.body.removeChild(dragImage);
-        }, 0);
-      });
+    // Setup listeners for both labels and arrows using shared drag target
+    const allDragElements = [...sequenceLabels, ...sequenceArrows];
+    allDragElements.forEach((element) => {
+      if (element.dataset.dragSetup === "true") return;
+      element.dataset.dragSetup = "true";
+      element.draggable = true;
 
-      arrow.addEventListener("dragend", (e) => {
-        e.stopPropagation();
-        if (this.draggedSequence) {
-          this.draggedSequence.classList.remove("dragging");
-        }
-        if (diagramContainer) {
-          // Deactivate pointer events on drop zones
-          diagramContainer.classList.remove("sequence-drag-active");
-        }
-        // Failsafe cleanup for any leftover visual indicators
-        dropZones.forEach((zone) => zone.classList.remove("drag-over"));
-        this.draggedSequence = null;
-      });
+      element.addEventListener("dragstart", (e) => handleDragStart(element, e));
+      element.addEventListener("dragend", (e) => handleDragEnd(element, e));
     });
 
     // Setup listeners for the drop zones
