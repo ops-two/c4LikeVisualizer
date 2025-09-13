@@ -179,46 +179,58 @@ window.SequenceDiagramRenderer = {
         box-shadow: 0 2px 8px rgba(0,0,0,0.15);
       }
 
-      /* Container name wrapper - the new parent element */
-      .container-name-wrapper {
-        position: relative; /* Establishes the positioning context for the icons */
-        display: inline-block; /* Makes the wrapper fit the content (the h3) */
+      .container-master-wrapper {
+        position: relative;
+        display: inline-block;
         margin-top: 20px;
       }
 
-      /* The h3 is now just a simple box for the text */
       .actor-lane h3.container-name {
-        margin: 0; /* Reset margin since it's now on the wrapper */
-        padding: 8px 16px;
+        /* This is the visible colored box */
+        display: flex;
+        align-items: center;
+        margin-top: 0;
+        padding: 8px 12px;
         max-width: 170px;
-        display: block; /* No longer needs to be flex */
-        text-align: center;
         border-radius: 6px;
         transition: background-color 0.2s;
         cursor: pointer;
       }
       
-      /* Ensure text truncation works properly */
       .container-name span {
-        display: block;
+        flex-grow: 1;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
 
-      /* Style for both icon buttons */
-      .container-icon-button, .add-container-btn {
-        /* Position absolutely relative to the wrapper */
+      /* Doc icon is INSIDE the flexbox, positioned by margin */
+      .container-icon-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: all 0.2s ease-in-out;
+        margin-left: 0;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+      }
+      
+      /* '+' icon is OUTSIDE the box, positioned absolutely */
+      .add-container-btn {
         position: absolute;
+        left: 100%;
         top: 50%;
         transform: translateY(-50%) scale(0.8);
-        
-        /* Hide by default */
+        margin-left: 8px;
         opacity: 0;
         pointer-events: none;
         transition: all 0.2s ease-in-out;
-
-        /* Common visual styles */
+        /* Visuals */
         display: flex;
         align-items: center;
         justify-content: center;
@@ -228,42 +240,29 @@ window.SequenceDiagramRenderer = {
         border: 1px solid #cccccc;
         background-color: white;
         color: #888888;
+        font-size: 18px;
         cursor: pointer;
         z-index: 10;
       }
 
-      /* Position the document icon */
-      .container-icon-button {
-        left: 100%;
-        margin-left: 8px;
-      }
-      
-      /* Position the add button */
-      .add-container-btn {
-        left: 100%;
-        margin-left: 38px; /* 8px gap + 24px icon width + 6px gap */
-        font-size: 20px;
-        font-weight: 300;
-        line-height: 1;
+      /* THE HOVER TRIGGER IS THE MASTER WRAPPER */
+      .container-master-wrapper:hover .container-icon-button {
+        width: 24px;
+        height: 24px;
+        opacity: 1;
+        margin-left: 8px; /* Appears with a gap */
       }
 
-      /* Hover effects */
-      .container-name-wrapper:hover .container-icon-button,
-      .container-name-wrapper:hover .add-container-btn {
+      .container-master-wrapper:hover .add-container-btn {
         opacity: 1;
         pointer-events: auto;
         transform: translateY(-50%) scale(1);
       }
       
-      .container-icon-button:hover,
-      .add-container-btn:hover {
-        background-color: #f5f5f5;
-      }
-      
-      /* Icon sizing */
       .container-icon-button svg {
         width: 16px;
         height: 16px;
+        color: #555;
       }
       .sequence-icon-button {
         position: absolute;
@@ -1480,15 +1479,15 @@ window.SequenceDiagramRenderer = {
                     style: { height: `${finalContainerHeight}px` },
                   },
                   [
-                    // Wrapper div for the container name and icons
+                    // The "Master Wrapper" is the hover trigger and positioning context.
                     React.createElement(
                       "div",
                       {
-                        key: "container-wrapper",
-                        className: "container-name-wrapper",
+                        key: "container-master-wrapper",
+                        className: "container-master-wrapper",
                       },
                       [
-                        // The H3 now ONLY contains the text span
+                        // The H3 is the visible, colored box. It contains the text and the doc icon.
                         React.createElement(
                           "h3",
                           {
@@ -1501,60 +1500,52 @@ window.SequenceDiagramRenderer = {
                               color: actor.color,
                             },
                           },
-                          React.createElement(
-                            "span",
-                            { key: 'actor-name' },
-                            actor.name
-                          )
+                          [
+                            React.createElement('span', { 
+                              key: 'actor-name' 
+                            }, actor.name),
+                            React.createElement('div', {
+                                key: `doc-icon-${actor.id}`,
+                                className: 'container-icon-button',
+                                onClick: (e) => { 
+                                  e.stopPropagation(); 
+                                  if (window.WorkflowArchitectEventBridge) { 
+                                    window.WorkflowArchitectEventBridge.handleContainerClick(actor.id); 
+                                  } 
+                                }
+                            }, 
+                                React.createElement('svg', { 
+                                  viewBox: '0 0 24 24', 
+                                  fill: 'none', 
+                                  stroke: 'currentColor', 
+                                  strokeWidth: '2' 
+                                }, [
+                                    React.createElement('path', { 
+                                      key: 'path1', 
+                                      d: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z' 
+                                    }),
+                                    React.createElement('polyline', { 
+                                      key: 'path2', 
+                                      points: '14,2 14,8 20,8' 
+                                    })
+                                ])
+                            )
+                          ]
                         ),
-                        // Document icon (absolute positioned)
-                        React.createElement(
-                          'div',
-                          {
-                            key: `doc-icon-${actor.id}`,
-                            className: 'container-icon-button',
-                            onClick: (e) => {
-                              e.stopPropagation();
-                              if (window.WorkflowArchitectEventBridge) {
-                                window.WorkflowArchitectEventBridge.handleContainerClick(actor.id);
-                              }
-                            },
-                            title: "Container details"
-                          },
-                          React.createElement(
-                            'svg',
-                            { 
-                              viewBox: '0 0 24 24',
-                              fill: 'none',
-                              stroke: 'currentColor',
-                              strokeWidth: '2'
-                            },
-                            [
-                              React.createElement('path', {
-                                key: 'path1',
-                                d: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'
-                              }),
-                              React.createElement('polyline', {
-                                key: 'path2',
-                                points: '14,2 14,8 20,8'
-                              })
-                            ]
-                          )
+                        // The '+' button is a sibling to the H3, so it can be positioned outside.
+                        React.createElement( 
+                          "button", 
+                          { 
+                            key: `add-btn-${index}`, 
+                            className: "add-container-btn", 
+                            title: "Add container after", 
+                            onClick: (e) => { 
+                              e.stopPropagation(); 
+                              handleAddContainerAfter(index); 
+                            } 
+                          }, 
+                          "+"
                         ),
-                        // Add container button (absolute positioned)
-                        React.createElement(
-                          'button',
-                          {
-                            key: `add-btn-${index}`,
-                            className: 'add-container-btn',
-                            title: 'Add container after',
-                            onClick: (e) => {
-                              e.stopPropagation();
-                              handleAddContainerAfter(index);
-                            }
-                          },
-                          '+'
-                        )
                       ]
                     ),
                     React.createElement("div", {
