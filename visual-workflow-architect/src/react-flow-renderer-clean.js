@@ -53,6 +53,7 @@ window.SequenceDiagramRenderer = {
     const style = document.createElement("style");
     style.id = styleId;
     style.textContent = `
+      /* --- Main Containers & Toolbar --- */
       .sequence-diagram-container {
         width: 100%;
         max-height: none;
@@ -63,244 +64,16 @@ window.SequenceDiagramRenderer = {
         position: relative;
         box-sizing: border-box;
       }
-
-      .workflow-architect-container {
-        // overflow: hidden;
-      }
-
       .diagram-container {
         display: flex;
         flex-direction: row;
-        align-items: center;
+        align-items: flex-start; /* Align actors to the top */
         position: relative;
         width: fit-content;
         height: auto;
         min-height: auto;
         overflow: visible;
       }
-
-      .actor-lane {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        position: relative;
-        min-height: auto;
-        width: 180px;
-        flex-shrink: 0;
-      }
-
-      .actor-lane h3 {
-        border-radius: 6px;
-        padding: 8px 16px;
-        margin-top: 20px;
-        font-weight: 500;
-        font-size: 14px;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        max-width: 170px; /* Increased from 140px to allow more text */
-        text-align: center;
-        line-height: 1.3;
-        transition: all 0.2s ease-in-out;
-        background-color: #e3f2fd; 
-        border: 1px solid #90caf9;
-        color: #1e88e5;
-      }
-      .lifeline {
-        width: 0px; /* The element itself has no width */
-        height: 100%;
-        min-height: auto; /* Will be updated dynamically */
-        border-left: 2px dotted #cccccc; /* Create the line using a dotted border */
-        z-index: 0;
-      }
-      
-      .sequence-node {
-        position: absolute;
-        width: 38px; /* Reduced by 20% from 48px */
-        height: 38px; /* Reduced by 20% from 48px */
-        border-radius: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 2; /* Keep it above the lifeline (z-index: 1) and below the arrow (z-index: 3) */
-        box-shadow: 0 2px 4px rgba(0,0,0,0.15); /* Enhanced shadow for more "pop" */
-      }
-      .message {
-        position: absolute;
-        height: 100px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-
-      .message-label {
-        background-color: white;
-        padding: 8px 12px;
-        border: 1px solid #e0e0e0;
-        border-radius: 5px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        z-index: 3;
-        text-align: center;
-        line-height: 1.4;
-      }
-
-      .message-label.sequence-label {
-        cursor: pointer;
-        padding: 2px 4px;
-        border-radius: 3px;
-        transition: all 0.2s ease;
-        position: relative;
-      }
-      
-      .message-label.sequence-label:hover {
-        background-color: rgba(25, 118, 210, 0.1);
-        outline: 2px solid #1976d2;
-        outline-offset: 2px;
-      }
-      
-
-      .message.drag-over,
-      .sequence-message.drag-over {
-        box-shadow: 0 0 0 2px #1976d2; /* Blue outline for drop target */
-      }
-      
-      .message.dragging,
-      .sequence-message.dragging {
-        opacity: 0.5;
-        transform: rotate(3deg);
-      }
-
-      .sequence-inline-edit-input {
-        position: fixed;
-        z-index: 1000;
-        border: 2px solid #1976d2;
-        border-radius: 4px;
-        padding: 4px 8px;
-        background: white;
-        font-family: inherit;
-        font-size: inherit;
-        outline: none;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      }
-
-      .container-master-wrapper {
-        position: relative;
-        display: inline-block;
-        margin-top: 20px;
-      }
-
-      .actor-lane h3.container-name {
-        /* The visible box needs padding for the internal doc icon */
-        padding: 8px 16px 8px 16px; 
-        max-width: 170px;
-        /* Other styles */
-        margin: 0;
-        text-align: center;
-        border-radius: 6px;
-        transition: background-color 0.2s;
-        display: block;
-      }
-      
-      .container-name span {
-        display: block;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .container-icon-button, .add-container-btn {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%) scale(0.8);
-        opacity: 0;
-        pointer-events: none;
-        transition: all 0.2s ease-in-out;
-        z-index: 10;
-        /* Visuals */
-        width: 22px; 
-        height: 22px; 
-        border-radius: 50%; 
-        background-color: white;
-        border: 1px solid #cccccc; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        cursor: pointer;
-      }
-
-      /* Precise positioning */
-      .container-icon-button {
-        right: 8px; 
-      }
-      .add-container-btn {
-        right: -4px; /* Positioned half-way over the border */
-        font-size: 16px;
-        color: #888888;
-      }
-      
-      /* VISIBILITY IS NOW CONTROLLED BY THIS JS-ADDED CLASS */
-      .container-master-wrapper.is-visible .container-icon-button,
-      .container-master-wrapper.is-visible .add-container-btn {
-        opacity: 1;
-        pointer-events: auto;
-        transform: translateY(-50%) scale(1);
-      }
-      
-      .container-icon-button svg {
-        width: 14px;
-        height: 14px;
-        color: #555;
-      }
-
-      }
-
-      .sequence-label:hover .sequence-icon-button {
-        opacity: 1;
-        pointer-events: auto;
-      }
-      
-      /* The hover trigger is the MASTER WRAPPER and makes both icons visible */
-      .container-master-wrapper.is-visible .container-icon-button,
-      .container-master-wrapper.is-visible .add-container-btn {
-        opacity: 1;
-        pointer-events: auto;
-        transform: translate(0, -50%) scale(1); /* Simplified transform for icons */
-      }
-      
-      /* Reposition the '+' icon correctly on hover */
-      .container-master-wrapper.is-visible .add-container-btn {
-        transform: translate(50%, -50%) scale(1);
-      }
-      
-      .container-icon-button svg {
-        width: 14px;
-        height: 14px;
-        color: #555;
-      }
-      .sequence-icon-button {
-        position: absolute;
-        width: 16px;
-        height: 16px;
-        background: rgba(255, 255, 255, 0.9);
-        border: 1px solid #ddd;
-        border-radius: 3px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        transition: opacity 0.2s ease;
-        cursor: pointer;
-        z-index: 15;
-        pointer-events: none;
-        right: 4px;
-        top: 4px;
-      }
-
-      .sequence-label:hover .sequence-icon-button {
-        opacity: 1;
-        pointer-events: auto;
-      }
-
-      .sequence-icon-button:hover {
-        background-color: #f5f5f5;
-      }
-
       .toolbar {
         display: flex;
         gap: 10px;
@@ -311,7 +84,6 @@ window.SequenceDiagramRenderer = {
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       }
-      
       .toolbar-button {
         padding: 8px 16px;
         background-color: #1976d2;
@@ -323,152 +95,242 @@ window.SequenceDiagramRenderer = {
         font-weight: 500;
         transition: background-color 0.2s;
       }
+      .toolbar-button:hover { background-color: #1565c0; }
+      .toolbar-button:active { background-color: #0d47a1; }
       
-      .toolbar-button:hover {
-        background-color: #1565c0;
+      /* --- Actor / Container Styles --- */
+      .actor-lane {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        min-height: auto;
+        width: 180px;
+        flex-shrink: 0;
       }
-      
-      .toolbar-button:active {
-        background-color: #0d47a1;
+      .actor-lane h3 {
+        padding: 8px 16px;
+        margin-top: 20px;
+        font-weight: 500;
+        font-size: 14px;
+        max-width: 170px;
+        text-align: center;
+        line-height: 1.3;
+        transition: all 0.2s ease-in-out;
       }
-      
-      .container-name {
+      .lifeline {
+        width: 0px;
+        height: 100%;
+        min-height: auto;
+        border-left: 2px dotted #cccccc;
+        z-index: 0;
+      }
+      .container-master-wrapper {
+        position: relative;
+        display: inline-block;
+        margin-top: 20px;
+        padding-right: 38px;
+      }
+      .actor-lane h3.container-name {
+        margin-top: 0;
+        padding: 8px 32px 8px 16px; 
+        display: block;
+        border-radius: 6px;
+      }
+      .container-name span {
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .container-icon-button, .add-container-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease-in-out;
+        z-index: 10;
+        width: 24px; height: 24px; border-radius: 50%; background-color: white;
+        border: 1px solid #cccccc; display: flex; align-items: center; justify-content: center; cursor: pointer;
+      }
+      .container-icon-button { right: 34px; }
+      .add-container-btn { right: 8px; font-size: 18px; color: #888888; }
+      .container-master-wrapper.is-visible .container-icon-button,
+      .container-master-wrapper.is-visible .add-container-btn {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .container-icon-button svg { width: 14px; height: 14px; color: #555; }
+
+      /* --- Sequence & Message Styles --- */
+      .sequence-node {
+        position: absolute;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 2;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      }
+      .message-label.sequence-label {
         cursor: pointer;
         padding: 2px 4px;
         border-radius: 3px;
-        transition: background-color 0.2s;
+        transition: all 0.2s ease;
+        position: relative; /* For the icon */
+        background-color: white;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       }
-      
-      .container-name:hover {
+      .message-label.sequence-label:hover {
         background-color: rgba(25, 118, 210, 0.1);
+        outline: 2px solid #1976d2;
+        outline-offset: 2px;
       }
-      .workflow-background {
+      .sequence-label.dragging { opacity: 0.5; transform: rotate(3deg); }
+      .sequence-icon-button {
         position: absolute;
-        background: rgba(227, 242, 253, 0.10); /* Reduced opacity to 0.10 */
-        border: 2px solid rgba(227, 242, 253, 0.2); /* Border opacity 0.2 */
-        border-radius: 8px;
-        z-index: 1; /* Above diagram background but behind sequences */
-        pointer-events: none;
-      }
-      
-      .subgroup-background {
-        position: absolute;
-        background: rgba(245, 245, 245, 0.15); /* Light gray with transparency */
-        border: 1px solid rgba(245, 245, 245, 0.3);
-        border-radius: 6px;
-        z-index: 1.5; /* Above workflow background but behind sequences */
-        pointer-events: none;
-        margin: 5px;
-      }
-
-      .subgroup-label {
-        position: absolute;
-        background: #9e9e9e;
-        color: white;
-        padding: 2px 8px;
+        right: 4px; top: 4px;
+        width: 16px; height: 16px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid #ddd;
         border-radius: 3px;
-        font-size: 11px;
-        font-weight: 500;
-        top: -10px;
-        left: 6px;
-        z-index: 2.5; /* Above subgroup background */
+        display: flex; align-items: center; justify-content: center;
+        opacity: 0; transition: opacity 0.2s ease;
+        cursor: pointer; z-index: 15; pointer-events: none;
       }
-
-      .workflow-label {
-        position: absolute;
-        background: #4caf50;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 500;
-        top: -12px;
-        left: 8px;
-        z-index: 2; /* Above workflow background */
+      .sequence-label:hover .sequence-icon-button { opacity: 1; pointer-events: auto; }
+      .sequence-icon-button:hover { background-color: #f5f5f5; }
+      .sequence-icon-button svg { width: 14px; height: 14px; }
+      
+      /* --- Drop Zone Styles --- */
+      .diagram-container.sequence-drag-active .sequence-drop-zone {
+        pointer-events: auto;
       }
-      .arrow-line {
+      .sequence-drop-zone {
         position: absolute;
-        top: 50%;
-        height: 2px;
-        background-color: #555;
-        z-index: 2;
+        height: 20px;
+        z-index: 4;
+        pointer-events: none;
         transform: translateY(-50%);
       }
-      
-      .arrow-line.dashed {
-        background-image: linear-gradient(to right, #555 50%, transparent 50%);
-        background-size: 12px 2px;
-        background-color: transparent;
-      }
-
-      .arrow-line::after {
+      .sequence-drop-zone::before, .sequence-drop-zone::after {
         content: '';
         position: absolute;
-        right: -1px;
-        top: 50%;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+      .sequence-drop-zone::before { /* The line */
+        width: 100%; height: 2px; top: 50%; left: 0;
         transform: translateY(-50%);
-        width: 0;
-        height: 0;
-        border-top: 5px solid transparent;
-        border-bottom: 5px solid transparent;
-        border-left: 8px solid #555;
+        background-color: rgba(25, 118, 210, 0.6);
+        border-radius: 1px;
       }
-      
-      .arrow-line.left::after {
-        left: -1px; 
-        right: auto; 
-        border-left: none; 
-        border-right: 8px solid #555;
+      .sequence-drop-zone::after { /* The 'Drop Here' pill */
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(25, 118, 210, 0.9);
+        color: white; padding: 2px 8px; border-radius: 10px;
+        font-size: 11px; font-weight: 500; white-space: nowrap;
+      }
+      .sequence-drop-zone.drag-over::before,
+      .sequence-drop-zone.drag-over::after {
+        opacity: 1;
       }
 
-      .self-message {
+      /* --- Workflow & Subgroup Styles --- */
+      .workflow-background {
         position: absolute;
-        z-index: 3;
-        display: flex;
-        align-items: center;
+        background: rgba(227, 242, 253, 0.10);
+        border: 1px solid rgba(227, 242, 253, 0.2);
+        border-radius: 8px;
+        z-index: 1;
+        pointer-events: none;
       }
-
-      .self-message-path {
+      .workflow-label {
+        position: absolute;
+        top: -12px; left: 8px;
+        color: white; padding: 4px 12px; border-radius: 4px;
+        font-size: 12px; font-weight: 500; z-index: 2;
+      }
+      .empty-workflow-background {
+        display: flex; flex-direction: column; align-items: center;
+        justify-content: flex-start; padding: 10px;
+      }
+      .empty-workflow-title {
+        font-size: 13px; font-weight: 600; color: #4a6a8a;
+        margin: 0 0 5px 0; padding: 2px 8px;
+        background-color: rgba(255,255,255,0.2);
+        border-radius: 4px; flex-shrink: 0;
+      }
+      .empty-workflow-drop-message {
         position: relative;
-        width: 30px; /* Further reduced to prevent workflow background overlap */
-        height: 100%;
+        font-size: 14px; font-weight: 500; color: #7b98b7;
+        width: 100%; height: 100%;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 6px; transition: background-color 0.2s ease;
+        flex-grow: 1; align-self: stretch;
+      }
+      .empty-workflow-drop-message.drag-over {
+        background-color: rgba(255, 255, 255, 0.2);
       }
       
-      .self-message-path-top,
-      .self-message-path-bottom,
-      .self-message-path-vertical {
-        position: absolute;
-        background-color: #555;
+      /* --- Inline Edit --- */
+      .sequence-inline-edit-input {
+        position: fixed; 
+        z-index: 1000; 
+        border: 2px solid #1976d2;
+        border-radius: 4px; 
+        padding: 4px 8px; 
+        background: white;
+        font-family: inherit; 
+        font-size: inherit;
+        outline: none; 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
       }
-
-      .self-message-path-top {
-        width: 30px; height: 2px; top: 0; left: 19px; /* Start from circle edge (19px radius) */
-      }
-
+      
+      /* --- Self-message Path Styles --- */
       .self-message-path-top::after {
-        content: ''; position: absolute; right: -1px; top: -3px; 
-        width: 0; height: 0;
+        content: ''; 
+        position: absolute; 
+        right: -1px; 
+        top: -3px; 
+        width: 0; 
+        height: 0;
         border-top: 3px solid transparent; 
         border-bottom: 3px solid transparent; 
         border-left: 8px solid #555;
       }
 
       .self-message-path-vertical {
-        width: 2px; height: 100%; top: 0; left: 49px; /* Adjusted for 30px width */
+        width: 2px; 
+        height: 100%; 
+        top: 0; 
+        left: 49px; /* Adjusted for 30px width */
       }
 
       .self-message-path-bottom {
-        width: 30px; height: 2px; bottom: 0; left: 19px; /* Start from circle edge */
+        width: 30px; 
+        height: 2px; 
+        bottom: 0; 
+        left: 19px; /* Start from circle edge */
       }
 
       .self-message-path-bottom::after {
-        content: ''; position: absolute; left: -1px; top: -3px; 
-        width: 0; height: 0;
+        content: ''; 
+        position: absolute; 
+        left: -1px; 
+        top: -3px; 
+        width: 0; 
+        height: 0;
         border-top: 3px solid transparent; 
         border-bottom: 3px solid transparent; 
         border-right: 8px solid #555;
       }
-        .sequence-drop-zone {
+      
+      /* --- Drop Zone Styles --- */
+      .sequence-drop-zone {
         position: absolute;
         height: 20px; /* The clickable/hoverable height */
         z-index: 4; /* Above backgrounds but below labels */
@@ -476,7 +338,8 @@ window.SequenceDiagramRenderer = {
         transform: translateY(-50%);
         transition: background-color 0.2s ease;
       }
-   .sequence-drop-zone::before {
+      
+      .sequence-drop-zone::before {
         content: '';
         position: absolute;
         width: 100%;
