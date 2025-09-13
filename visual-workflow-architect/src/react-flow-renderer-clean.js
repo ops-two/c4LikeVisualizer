@@ -100,8 +100,7 @@ window.SequenceDiagramRenderer = {
             "div",
             {
               key: "label",
-              className: "message-label sequence-label",
-              style: { maxWidth: "90%", textAlign: "center" },
+              className: "message-label sequence-label sequence-label-static",
               "data-sequence-id": sequenceId,
               "data-label-text": labelText,
               title: "Double-click to edit",
@@ -166,12 +165,7 @@ window.SequenceDiagramRenderer = {
           ),
           React.createElement("div", {
             key: "arrow",
-            className: arrowClass,
-            style: {
-              width: "100%",
-              backgroundColor: "#555",
-              height: "2px",
-            },
+            className: `${arrowClass} arrow-line-static`,
           }),
         ]
       );
@@ -232,10 +226,7 @@ window.SequenceDiagramRenderer = {
             "div",
             {
               key: "label",
-              className: "message-label sequence-label",
-              style: {
-                marginLeft: "10px",
-              },
+              className: "message-label sequence-label self-message-label",
               "data-sequence-id": sequenceId,
               "data-label-text": labelText,
               title: "Double-click to edit",
@@ -929,7 +920,7 @@ window.SequenceDiagramRenderer = {
       return React.createElement(
         "div",
         {
-          style: { width: "100%", height: "auto", padding: "20px" },
+          className: "renderer-main-container",
         },
         [
           // Toolbar
@@ -1145,36 +1136,8 @@ window.SequenceDiagramRenderer = {
                         {
                           key: "add-workflow-plus",
                           className: "add-workflow-plus-icon",
-                          style: {
-                            position: "absolute",
-                            bottom: "-15px",
-                            left: "50%",
-                            transform: "translateX(-50%)",
-                            width: "24px",
-                            height: "24px",
-                            backgroundColor: "#4caf50",
-                            borderRadius: "50%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            cursor: "pointer",
-                            fontSize: "14px",
-                            fontWeight: "bold",
-                            color: "white",
-                            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                            zIndex: "10",
-                            transition: "all 0.2s ease",
-                          },
                           "data-workflow-order": bounds.workflow.orderIndex || 0,
                           onClick: (e) => handleAddWorkflowAfter(bounds.workflow.orderIndex || 0),
-                          onMouseEnter: (e) => {
-                            e.target.style.transform = "translateX(-50%) scale(1.1)";
-                            e.target.style.backgroundColor = "#45a049";
-                          },
-                          onMouseLeave: (e) => {
-                            e.target.style.transform = "translateX(-50%) scale(1)";
-                            e.target.style.backgroundColor = "#4caf50";
-                          },
                         },
                         "+"
                       )
@@ -1232,15 +1195,7 @@ window.SequenceDiagramRenderer = {
                 "svg",
                 {
                   key: "svg-overlay",
-                  style: {
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    pointerEvents: "none",
-                    zIndex: 2,
-                  },
+                  className: "svg-overlay",
                   viewBox: `0 0 ${actors.length * 180} ${finalContainerHeight}`,
                 },
                 [
@@ -1339,13 +1294,10 @@ window.SequenceDiagramRenderer = {
                   "div",
                   {
                     key: `label-${msg.sequenceId}`,
-                    className: "message-label sequence-label",
+                    className: "message-label sequence-label sequence-label-positioned",
                     style: {
-                      position: "absolute",
                       left: `${labelLeft}px`,
                       top: `${labelTop}px`,
-                      transform: "translate(-50%, -50%)",
-                      zIndex: 5,
                     },
                     "data-sequence-id": msg.sequenceId,
                     "data-label-text": msg.labelText,
