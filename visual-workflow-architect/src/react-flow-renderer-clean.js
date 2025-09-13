@@ -537,6 +537,34 @@ window.SequenceDiagramRenderer = {
       .empty-workflow-drop-message.drag-over {
         background-color: rgba(255, 255, 255, 0.2);
       }
+
+      /* New styles for the empty workflow Flexbox layout */
+      .empty-workflow-background {
+        display: flex;
+        flex-direction: column; /* Stack items vertically */
+        align-items: center;
+        justify-content: flex-start; /* Align items to the top */
+        padding: 10px;
+        border-width: 1px;
+        border-style: solid;
+        border-radius: 8px;
+      }
+
+      .empty-workflow-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #4a6a8a;
+        margin: 0 0 5px 0;
+        padding: 2px 8px;
+        background-color: rgba(255,255,255,0.2);
+        border-radius: 4px;
+        flex-shrink: 0; /* Prevent title from shrinking */
+      }
+
+      .empty-workflow-drop-message {
+        flex-grow: 1; /* Allow drop message to fill remaining space */
+        align-self: stretch; /* Make it stretch to full width */
+      }
  
     `;
     document.head.appendChild(style);
@@ -1424,53 +1452,39 @@ window.SequenceDiagramRenderer = {
               // --- RENDER ALL WORKFLOW BACKGROUNDS (POPULATED AND EMPTY) ---
               ...Object.values(allWorkflowBounds).map((bounds) => {
                 if (bounds.isEmpty) {
-                  // NEW: Render empty workflows to look like populated ones
-                  return React.createElement('div', {
-                    key: `workflow-${bounds.workflow.id}`,
-                    className: 'workflow-background',
-                    style: {
-                      position: 'absolute',
-                      left: `${bounds.x}px`,
-                      top: `${bounds.y}px`,
-                      width: bounds.width,
-                      height: `${bounds.height}px`,
-                      backgroundColor: (bounds.workflow.colorHex || "#e3f2fd") + "1A",
-                      borderColor: (bounds.workflow.colorHex || "#e3f2fd") + "33",
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderWidth: '1px',
-                      borderStyle: 'solid',
-                      borderRadius: '8px'
-                    }
-                  },
-                  [
-                    React.createElement('div', {
-                      key: 'label',
-                      className: 'workflow-label',
-                      style: { 
-                        position: 'absolute',
-                        top: '0',
-                        left: '0',
-                        padding: '4px 8px',
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        color: 'white',
-                        backgroundColor: bounds.workflow.colorHex || '#4caf50',
-                        borderTopLeftRadius: '6px',
-                        borderBottomRightRadius: '6px'
-                      }
-                    }, bounds.workflow.name || 'Workflow'),
-                    
-                    React.createElement('div', {
-                      key: 'drop-zone',
-                      className: 'empty-workflow-drop-message sequence-drop-zone',
-                      'data-order-before': 0,
-                      'data-order-after': 20,
-                      'data-workflow-id': bounds.workflow.id,
-                      'data-subgroup-id': ''
-                    }, 'Drop Sequence Here')
-                  ]);
+                  // Render empty workflows using a clean Flexbox column layout
+                  return React.createElement(
+                    "div",
+                    {
+                      key: `workflow-${bounds.workflow.id}`,
+                      className: "workflow-background empty-workflow-background",
+                      style: {
+                        position: "absolute",
+                        left: `${bounds.x}px`,
+                        top: `${bounds.y}px`,
+                        width: bounds.width,
+                        height: `${bounds.height}px`,
+                        backgroundColor: (bounds.workflow.colorHex || "#e3f2fd") + "1A",
+                        borderColor: (bounds.workflow.colorHex || "#e3f2fd") + "33",
+                      },
+                    },
+                    [
+                      // Use a simple H4 for the title, not the absolutely positioned label
+                      React.createElement('h4', { key: 'title', className: 'empty-workflow-title' }, bounds.workflow.name || 'Workflow'),
+                      React.createElement(
+                        "div",
+                        {
+                          key: "drop-zone",
+                          className: "empty-workflow-drop-message sequence-drop-zone",
+                          "data-order-before": 0,
+                          "data-order-after": 20,
+                          "data-workflow-id": bounds.workflow.id,
+                          "data-subgroup-id": "",
+                        },
+                        "Drop Sequence Here"
+                      ),
+                    ]
+                  );
                 } else {
                   // Render the standard "populated workflow" background
                   return React.createElement(
