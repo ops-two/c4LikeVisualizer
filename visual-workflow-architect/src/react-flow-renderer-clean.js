@@ -17,9 +17,14 @@ document.addEventListener("workflow-architect:rerender", function (event) {
   }
 });
 
-// Initialize inline editing module
+// Initialize inline editing modules
 if (window.WorkflowArchitectInlineEdit) {
   window.WorkflowArchitectInlineEdit.init();
+}
+
+// Initialize workflow inline editing module
+if (window.WorkflowArchitectWorkflowInlineEdit) {
+  window.WorkflowArchitectWorkflowInlineEdit.init();
 }
 
 window.SequenceDiagramRenderer = {
@@ -1134,11 +1139,38 @@ window.SequenceDiagramRenderer = {
                           style: {
                             backgroundColor:
                               bounds.workflow.colorHex || "#4caf50",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            cursor: "pointer",
                           },
                           "data-workflow-id": bounds.workflow.id,
                           "data-label-text": bounds.workflow.name || "Workflow",
+                          title: "Double-click to edit workflow",
                         },
-                        bounds.workflow.name || "Workflow"
+                        [
+                          React.createElement(
+                            "span",
+                            {
+                              key: "doc-icon",
+                              style: {
+                                fontSize: "14px",
+                                opacity: "0.8",
+                              },
+                            },
+                            "📄"
+                          ),
+                          React.createElement(
+                            "span",
+                            {
+                              key: "text",
+                              style: {
+                                flex: "1",
+                              },
+                            },
+                            bounds.workflow.name || "Workflow"
+                          ),
+                        ]
                       ),
                       React.createElement(
                         "div",

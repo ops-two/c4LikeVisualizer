@@ -16,15 +16,22 @@ window.WorkflowArchitectWorkflowInlineEdit = {
   setupEventListeners() {
     // Double-click editing for workflow labels
     document.addEventListener("dblclick", (e) => {
-      // Check if target is a workflow label or contains workflow data
-      if (e.target.classList.contains("workflow-label") || 
-          (e.target.dataset.workflowId && e.target.dataset.labelText)) {
+      console.log("Double-click detected on:", e.target, "Classes:", e.target.classList);
+      
+      // Check if target is a workflow label or is inside one
+      let workflowElement = null;
+      
+      if (e.target.classList.contains("workflow-label")) {
+        workflowElement = e.target;
+      } else {
+        // Check if we're clicking on a child element (doc icon or text span)
+        workflowElement = e.target.closest(".workflow-label");
+      }
+      
+      if (workflowElement && workflowElement.dataset.workflowId) {
+        console.log("Starting workflow edit for:", workflowElement.dataset.workflowId);
         e.preventDefault();
         e.stopPropagation();
-        // Find the workflow label element
-        const workflowElement = e.target.classList.contains("workflow-label") 
-          ? e.target 
-          : e.target.closest(".workflow-label") || e.target;
         this.startEdit(workflowElement);
       }
     });
