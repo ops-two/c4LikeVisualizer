@@ -181,24 +181,26 @@ window.SequenceDiagramRenderer = {
 
       .container-master-wrapper {
         position: relative;
-        display: inline-block; /* Make wrapper fit its content */
+        display: inline-block;
         margin-top: 20px;
       }
 
       .actor-lane h3.container-name {
-        /* The visible box */
-        margin-top: 0;
-        padding: 8px 16px 8px 16px; /* Add padding on the right for the doc icon to appear in */
+        /* This is the visible box. We add padding on the right to make space for the doc icon. */
+        margin: 0;
+        padding: 8px 32px 8px 16px; /* More padding on right for the doc icon */
         max-width: 170px;
         text-align: center;
         border-radius: 6px;
         border: 1px solid;
         transition: background-color 0.2s;
         cursor: pointer;
+        display: flex;
+        align-items: center;
       }
       
       .container-name span {
-        display: block;
+        flex-grow: 1;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -208,20 +210,20 @@ window.SequenceDiagramRenderer = {
         /* Positioned absolutely, relative to the wrapper */
         position: absolute;
         top: 50%;
-        right: 4px; /* Position INSIDE the h3's padding area */
-        transform: translateY(-50%);
+        right: 34px; /* Position INSIDE the h3, to the left of the '+' icon */
+        transform: translateY(-50%) scale(0.8);
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.2s ease-in-out;
-        width: 24px; 
-        height: 24px; 
-        border-radius: 50%; 
+        transition: all 0.2s ease-in-out;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
         background-color: white;
-        border: 1px solid #ddd; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        cursor: pointer; 
+        border: 1px solid #ddd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
         z-index: 10;
       }
       
@@ -229,34 +231,43 @@ window.SequenceDiagramRenderer = {
         /* Positioned absolutely, relative to the wrapper */
         position: absolute;
         top: 50%;
-        right: 0; /* Position ON the border */
-        transform: translate(50%, -50%); /* Center it on the border */
+        right: 0; /* Position ON the border of the h3's parent wrapper */
+        transform: translate(50%, -50%) scale(0.8); /* Center it on the border */
         opacity: 0;
         pointer-events: none;
         transition: all 0.2s ease-in-out;
         /* Visuals */
-        width: 24px; 
-        height: 24px; 
-        border-radius: 50%; 
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
         border: 1px solid #cccccc;
-        background-color: white; 
-        color: #888888; 
+        background-color: white;
+        color: #888888;
         font-size: 18px;
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        cursor: pointer; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
         z-index: 10;
-        padding: 0;
-        line-height: 1;
+
       }
 
-      /* VISIBILITY IS NOW CONTROLLED BY THIS JS-ADDED CLASS */
+      .sequence-label:hover .sequence-icon-button {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      
+      /* The hover trigger is the MASTER WRAPPER and makes both icons visible */
       .container-master-wrapper.is-visible .container-icon-button,
       .container-master-wrapper.is-visible .add-container-btn {
         opacity: 1;
         pointer-events: auto;
-        transform: translateY(-50%) scale(1); /* Ensure this is present for the '+' icon */
+        transform: translate(0, -50%) scale(1); /* Simplified transform for icons */
+      }
+      
+      /* Reposition the '+' icon correctly on hover */
+      .container-master-wrapper.is-visible .add-container-btn {
+        transform: translate(50%, -50%) scale(1);
       }
       
       .container-icon-button svg {
@@ -838,7 +849,7 @@ window.SequenceDiagramRenderer = {
       const startHideTimer = () => {
         hideTimer = setTimeout(() => {
           wrapper.classList.remove('is-visible');
-        }, 100); // 100ms delay
+        }, 500); // INCREASED: 500ms delay
       };
 
       wrapper.addEventListener('mouseenter', showIcons);
