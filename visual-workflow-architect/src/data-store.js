@@ -301,24 +301,22 @@ window.WorkflowArchitectDataStore = {
     }
   },
 
-  // Get sequence data for update (prevents data loss during drag operations)
+  // Get sequence data for update with simple, consistent keys
   getSequenceForUpdate: function (sequenceId) {
     const sequence = this.data.sequences[sequenceId];
     if (!sequence) return null;
 
+    // Return a clean object with simple keys for the backend
     return {
       entityId: sequenceId,
-      label_text: sequence.labelText || sequence.label || "",
-      order_index: sequence.orderIndex || sequence.order_number || 0,
-      fromcontainer_custom_component: sequence.fromContainerId,
-      tocontainer_custom_component: sequence.toContainerId,
-      workflow_custom_workflows: sequence.workflowId,
-      subgroup_custom_subgroup: sequence.subgroupId || null,
-      action_text: sequence.actionText || "",
-      color_text: sequence.colorText || "",
-      dashed_text: sequence.dashedText || "",
-      desc_text: sequence.descText || "",
-      feature_text: sequence.featureText || "",
+      label: sequence.label,
+      orderIndex: sequence.orderIndex,
+      fromContainerId: sequence.fromContainerId,
+      toContainerId: sequence.toContainerId,
+      workflowId: sequence.workflowId,
+      subgroupId: sequence.subgroupId || null,
+      isDashed: sequence.isDashed,
+      description: sequence.description,
     };
   },
   // END OF NEW FUNCTIONS
@@ -344,7 +342,7 @@ window.WorkflowArchitectDataStore = {
     }
   },
 
-  // Get entity data formatted for Bubble updates (following storymap-grid pattern)
+  // Get entity data formatted for Bubble updates with simple, consistent keys
   getEntityForUpdate: function (entityType, entityId) {
     try {
       const entity = this.data[entityType + "s"][entityId];
@@ -353,45 +351,45 @@ window.WorkflowArchitectDataStore = {
         return null;
       }
 
-      // Base update format (required fields)
+      // Base update format with simple keys
       const updateData = {
         entityId: entity.id,
-        name_text: entity.name,
-        order_index: entity.orderIndex,
+        name: entity.name, // Use simple 'name' key
+        orderIndex: entity.orderIndex, // Use simple 'orderIndex' key
       };
 
-      // Add entity-specific fields
+      // Add entity-specific fields with simple keys
       switch (entityType) {
         case "container":
-          updateData.type_text = entity.type;
-          updateData.component_url_text = entity.componentUrl;
-          updateData.color_hex_text = entity.colorHex;
-          updateData.description_text = entity.description;
+          updateData.colorHex = entity.colorHex;
+          updateData.description = entity.description;
           break;
 
         case "sequence":
-          updateData.from_container_id = entity.fromContainerId;
-          updateData.to_container_id = entity.toContainerId;
-          updateData.action_type_text = entity.actionType;
-          updateData.workflow_id = entity.workflowId;
-          updateData.is_dashed_boolean = entity.isDashed;
-          updateData.description_text = entity.description;
-          updateData.label_text = entity.label;
+          // The 'name' property for a sequence is its 'label'
+          updateData.name = entity.label; 
+          delete updateData.orderIndex; // Order is handled by drag-and-drop payload
+          
+          updateData.fromContainerId = entity.fromContainerId;
+          updateData.toContainerId = entity.toContainerId;
+          updateData.workflowId = entity.workflowId;
+          updateData.subgroupId = entity.subgroupId;
+          updateData.isDashed = entity.isDashed;
+          updateData.description = entity.description;
           break;
 
         case "workflow":
-          updateData.color_hex_text = entity.colorHex;
-          updateData.feature_id = entity.featureId;
-          updateData.description_text = entity.description;
+          // The 'name' property for a workflow is its 'name'
+          updateData.name = entity.name;
+          updateData.colorHex = entity.colorHex;
+          updateData.featureId = entity.featureId;
+          updateData.description = entity.description;
           break;
       }
 
       return updateData;
     } catch (error) {
-      console.error(
-        `Failed to format entity for update: ${entityType} ${entityId}:`,
-        error
-      );
+      console.error(`Failed to format entity for update: ${entityType} ${entityId}:`, error);
       return null;
     }
   },
