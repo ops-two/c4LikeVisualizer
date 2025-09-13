@@ -179,64 +179,68 @@ window.SequenceDiagramRenderer = {
         box-shadow: 0 2px 8px rgba(0,0,0,0.15);
       }
 
-    .container-name {
-        position: relative; /* Essential for positioning the child button */
-        cursor: pointer;
-        padding: 8px 32px 8px 16px; /* Create a "fat" parent with space on the right */
-        border-radius: 6px;
-        transition: background-color 0.2s;
-        display: inline-flex; /* Helps with vertical alignment */
+      .container-name {
+        position: relative;
+        display: flex;
         align-items: center;
+        padding: 8px 12px;
+        margin: 0;
+        font-size: 14px;
+        font-weight: 500;
+        color: #333;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+        cursor: pointer;
       }
 
-      .add-container-btn {
-        position: absolute; /* Positioned relative to the .container-name parent */
-        right: -36px; /* Position it inside the padding area */
-        top: 50%;
-        transform: translateY(-50%); /* Center it vertically */
-        
-        /* Standard styles for the button */
+      .container-name span {
+        flex-grow: 1;
+        margin-right: 8px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .container-icon-button, .add-container-btn {
+        position: static;
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 24px;
+        width: 0;
         height: 24px;
+        opacity: 0;
+        padding: 0;
         border-radius: 50%;
         border: 1px solid #cccccc;
         background-color: white;
         color: #888888;
-        font-size: 18px;
         cursor: pointer;
         transition: all 0.2s ease-in-out;
-        margin: 0 10px;
-        opacity: 0;
-        pointer-events: none;
-      }
-      
-      /* The hover trigger is now back on the container-name itself */
-     .container-icon-button {
-        position: absolute;
-        right: 35px; /* Position it to the left of the '+' button */
-        top: 50%;
-        transform: translateY(-50%);
-        width: 20px;
-        height: 20px;
-        background: rgba(255, 255, 255, 0.9);
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        transition: opacity 0.2s ease;
-        cursor: pointer;
-        z-index: 15;
-        pointer-events: none;
+        flex-shrink: 0;
+        overflow: hidden;
       }
 
-      .container-name:hover .container-icon-button {
+      .container-name:hover .container-icon-button,
+      .container-name:hover .add-container-btn {
         opacity: 1;
+        width: 24px;
+        padding: 4px;
         pointer-events: auto;
+      }
+      
+      .container-name:hover .add-container-btn {
+        margin-left: 4px;
+      }
+
+      .container-icon-button svg {
+        width: 14px;
+        height: 14px;
+      }
+      
+      .add-container-btn {
+        font-size: 18px;
       }
 
       .container-icon-button:hover {
