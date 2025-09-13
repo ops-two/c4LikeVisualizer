@@ -1677,145 +1677,144 @@ window.SequenceDiagramRenderer = {
                 ]
               ),
 
-              // --- NEW WORKFLOW-AWARE RENDER LOOP (CORRECTED) ---
+              // --- NEW WORKFLOW-AWARE RENDER LOOP ---
               // This loop renders all HTML elements (Labels, Nodes, Drop Zones)
-              ...renderList.flatMap(item => {
-                if (item.type === 'WORKFLOW_BLOCK') {
+              ...renderList.flatMap((item) => {
+                if (item.type === "WORKFLOW_BLOCK") {
                   const { workflow, sequences } = item.data;
-                  if (!sequences || sequences.length === 0) return [];
                   const firstSeq = sequences[0];
                   const lastSeq = sequences[sequences.length - 1];
 
                   // Create a drop zone BEFORE the first sequence
-                  const startDropZone = React.createElement('div', { 
-                    key: `start-drop-zone-${workflow.id}`, 
-                    className: 'sequence-drop-zone', 
-                    style: { 
-                      left: '10px', 
-                      width: 'calc(100% - 20px)', 
-                      top: `${firstSeq.yPos - (SEQUENCE_HEIGHT / 2)}px` 
-                    }, 
-                    'data-order-before': firstSeq.originalOrderIndex - 10, 
-                    'data-order-after': firstSeq.originalOrderIndex, 
-                    'data-workflow-id': workflow.id 
+                  const startDropZone = React.createElement("div", {
+                    key: `start-drop-zone-${workflow.id}`,
+                    className: "sequence-drop-zone",
+                    style: {
+                      left: "10px",
+                      width: "calc(100% - 20px)",
+                      top: `${firstSeq.yPos - SEQUENCE_HEIGHT / 2}px`,
+                    },
+                    "data-order-before": firstSeq.originalOrderIndex - 10,
+                    "data-order-after": firstSeq.originalOrderIndex,
+                    "data-workflow-id": workflow.id,
                   });
 
                   // Create the sequences and the drop zones BETWEEN them
                   const middleContent = sequences.flatMap((msg, index) => {
-                    // FIX: Find actor indices here before rendering
-                    const fromActor = actors.find(a => a.id === msg.fromContainerId);
-                    const toActor = actors.find(a => a.id === msg.toContainerId);
-                    if (!fromActor || !toActor) return []; // Skip rendering if actors are missing
-                    const fromIndex = actors.indexOf(fromActor);
-                    const toIndex = actors.indexOf(toActor);
-                    
                     const prevMsg = sequences[index - 1];
-                    const orderBefore = prevMsg ? prevMsg.originalOrderIndex : msg.originalOrderIndex - 10;
-                    
-                    const dropZone = index > 0 ? React.createElement('div', { 
-                      key: `drop-zone-${msg.sequenceId}`, 
-                      className: 'sequence-drop-zone', 
-                      style: { 
-                        left: '10px', 
-                        width: 'calc(100% - 20px)', 
-                        top: `${msg.yPos - (SEQUENCE_HEIGHT / 2)}px` 
-                      }, 
-                      'data-order-before': orderBefore, 
-                      'data-order-after': msg.originalOrderIndex, 
-                      'data-workflow-id': msg.workflowId || '', 
-                      'data-subgroup-id': msg.subgroupId || '' 
-                    }) : null;
+                    const orderBefore = prevMsg
+                      ? prevMsg.originalOrderIndex
+                      : msg.originalOrderIndex - 10;
 
-                    const sequenceLabel = React.createElement('div', { 
-                      key: `label-${msg.sequenceId}`, 
-                      className: 'message-label sequence-label', 
-                      style: { 
-                        position: 'absolute', 
-                        left: `${((fromIndex + toIndex) / 2) * 180 + 90}px`, 
-                        top: `${msg.yPos - 35}px`, 
-                        transform: 'translateX(-50%)', 
-                        zIndex: 5 
-                      }, 
-                      'data-sequence-id': msg.sequenceId, 
-                      'data-label-text': msg.labelText 
-                    }, msg.label);
+                    // This is for the one before this msg
+                    const dropZone =
+                      index > 0
+                        ? React.createElement("div", {
+                            key: `drop-zone-${msg.sequenceId}`,
+                            className: "sequence-drop-zone",
+                            style: {
+                              left: "10px",
+                              width: "calc(100% - 20px)",
+                              top: `${msg.yPos - SEQUENCE_HEIGHT / 2}px`,
+                            },
+                            "data-order-before": orderBefore,
+                            "data-order-after": msg.originalOrderIndex,
+                            "data-workflow-id": msg.workflowId || "",
+                            "data-subgroup-id": msg.subgroupId || "",
+                          })
+                        : null;
+
+                    const sequenceLabel = React.createElement(
+                      "div",
+                      {
+                        key: `label-${msg.sequenceId}`,
+                        className: "message-label sequence-label",
+                        style: {
+                          position: "absolute",
+                          left: `${((msg.from + msg.to) / 2) * 180 + 90}px`,
+                          top: `${msg.yPos - 35}px`,
+                          transform: "translateX(-50%)",
+                          zIndex: 5,
+                        },
+                        "data-sequence-id": msg.sequenceId,
+                        "data-label-text": msg.labelText,
+                      },
+                      msg.label
+                    );
 
                     const nodes = [
-                      React.createElement(SequenceNode, { 
-                        key: `from-node-${msg.sequenceId}`, 
-                        actorIndex: fromIndex, 
-                        yPos: msg.yPos, 
-                        color: fromActor.color 
+                      React.createElement(SequenceNode, {
+                        key: `from-node-${msg.sequenceId}`,
+                        actorIndex: msg.from,
+                        yPos: msg.yPos,
+                        color: actors[msg.from].color,
                       }),
-                      React.createElement(SequenceNode, { 
-                        key: `to-node-${msg.sequenceId}`, 
-                        actorIndex: toIndex, 
-                        yPos: msg.yPos, 
-                        color: toActor.color 
-                      })
+                      React.createElement(SequenceNode, {
+                        key: `to-node-${msg.sequenceId}`,
+                        actorIndex: msg.to,
+                        yPos: msg.yPos,
+                        color: actors[msg.to].color,
+                      }),
                     ];
 
                     return [dropZone, sequenceLabel, ...nodes].filter(Boolean);
                   });
-                  
+
                   // Create a drop zone AFTER the last sequence
-                  const endDropZone = React.createElement('div', { 
-                    key: `end-drop-zone-${workflow.id}`, 
-                    className: 'sequence-drop-zone', 
-                    style: { 
-                      left: '10px', 
-                      width: 'calc(100% - 20px)', 
-                      top: `${lastSeq.yPos + (SEQUENCE_HEIGHT / 2)}px` 
-                    }, 
-                    'data-order-before': lastSeq.originalOrderIndex, 
-                    'data-order-after': lastSeq.originalOrderIndex + 10, 
-                    'data-workflow-id': workflow.id 
+                  const endDropZone = React.createElement("div", {
+                    key: `end-drop-zone-${workflow.id}`,
+                    className: "sequence-drop-zone",
+                    style: {
+                      left: "10px",
+                      width: "calc(100% - 20px)",
+                      top: `${lastSeq.yPos + SEQUENCE_HEIGHT / 2}px`,
+                    },
+                    "data-order-before": lastSeq.originalOrderIndex,
+                    "data-order-after": lastSeq.originalOrderIndex + 10,
+                    "data-workflow-id": workflow.id,
                   });
 
                   return [startDropZone, ...middleContent, endDropZone];
-
-                } else if (item.type === 'SEQUENCE') {
+                } else if (item.type === "SEQUENCE") {
+                  // Handle ungrouped sequences (future improvement, for now just render them)
                   const msg = item.data;
-                  // FIX: Find actor indices here before rendering
-                  const fromActor = actors.find(a => a.id === msg.fromContainerId);
-                  const toActor = actors.find(a => a.id === msg.toContainerId);
-                  if (!fromActor || !toActor) return []; // Skip rendering if actors are missing
-                  const fromIndex = actors.indexOf(fromActor);
-                  const toIndex = actors.indexOf(toActor);
-                  
-                  const sequenceLabel = React.createElement('div', { 
-                    key: `label-${msg.sequenceId}`, 
-                    className: 'message-label sequence-label', 
-                    style: { 
-                      position: 'absolute', 
-                      left: `${((fromIndex + toIndex) / 2) * 180 + 90}px`, 
-                      top: `${msg.yPos - 35}px`, 
-                      transform: 'translateX(-50%)', 
-                      zIndex: 5 
-                    }, 
-                    'data-sequence-id': msg.sequenceId, 
-                    'data-label-text': msg.labelText 
-                  }, msg.label);
-                  
+                  const sequenceLabel = React.createElement(
+                    "div",
+                    {
+                      key: `label-${msg.sequenceId}`,
+                      className: "message-label sequence-label",
+                      style: {
+                        position: "absolute",
+                        left: `${((msg.from + msg.to) / 2) * 180 + 90}px`,
+                        top: `${msg.yPos - 35}px`,
+                        transform: "translateX(-50%)",
+                        zIndex: 5,
+                      },
+                      "data-sequence-id": msg.sequenceId,
+                      "data-label-text": msg.labelText,
+                    },
+                    msg.label
+                  );
+
                   const nodes = [
-                    React.createElement(SequenceNode, { 
-                      key: `from-node-${msg.sequenceId}`, 
-                      actorIndex: fromIndex, 
-                      yPos: msg.yPos, 
-                      color: fromActor.color 
+                    React.createElement(SequenceNode, {
+                      key: `from-node-${msg.sequenceId}`,
+                      actorIndex: msg.from,
+                      yPos: msg.yPos,
+                      color: actors[msg.from].color,
                     }),
-                    React.createElement(SequenceNode, { 
-                      key: `to-node-${msg.sequenceId}`, 
-                      actorIndex: toIndex, 
-                      yPos: msg.yPos, 
-                      color: toActor.color 
-                    })
+                    React.createElement(SequenceNode, {
+                      key: `to-node-${msg.sequenceId}`,
+                      actorIndex: msg.to,
+                      yPos: msg.yPos,
+                      color: actors[msg.to].color,
+                    }),
                   ];
-                  
+
                   return [sequenceLabel, ...nodes];
                 }
                 return [];
-              })
+              }),
             ]
           ),
         ]
