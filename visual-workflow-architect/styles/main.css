@@ -332,7 +332,19 @@
   font-weight: 500;
   top: -12px;
   left: 8px;
-  z-index: 2; /* Above workflow background */
+  z-index: 100; /* High z-index to ensure clicks work */
+  pointer-events: auto; /* Ensure it receives click events */
+}
+
+.workflow-label .doc-icon {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.workflow-label:hover .doc-icon {
+  opacity: 0.8;
+  pointer-events: auto;
 }
 .arrow-line {
   position: absolute;

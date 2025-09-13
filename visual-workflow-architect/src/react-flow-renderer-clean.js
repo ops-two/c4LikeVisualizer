@@ -1148,14 +1148,14 @@ window.SequenceDiagramRenderer = {
                           "data-label-text": bounds.workflow.name || "Workflow",
                           title: "Double-click to edit workflow",
                         },
-                        [
+[
                           React.createElement(
                             "span",
                             {
                               key: "doc-icon",
+                              className: "doc-icon",
                               style: {
                                 fontSize: "14px",
-                                opacity: "0.8",
                               },
                             },
                             "📄"
