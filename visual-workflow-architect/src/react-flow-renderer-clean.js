@@ -1547,15 +1547,18 @@ window.SequenceDiagramRenderer = {
                     "div",
                     {
                       key: `empty-wf-${bounds.workflow.id}`,
-                      className: "workflow-background empty-workflow-background",
+                      className:
+                        "workflow-background empty-workflow-background",
                       style: {
                         position: "absolute",
                         left: `${bounds.x}px`,
                         top: `${bounds.y}px`,
                         width: bounds.width,
                         height: `${bounds.height}px`,
-                        backgroundColor: (bounds.workflow.colorHex || "#e3f2fd") + "1A",
-                        borderColor: (bounds.workflow.colorHex || "#e3f2fd") + "33",
+                        backgroundColor:
+                          (bounds.workflow.colorHex || "#e3f2fd") + "1A",
+                        borderColor:
+                          (bounds.workflow.colorHex || "#e3f2fd") + "33",
                       },
                     },
                     [
@@ -1568,7 +1571,8 @@ window.SequenceDiagramRenderer = {
                         "div",
                         {
                           key: "drop-zone",
-                          className: "empty-workflow-drop-message sequence-drop-zone",
+                          className:
+                            "empty-workflow-drop-message sequence-drop-zone",
                           "data-order-before": 0,
                           "data-order-after": 20,
                           "data-workflow-id": bounds.workflow.id,
@@ -1589,8 +1593,10 @@ window.SequenceDiagramRenderer = {
                         top: `${bounds.y}px`,
                         width: `${bounds.width}px`,
                         height: `${bounds.height}px`,
-                        backgroundColor: (bounds.workflow.colorHex || "#e3f2fd") + "1A",
-                        borderColor: (bounds.workflow.colorHex || "#e3f2fd") + "33",
+                        backgroundColor:
+                          (bounds.workflow.colorHex || "#e3f2fd") + "1A",
+                        borderColor:
+                          (bounds.workflow.colorHex || "#e3f2fd") + "33",
                       },
                     },
                     React.createElement(
@@ -1599,7 +1605,8 @@ window.SequenceDiagramRenderer = {
                         key: "label",
                         className: "workflow-label",
                         style: {
-                          backgroundColor: bounds.workflow.colorHex || "#4caf50",
+                          backgroundColor:
+                            bounds.workflow.colorHex || "#4caf50",
                         },
                       },
                       bounds.workflow.name || "Workflow"
@@ -1608,7 +1615,100 @@ window.SequenceDiagramRenderer = {
                 }
               }),
 
-              // Single, consolidated rendering loop for all sequence elements
+              // Render all sequences (SVG arrows, HTML labels, nodes, and drop zones) from our calculated positions
+              ...allPositionedMessages.flatMap((msg, index, arr) => {
+                const prevMsg = arr[index - 1];
+                const orderBefore = prevMsg
+                  ? prevMsg.originalOrderIndex
+                  : msg.originalOrderIndex - 10;
+
+                const dropZone = React.createElement("div", {
+                  key: `drop-zone-${msg.sequenceId}`,
+                  className: "sequence-drop-zone",
+                  style: {
+                    left: "10px",
+                    width: "calc(100% - 20px)",
+                    top: `${msg.yPos - SEQUENCE_HEIGHT / 2}px`,
+                  },
+                  "data-order-before": orderBefore,
+                  "data-order-after": msg.originalOrderIndex,
+                  "data-workflow-id": msg.workflowId || "",
+                  "data-subgroup-id": msg.subgroupId || "",
+                });
+
+                const sequenceLabel = React.createElement(
+                  "div",
+                  {
+                    key: `label-${msg.sequenceId}`,
+                    className: "message-label sequence-label",
+                    style: {
+                      position: "absolute",
+                      left: `${((msg.from + msg.to) / 2) * 180 + 90}px`,
+                      top: `${msg.yPos - 35}px`,
+                      transform: "translateX(-50%)",
+                      zIndex: 5,
+                    },
+                    "data-sequence-id": msg.sequenceId,
+                    "data-label-text": msg.labelText,
+                  },
+                  msg.label
+                );
+
+                const svgArrow = msg.self
+                  ? React.createElement(SVGSelfMessage, {
+                      key: `svg-${msg.sequenceId}`,
+                      actorIndex: msg.from,
+                      yPos: msg.yPos,
+                      height: SEQUENCE_HEIGHT * 0.8,
+                      dashed: msg.dashed,
+                    })
+                  : React.createElement(SVGArrow, {
+                      key: `svg-${msg.sequenceId}`,
+                      from: msg.from,
+                      to: msg.to,
+                      yPos: msg.yPos,
+                      dashed: msg.dashed,
+                    });
+
+                const fromNode = React.createElement(SequenceNode, {
+                  key: `from-node-${msg.sequenceId}`,
+                  actorIndex: msg.from,
+                  yPos: msg.yPos,
+                  color: actors[msg.from].color,
+                });
+
+                const toNode = React.createElement(SequenceNode, {
+                  key: `to-node-${msg.sequenceId}`,
+                  actorIndex: msg.to,
+                  yPos: msg.yPos,
+                  color: actors[msg.to].color,
+                });
+
+                return [dropZone, sequenceLabel, svgArrow, fromNode, toNode];
+              }),
+
+              // Add a final drop zone after the last item in the list
+              (() => {
+                if (allPositionedMessages.length === 0) return null; // No sequences, no final drop zone
+                const lastMsg =
+                  allPositionedMessages[allPositionedMessages.length - 1];
+                const finalY = lastMsg.yPos + SEQUENCE_HEIGHT / 2;
+                return React.createElement("div", {
+                  key: `drop-zone-final`,
+                  className: "sequence-drop-zone",
+                  style: {
+                    left: "10px",
+                    width: "calc(100% - 20px)",
+                    top: `${finalY}px`,
+                  },
+                  "data-order-before": lastMsg.originalOrderIndex,
+                  "data-order-after": lastMsg.originalOrderIndex + 20,
+                  "data-workflow-id": lastMsg.workflowId || "",
+                  "data-subgroup-id": lastMsg.subgroupId || "",
+                });
+              })(),
+
+              // SVG Overlay for all arrows
               React.createElement(
                 "svg",
                 {
@@ -1646,21 +1746,40 @@ window.SequenceDiagramRenderer = {
                       ]
                     ),
                   ]),
+                  ...allPositionedMessages.map((msg, index) => {
+                    if (msg.self) {
+                      return React.createElement(SVGSelfMessage, {
+                        key: `svg-${index}`,
+                        actorIndex: msg.from,
+                        yPos: msg.yPos,
+                        height: SEQUENCE_HEIGHT * 0.8,
+                        dashed: msg.dashed,
+                      });
+                    } else {
+                      return React.createElement(SVGArrow, {
+                        key: `svg-${index}`,
+                        from: msg.from,
+                        to: msg.to,
+                        yPos: msg.yPos,
+                        dashed: msg.dashed,
+                      });
+                    }
+                  }),
                 ]
               ),
 
-              // Single pass through all messages to create all necessary elements
+              // HTML Labels and Drop Zones for all sequences
               ...allPositionedMessages.flatMap((msg, index, arr) => {
-                const prevMsg = arr[index - 1];
-                const orderBefore = prevMsg ? prevMsg.originalOrderIndex : msg.originalOrderIndex - 10;
-                const isSelf = msg.self;
-                const fromActor = actors[msg.from];
-                const toActor = actors[msg.to];
-                const fromActorX = msg.from * 180 + 90;
-                const toActorX = msg.to * 180 + 90;
-                const centerX = (fromActorX + toActorX) / 2;
+                const prevMsg =
+                  index > 0
+                    ? arr[index - 1]
+                    : arr.find(
+                        (m) => m.originalOrderIndex < msg.originalOrderIndex
+                      );
+                const orderBefore = prevMsg
+                  ? prevMsg.originalOrderIndex
+                  : msg.originalOrderIndex - 10;
 
-                // Create drop zone
                 const dropZone = React.createElement("div", {
                   key: `drop-zone-${msg.sequenceId}`,
                   className: "sequence-drop-zone",
@@ -1675,7 +1794,13 @@ window.SequenceDiagramRenderer = {
                   "data-subgroup-id": msg.subgroupId || "",
                 });
 
-                // Create sequence label
+                const labelLeft = msg.self
+                  ? msg.from * 180 + 90 + 90
+                  : ((msg.from + msg.to) / 2) * 180 + 90;
+                const labelTop = msg.self
+                  ? msg.yPos + (SEQUENCE_HEIGHT * 0.8) / 2 - 12
+                  : msg.yPos - 35;
+
                 const sequenceLabel = React.createElement(
                   "div",
                   {
@@ -1683,8 +1808,8 @@ window.SequenceDiagramRenderer = {
                     className: "message-label sequence-label",
                     style: {
                       position: "absolute",
-                      left: `${isSelf ? fromActorX + 90 : centerX}px`,
-                      top: `${isSelf ? msg.yPos + (SEQUENCE_HEIGHT * 0.4) - 12 : msg.yPos - 35}px`,
+                      left: `${labelLeft}px`,
+                      top: `${labelTop}px`,
                       transform: "translateX(-50%)",
                       zIndex: 5,
                     },
@@ -1694,78 +1819,43 @@ window.SequenceDiagramRenderer = {
                   msg.label
                 );
 
-                // Create SVG arrow (handled by the SVG overlay)
-                const svgArrow = isSelf
-                  ? React.createElement(SVGSelfMessage, {
-                      key: `svg-${msg.sequenceId}`,
-                      actorIndex: msg.from,
-                      yPos: msg.yPos,
-                      height: SEQUENCE_HEIGHT * 0.8,
-                      dashed: msg.dashed,
-                    })
-                  : React.createElement(SVGArrow, {
-                      key: `svg-${msg.sequenceId}`,
-                      from: msg.from,
-                      to: msg.to,
-                      yPos: msg.yPos,
-                      dashed: msg.dashed,
-                    });
-
-                // Create sequence nodes
-                const nodes = [];
-                if (isSelf) {
-                  nodes.push(
-                    React.createElement(SequenceNode, {
-                      key: `start-node-${msg.sequenceId}`,
-                      actorIndex: msg.from,
-                      yPos: msg.yPos,
-                      color: fromActor.color,
-                    }),
-                    React.createElement(SequenceNode, {
-                      key: `end-node-${msg.sequenceId}`,
-                      actorIndex: msg.from,
-                      yPos: msg.yPos + SEQUENCE_HEIGHT * 0.8,
-                      color: fromActor.color,
-                    })
-                  );
-                } else {
-                  nodes.push(
-                    React.createElement(SequenceNode, {
-                      key: `from-node-${msg.sequenceId}`,
-                      actorIndex: msg.from,
-                      yPos: msg.yPos,
-                      color: fromActor.color,
-                    }),
-                    React.createElement(SequenceNode, {
-                      key: `to-node-${msg.sequenceId}`,
-                      actorIndex: msg.to,
-                      yPos: msg.yPos,
-                      color: toActor.color,
-                    })
-                  );
-                }
-
-                return [dropZone, sequenceLabel, svgArrow, ...nodes];
+                return [dropZone, sequenceLabel];
               }),
 
-              // Add final drop zone if there are any messages
-              ...(allPositionedMessages.length > 0 ? [(() => {
-                const lastMsg = allPositionedMessages[allPositionedMessages.length - 1];
-                const finalY = lastMsg.yPos + SEQUENCE_HEIGHT / 2;
-                return React.createElement("div", {
-                  key: "drop-zone-final",
-                  className: "sequence-drop-zone",
-                  style: {
-                    left: "10px",
-                    width: "calc(100% - 20px)",
-                    top: `${finalY}px`,
-                  },
-                  "data-order-before": lastMsg.originalOrderIndex,
-                  "data-order-after": lastMsg.originalOrderIndex + 20,
-                  "data-workflow-id": lastMsg.workflowId || "",
-                  "data-subgroup-id": lastMsg.subgroupId || "",
-                });
-              })()] : []),
+              // Nodes for all sequences
+              ...allPositionedMessages.flatMap((msg, index) => {
+                if (msg.self) {
+                  return [
+                    React.createElement(SequenceNode, {
+                      key: `start-node-${index}`,
+                      actorIndex: msg.from,
+                      yPos: msg.yPos,
+                      color: actors[msg.from].color,
+                    }),
+                    React.createElement(SequenceNode, {
+                      key: `end-node-${index}`,
+                      actorIndex: msg.from,
+                      yPos: msg.yPos + SEQUENCE_HEIGHT * 0.8,
+                      color: actors[msg.from].color,
+                    }),
+                  ];
+                } else {
+                  return [
+                    React.createElement(SequenceNode, {
+                      key: `from-node-${index}`,
+                      actorIndex: msg.from,
+                      yPos: msg.yPos,
+                      color: actors[msg.from].color,
+                    }),
+                    React.createElement(SequenceNode, {
+                      key: `to-node-${index}`,
+                      actorIndex: msg.to,
+                      yPos: msg.yPos,
+                      color: actors[msg.to].color,
+                    }),
+                  ];
+                }
+              }),
             ]
           ),
         ]
