@@ -11,11 +11,12 @@ window.WorkflowArchitectSequenceDragDrop = {
     this.setupSequenceDragging();
   },
   createDragImageCanvas: function (labelText) {
-    const PADDING = 10;
-    const FONT_SIZE = 14;
-    const FONT = `${FONT_SIZE}px Arial`;
-    const ARROW_LENGTH = 50;
-    const ARROW_HEAD_SIZE = 5;
+    const PADDING = 12;
+    const FONT_SIZE = 16;
+    const FONT = `bold ${FONT_SIZE}px Arial`;
+    const ARROW_LENGTH = 80;
+    const ARROW_HEIGHT = 12;
+    const ARROW_HEAD_SIZE = 10;
 
     // 1. Create a temporary canvas to measure text
     const tempCtx = document.createElement("canvas").getContext("2d");
@@ -25,38 +26,35 @@ window.WorkflowArchitectSequenceDragDrop = {
     // 2. Define final canvas dimensions
     const canvas = document.createElement("canvas");
     canvas.width = ARROW_LENGTH + textWidth + PADDING * 2;
-    canvas.height = FONT_SIZE + PADDING * 2;
+    canvas.height = Math.max(FONT_SIZE, ARROW_HEIGHT) + PADDING * 2;
     const ctx = canvas.getContext("2d");
 
     // 3. Style the drawing
     ctx.font = FONT;
-    ctx.fillStyle = "#333";
-    ctx.strokeStyle = "#333";
-    ctx.lineWidth = 2;
+    ctx.fillStyle = "#555";
+    ctx.strokeStyle = "#555";
+    ctx.lineWidth = 3;
 
     // 4. Draw the arrow line
-    const startY = canvas.height / 2;
     const startX = PADDING;
+    const startY = canvas.height / 2;
+    const endX = startX + ARROW_LENGTH;
+    const endY = startY;
     ctx.beginPath();
     ctx.moveTo(startX, startY);
-    ctx.lineTo(startX + ARROW_LENGTH, startY);
+    ctx.lineTo(endX, endY);
     ctx.stroke();
 
     // 5. Draw the arrowhead
     ctx.beginPath();
-    ctx.moveTo(startX + ARROW_LENGTH, startY);
-    ctx.lineTo(
-      startX + ARROW_LENGTH - ARROW_HEAD_SIZE,
-      startY - ARROW_HEAD_SIZE
-    );
-    ctx.lineTo(
-      startX + ARROW_LENGTH - ARROW_HEAD_SIZE,
-      startY + ARROW_HEAD_SIZE
-    );
+    ctx.moveTo(endX, endY);
+    ctx.lineTo(endX - ARROW_HEAD_SIZE, endY - ARROW_HEAD_SIZE / 2);
+    ctx.lineTo(endX - ARROW_HEAD_SIZE, endY + ARROW_HEAD_SIZE / 2);
     ctx.closePath();
     ctx.fill();
 
     // 6. Draw the text
+    ctx.fillStyle = "#333";
     ctx.fillText(
       labelText,
       startX + ARROW_LENGTH + PADDING / 2,
@@ -67,6 +65,7 @@ window.WorkflowArchitectSequenceDragDrop = {
   },
   setupSequenceDragging: function () {
     const sequenceLabels = this.container.querySelectorAll(".sequence-label");
+    const sequenceArrows = this.container.querySelectorAll(".sequence-arrow");
     const dropZones = this.container.querySelectorAll(".sequence-drop-zone");
     const diagramContainer = this.container.querySelector(".diagram-container");
 
@@ -100,6 +99,50 @@ window.WorkflowArchitectSequenceDragDrop = {
       });
 
       label.addEventListener("dragend", (e) => {
+        e.stopPropagation();
+        if (this.draggedSequence) {
+          this.draggedSequence.classList.remove("dragging");
+        }
+        if (diagramContainer) {
+          // Deactivate pointer events on drop zones
+          diagramContainer.classList.remove("sequence-drag-active");
+        }
+        // Failsafe cleanup for any leftover visual indicators
+        dropZones.forEach((zone) => zone.classList.remove("drag-over"));
+        this.draggedSequence = null;
+      });
+    });
+
+    // Setup listeners for the draggable arrows
+    sequenceArrows.forEach((arrow) => {
+      if (arrow.dataset.dragSetup === "true") return;
+      arrow.dataset.dragSetup = "true";
+      arrow.draggable = true;
+
+      arrow.addEventListener("dragstart", (e) => {
+        e.stopPropagation();
+        this.draggedSequence = arrow;
+        setTimeout(() => {
+          arrow.classList.add("dragging");
+          if (diagramContainer) {
+            // Activate pointer events on drop zones
+            diagramContainer.classList.add("sequence-drag-active");
+          }
+        }, 0);
+        e.dataTransfer.setData("text/plain", arrow.dataset.sequenceId);
+
+        const labelText = arrow.dataset.labelText || "Sequence";
+        const dragImage = this.createDragImageCanvas(labelText);
+        dragImage.style.position = "absolute";
+        dragImage.style.top = "-1000px";
+        document.body.appendChild(dragImage);
+        e.dataTransfer.setDragImage(dragImage, 70, 17);
+        setTimeout(() => {
+          document.body.removeChild(dragImage);
+        }, 0);
+      });
+
+      arrow.addEventListener("dragend", (e) => {
         e.stopPropagation();
         if (this.draggedSequence) {
           this.draggedSequence.classList.remove("dragging");

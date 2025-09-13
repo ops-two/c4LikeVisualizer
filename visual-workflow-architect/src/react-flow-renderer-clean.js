@@ -1167,6 +1167,10 @@ window.SequenceDiagramRenderer = {
           strokeWidth: "2",
           strokeDasharray: strokeDashArray,
           markerEnd: "url(#arrowhead)",
+          style: { cursor: "grab" },
+          className: "sequence-arrow",
+          "data-sequence-id": from + "-" + to + "-" + yPos,
+          "data-label-text": "Sequence",
         }),
         // Note: Label is now rendered as HTML overlay, not SVG text
       ];
@@ -1199,6 +1203,10 @@ window.SequenceDiagramRenderer = {
           strokeWidth: "2",
           strokeDasharray: strokeDashArray,
           markerEnd: "url(#arrowhead)",
+          style: { cursor: "grab" },
+          className: "sequence-arrow",
+          "data-sequence-id": actorIndex + "-" + actorIndex + "-" + yPos,
+          "data-label-text": "Self Sequence",
         }),
         // Vertical line
         React.createElement("line", {
@@ -1210,6 +1218,10 @@ window.SequenceDiagramRenderer = {
           stroke: "#555",
           strokeWidth: "2",
           strokeDasharray: strokeDashArray,
+          style: { cursor: "grab" },
+          className: "sequence-arrow",
+          "data-sequence-id": actorIndex + "-" + actorIndex + "-" + yPos,
+          "data-label-text": "Self Sequence",
         }),
         // Bottom horizontal line (right arrow pointing into circle)
         React.createElement("line", {
@@ -1222,6 +1234,10 @@ window.SequenceDiagramRenderer = {
           strokeWidth: "2",
           strokeDasharray: strokeDashArray,
           markerEnd: "url(#arrowhead)",
+          style: { cursor: "grab" },
+          className: "sequence-arrow",
+          "data-sequence-id": actorIndex + "-" + actorIndex + "-" + yPos,
+          "data-label-text": "Self Sequence",
         }),
       ];
     };
@@ -1474,6 +1490,8 @@ window.SequenceDiagramRenderer = {
                             key: "title",
                             className: "container-name",
                             "data-container-id": actor.id,
+                            "data-label-text": actor.name,
+                            title: "Double-click to edit",
                             style: {
                               backgroundColor: actor.color + "20",
                               borderColor: actor.color,
@@ -1603,7 +1621,7 @@ window.SequenceDiagramRenderer = {
               }),
               
               // SVG Overlay to contain all arrows
-              React.createElement("svg", { key: "svg-overlay", style: { position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 2 }, viewBox: `0 0 ${actors.length * 180} ${finalContainerHeight}` },
+              React.createElement("svg", { key: "svg-overlay", style: { position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "auto", zIndex: 2 }, viewBox: `0 0 ${actors.length * 180} ${finalContainerHeight}` },
                 [
                   React.createElement("defs", { key: "defs" }, [ React.createElement("marker", { key: "arrowhead", id: "arrowhead", markerWidth: "8", markerHeight: "6", refX: "8", refY: "3", orient: "auto" }, [ React.createElement("polygon", { key: "arrow-poly", points: "0 0, 8 3, 0 6", fill: "#555" }) ]) ]),
                   ...allPositionedMessages.map((msg, index) => {
