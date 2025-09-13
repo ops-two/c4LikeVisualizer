@@ -1217,12 +1217,16 @@ window.SequenceDiagramRenderer = {
               // HTML elements (Labels, Nodes, Drop Zones)
               ...allPositionedMessages.flatMap((msg, index, arr) => {
                 const prevMsg = arr[index - 1];
+                const nextMsg = arr[index + 1];
+                const isLastSequence = index === arr.length - 1;
+                
                 const orderBefore = prevMsg
                   ? prevMsg.originalOrderIndex
                   : msg.originalOrderIndex - 10;
 
-                const dropZone = React.createElement("div", {
-                  key: `drop-zone-${msg.sequenceId}`,
+                // Drop zone BEFORE this sequence
+                const dropZoneBefore = React.createElement("div", {
+                  key: `drop-zone-before-${msg.sequenceId}`,
                   className: "sequence-drop-zone",
                   style: {
                     left: "10px",
@@ -1231,6 +1235,21 @@ window.SequenceDiagramRenderer = {
                   },
                   "data-order-before": orderBefore,
                   "data-order-after": msg.originalOrderIndex,
+                  "data-workflow-id": msg.workflowId || "",
+                  "data-subgroup-id": msg.subgroupId || "",
+                });
+
+                // Drop zone AFTER this sequence (especially important for last sequence)
+                const dropZoneAfter = React.createElement("div", {
+                  key: `drop-zone-after-${msg.sequenceId}`,
+                  className: "sequence-drop-zone",
+                  style: {
+                    left: "10px",
+                    width: "calc(100% - 20px)",
+                    top: `${msg.yPos + SEQUENCE_HEIGHT / 2}px`,
+                  },
+                  "data-order-before": msg.originalOrderIndex,
+                  "data-order-after": nextMsg ? nextMsg.originalOrderIndex : msg.originalOrderIndex + 10,
                   "data-workflow-id": msg.workflowId || "",
                   "data-subgroup-id": msg.subgroupId || "",
                 });
@@ -1289,7 +1308,7 @@ window.SequenceDiagramRenderer = {
                       }),
                     ];
 
-                return [dropZone, sequenceLabel, ...nodes];
+                return [dropZoneBefore, sequenceLabel, ...nodes, dropZoneAfter];
               }),
 
               // Final drop zone after the last item
