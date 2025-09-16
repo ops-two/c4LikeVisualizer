@@ -1067,9 +1067,9 @@ window.SequenceDiagramRenderer = {
                         width: bounds.width,
                         height: `${bounds.height}px`,
                         backgroundColor:
-                          (bounds.workflow.colorHex || "#e3f2fd") + "1A",
+                          (bounds.workflow.colorHex || "#e3f2fd") + "40",
                         borderColor:
-                          (bounds.workflow.colorHex || "#e3f2fd") + "33",
+                          (bounds.workflow.colorHex || "#e3f2fd") + "80",
                       },
                     },
                     [
@@ -1193,9 +1193,9 @@ window.SequenceDiagramRenderer = {
                         width: `${bounds.width}px`,
                         height: `${bounds.height}px`,
                         backgroundColor:
-                          (bounds.workflow.colorHex || "#e3f2fd") + "1A",
+                          (bounds.workflow.colorHex || "#e3f2fd") + "40",
                         borderColor:
-                          (bounds.workflow.colorHex || "#e3f2fd") + "33",
+                          (bounds.workflow.colorHex || "#e3f2fd") + "80",
                       },
                     },
                     [

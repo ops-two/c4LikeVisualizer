@@ -292,8 +292,8 @@
 }
 .workflow-background {
   position: absolute;
-  background: rgba(227, 242, 253, 0.1); /* Reduced opacity to 0.10 */
-  border: 2px solid rgba(227, 242, 253, 0.2); /* Border opacity 0.2 */
+  background: rgba(227, 242, 253, 0.25); /* Increased opacity for better visibility */
+  border: 1px solid rgba(227, 242, 253, 0.5); /* Thinner border with higher opacity */
   border-radius: 8px;
   z-index: 1; /* Above diagram background but behind sequences */
   pointer-events: none;
