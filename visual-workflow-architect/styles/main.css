@@ -331,9 +331,9 @@
   position: absolute;
   background: #4caf50;
   color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 16px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
   font-weight: 500;
   top: -15px;
   left: 8px;
