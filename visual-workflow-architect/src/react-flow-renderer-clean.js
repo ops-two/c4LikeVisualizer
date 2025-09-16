@@ -844,10 +844,7 @@ window.SequenceDiagramRenderer = {
         orderIndex: nextOrderIndex,
       };
       if (window.WorkflowArchitectEventBridge) {
-        window.WorkflowArchitectEventBridge.handleWorkflowAdd(
-          "workflow",
-          newWorkflowData
-        );
+        window.WorkflowArchitectEventBridge.handleWorkflowAdd(newWorkflowData);
       }
     };
 
