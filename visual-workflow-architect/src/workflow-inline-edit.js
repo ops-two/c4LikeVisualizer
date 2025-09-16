@@ -80,25 +80,6 @@ window.WorkflowArchitectWorkflowInlineEdit = {
       height: 40px;
     `;
 
-    // Create doc icon
-    const docIcon = document.createElement("div");
-    docIcon.innerHTML = "📄";
-    docIcon.style.cssText = `
-      font-size: 16px;
-      cursor: pointer;
-      opacity: 0.7;
-      transition: opacity 0.2s;
-    `;
-    docIcon.title = "View workflow documentation";
-    
-    // Add hover effect for doc icon
-    docIcon.addEventListener("mouseenter", () => {
-      docIcon.style.opacity = "1";
-    });
-    docIcon.addEventListener("mouseleave", () => {
-      docIcon.style.opacity = "0.7";
-    });
-
     // Create input field
     const input = document.createElement("input");
     input.type = "text";
@@ -115,7 +96,6 @@ window.WorkflowArchitectWorkflowInlineEdit = {
     `;
 
     // Assemble container
-    inputContainer.appendChild(docIcon);
     inputContainer.appendChild(input);
 
     // Position the input container
@@ -153,26 +133,14 @@ window.WorkflowArchitectWorkflowInlineEdit = {
       }
     });
 
-    // Handle doc icon click
-    docIcon.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      this.handleDocIconClick(workflowId);
-    });
   },
 
   handleDocIconClick(workflowId) {
     console.log("Doc icon clicked for workflow:", workflowId);
     
-    // Trigger workflow documentation event
+    // Trigger workflow clicked event (same as hover doc icon)
     if (window.WorkflowArchitectEventBridge) {
-      const eventData = {
-        type: "workflow_documentation_clicked",
-        workflowId: workflowId,
-        timestamp: Date.now()
-      };
-      
-      window.WorkflowArchitectEventBridge.handleWorkflowDocumentation(eventData);
+      window.WorkflowArchitectEventBridge.handleWorkflowClick(workflowId);
     } else {
       console.error("WorkflowArchitectEventBridge not available");
     }

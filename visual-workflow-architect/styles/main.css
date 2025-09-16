@@ -326,14 +326,17 @@
   position: absolute;
   background: #4caf50;
   color: white;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 14px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 16px;
   font-weight: 500;
-  top: -12px;
+  top: -15px;
   left: 8px;
   z-index: 100; /* High z-index to ensure clicks work */
   pointer-events: auto; /* Ensure it receives click events */
+  min-height: 20px;
+  display: flex;
+  align-items: center;
 }
 
 .workflow-icon-button {
