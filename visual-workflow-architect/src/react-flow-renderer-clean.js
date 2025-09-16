@@ -449,11 +449,10 @@ window.SequenceDiagramRenderer = {
     let currentY = 130;
     let allPositionedMessages = [];
     let allWorkflowBounds = {};
-    const WORKFLOW_MARGIN = 40;
+    const WORKFLOW_MARGIN = 80;
     const WORKFLOW_PADDING_TOP = 80;
     const WORKFLOW_PADDING_BOTTOM = 70;
-    const SEQUENCE_HEIGHT = 90; // Base unit for self-message height
-    const SEQUENCE_SPACING = 54;
+    const SEQUENCE_HEIGHT = 90;
     const allWorkflowObjects =
       window.WorkflowArchitectDataStore.getWorkflowsArray();
     const populatedWorkflowIds = Object.keys(sequencesByWorkflow).filter(
@@ -490,36 +489,48 @@ window.SequenceDiagramRenderer = {
           subgroupId: sequence.subgroupId,
         });
 
-        // Adjust Y increment based on sequence type for the next element
-        const selfMessageHeight = SEQUENCE_HEIGHT * 0.8;
+        // Adjust Y increment based on sequence type - self-messages need more space
         const yIncrement = isSelfMessage
-          ? selfMessageHeight + SEQUENCE_SPACING
-          : SEQUENCE_SPACING;
+          ? SEQUENCE_HEIGHT * 1.4
+          : SEQUENCE_HEIGHT;
         currentY += yIncrement;
       } else if (item.type === "WORKFLOW_BLOCK") {
         const { workflow, sequences } = item.data;
 
-        // Dynamically calculate the total height needed for all sequences.
-        const totalSequencesHeight = sequences.reduce((total, seq) => {
-          const isSelf = seq.fromContainerId === seq.toContainerId;
-          const selfMessageHeight = SEQUENCE_HEIGHT * 0.8;
-          const increment = isSelf
-            ? selfMessageHeight + SEQUENCE_SPACING
-            : SEQUENCE_SPACING;
-          return total + increment;
-        }, 0);
+        // --- REVISED: Dynamic height and position calculation with intelligent spacing ---
 
-        // Calculate the final height, removing the extra spacing from after the last sequence.
+        // 1. Calculate the vertical space (increment) for each sequence based on what follows it.
+        const increments = sequences.map((seq, index) => {
+          const isCurrentSelf = seq.fromContainerId === seq.toContainerId;
+          if (isCurrentSelf) {
+            // A self-loop always has a fixed vertical footprint of 126px.
+            return SEQUENCE_HEIGHT * 1.4;
+          } else {
+            const nextSeq = sequences[index + 1];
+            const isNextSelf =
+              nextSeq && nextSeq.fromContainerId === nextSeq.toContainerId;
+            // A normal sequence has 90px spacing, unless it's followed by a self-loop (then 54px).
+            return isNextSelf ? 54 : SEQUENCE_HEIGHT;
+          }
+        });
+
+        // 2. Calculate total content height by summing increments, then removing the last one.
+        const totalIncrements = increments.reduce((sum, inc) => sum + inc, 0);
+
+        // A normal sequence at the end provides 90px of space. We remove this before adding final padding.
+        // A self-loop at the end provides 126px. We also remove this.
+        const lastIncrement =
+          increments.length > 0 ? increments[increments.length - 1] : 0;
+        const totalContentHeight =
+          totalIncrements > 0 ? totalIncrements - lastIncrement : 0;
+
+        // 3. Calculate the final workflow background height.
         const workflowHeight =
-          WORKFLOW_PADDING_TOP +
-          (totalSequencesHeight > 0
-            ? totalSequencesHeight - SEQUENCE_SPACING
-            : 0) +
-          WORKFLOW_PADDING_BOTTOM;
+          WORKFLOW_PADDING_TOP + totalContentHeight + WORKFLOW_PADDING_BOTTOM;
 
-        // Position the sequences within this block
-        let yOffset = 0; // This will accumulate the height of each sequence
-        sequences.forEach((sequence) => {
+        // 4. Position the sequences within the block using the calculated increments.
+        let yOffset = 0;
+        sequences.forEach((sequence, index) => {
           const fromActor = actors.find(
             (a) => a.id === sequence.fromContainerId
           );
@@ -532,8 +543,6 @@ window.SequenceDiagramRenderer = {
             ""
           );
           const isSelfMessage = fromActor.id === toActor.id;
-
-          // The current sequence's Y position depends on the accumulated height of previous ones.
           const currentSequenceYPos = startY + WORKFLOW_PADDING_TOP + yOffset;
 
           allPositionedMessages.push({
@@ -550,14 +559,11 @@ window.SequenceDiagramRenderer = {
             subgroupId: sequence.subgroupId,
           });
 
-          // Increment the offset for the next sequence.
-          const selfMessageHeight = SEQUENCE_HEIGHT * 0.8;
-          yOffset += isSelfMessage
-            ? selfMessageHeight + SEQUENCE_SPACING
-            : SEQUENCE_SPACING;
+          // The offset for the next item is the increment we calculated for the current item.
+          if (increments[index]) {
+            yOffset += increments[index];
+          }
         });
-
-        // --- FIX END ---
 
         // Calculate the workflow's background bounds
         const actorIndicesInWorkflow = [
