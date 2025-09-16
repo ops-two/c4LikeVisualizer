@@ -490,7 +490,6 @@ window.SequenceDiagramRenderer = {
           subgroupId: sequence.subgroupId,
         });
 
-        // Adjust Y increment based on sequence type - self-messages need more space
         const yIncrement = isSelfMessage
           ? SEQUENCE_HEIGHT * 1.4
           : SEQUENCE_HEIGHT;
@@ -498,23 +497,26 @@ window.SequenceDiagramRenderer = {
       } else if (item.type === "WORKFLOW_BLOCK") {
         const { workflow, sequences } = item.data;
 
-        // --- FIX START: Dynamic height and position calculation for workflows ---
-
-        // 1. Calculate the total height required by all sequences within the workflow.
+        // Dynamically calculate the total height needed for all sequences.
         const totalSequencesHeight = sequences.reduce((total, seq) => {
           const isSelf = seq.fromContainerId === seq.toContainerId;
-          return total + (isSelf ? SEQUENCE_HEIGHT * 1.4 : SEQUENCE_HEIGHT);
+          const selfMessageHeight = SEQUENCE_HEIGHT * 0.8;
+          const increment = isSelf
+            ? selfMessageHeight + SEQUENCE_SPACING
+            : SEQUENCE_SPACING;
+          return total + increment;
         }, 0);
 
-        // 2. Calculate the final height for the workflow background block.
+        // Calculate the final height, removing the extra spacing from after the last sequence.
         const workflowHeight =
           WORKFLOW_PADDING_TOP +
-          totalSequencesHeight +
-          WORKFLOW_PADDING_BOTTOM -
-          SEQUENCE_HEIGHT;
+          (totalSequencesHeight > 0
+            ? totalSequencesHeight - SEQUENCE_SPACING
+            : 0) +
+          WORKFLOW_PADDING_BOTTOM;
 
-        // 3. Position the sequences within this block using a dynamic offset.
-        let yOffset = 0; // This will accumulate the height of each sequence.
+        // Position the sequences within this block
+        let yOffset = 0; // This will accumulate the height of each sequence
         sequences.forEach((sequence) => {
           const fromActor = actors.find(
             (a) => a.id === sequence.fromContainerId
