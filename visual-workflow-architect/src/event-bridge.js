@@ -94,7 +94,6 @@ window.WorkflowArchitectEventBridge = {
     this.instance.triggerEvent("workflow_added");
   },
 
-  // Handle workflow updates
   handleWorkflowUpdate: function (eventData) {
     console.log(
       "WorkflowArchitectEventBridge: Workflow update requested",

@@ -496,14 +496,25 @@ window.SequenceDiagramRenderer = {
         currentY += yIncrement;
       } else if (item.type === "WORKFLOW_BLOCK") {
         const { workflow, sequences } = item.data;
+
+        // --- FIX START: Dynamic height and position calculation for workflows ---
+
+        // 1. Calculate the total height required by all sequences within the workflow.
+        const totalSequencesHeight = sequences.reduce((total, seq) => {
+          const isSelf = seq.fromContainerId === seq.toContainerId;
+          return total + (isSelf ? SEQUENCE_HEIGHT * 1.4 : SEQUENCE_HEIGHT);
+        }, 0);
+
+        // 2. Calculate the final height for the workflow background block.
         const workflowHeight =
           WORKFLOW_PADDING_TOP +
-          sequences.length * SEQUENCE_HEIGHT +
+          totalSequencesHeight +
           WORKFLOW_PADDING_BOTTOM -
           SEQUENCE_HEIGHT;
 
-        // Position the sequences within this block
-        sequences.forEach((sequence, index) => {
+        // 3. Position the sequences within this block using a dynamic offset.
+        let yOffset = 0; // This will accumulate the height of each sequence.
+        sequences.forEach((sequence) => {
           const fromActor = actors.find(
             (a) => a.id === sequence.fromContainerId
           );
@@ -517,11 +528,14 @@ window.SequenceDiagramRenderer = {
           );
           const isSelfMessage = fromActor.id === toActor.id;
 
+          // The current sequence's Y position depends on the accumulated height of previous ones.
+          const currentSequenceYPos = startY + WORKFLOW_PADDING_TOP + yOffset;
+
           allPositionedMessages.push({
             originalOrderIndex: sequence.orderIndex,
             label: `${positionalIndex}. ${labelText}`,
             labelText: labelText,
-            yPos: startY + WORKFLOW_PADDING_TOP + index * SEQUENCE_HEIGHT,
+            yPos: currentSequenceYPos,
             from: actors.indexOf(fromActor),
             to: actors.indexOf(toActor),
             self: isSelfMessage,
@@ -530,7 +544,12 @@ window.SequenceDiagramRenderer = {
             workflowId: sequence.workflowId,
             subgroupId: sequence.subgroupId,
           });
+
+          // Increment the offset for the next sequence.
+          yOffset += isSelfMessage ? SEQUENCE_HEIGHT * 1.4 : SEQUENCE_HEIGHT;
         });
+
+        // --- FIX END ---
 
         // Calculate the workflow's background bounds
         const actorIndicesInWorkflow = [
