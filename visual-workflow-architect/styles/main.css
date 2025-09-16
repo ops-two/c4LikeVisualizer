@@ -336,15 +336,38 @@
   pointer-events: auto; /* Ensure it receives click events */
 }
 
-.workflow-label .doc-icon {
+.workflow-icon-button {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   opacity: 0;
   transition: opacity 0.2s ease;
+  cursor: pointer;
+  z-index: 15;
   pointer-events: none;
+  right: 4px;
+  top: 4px;
 }
 
-.workflow-label:hover .doc-icon {
-  opacity: 0.8;
+.workflow-label:hover .workflow-icon-button {
+  opacity: 1;
   pointer-events: auto;
+}
+
+.workflow-icon-button:hover {
+  background-color: #f5f5f5;
+}
+
+.workflow-icon-button svg {
+  width: 12px;
+  height: 12px;
+  color: #555;
 }
 .arrow-line {
   position: absolute;

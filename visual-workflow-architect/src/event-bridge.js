@@ -165,6 +165,13 @@ window.WorkflowArchitectEventBridge = {
     this.instance.triggerEvent("sequence_clicked");
   },
 
+  // Handle workflow click events (following storymap pattern)
+  handleWorkflowClick: function (workflowId) {
+    console.log("WorkflowArchitectEventBridge: Workflow clicked", workflowId);
+    this.instance.publishState("selected_workflow_id", workflowId);
+    this.instance.triggerEvent("workflow_clicked");
+  },
+
   // Handle update events from inline editing (following storymap pattern)
   handleUpdate: function (event) {
     console.log(

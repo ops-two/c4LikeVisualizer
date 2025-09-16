@@ -451,7 +451,7 @@ window.SequenceDiagramRenderer = {
     let allWorkflowBounds = {};
     const WORKFLOW_MARGIN = 80;
     const WORKFLOW_PADDING_TOP = 80;
-    const WORKFLOW_PADDING_BOTTOM = 40;
+    const WORKFLOW_PADDING_BOTTOM = 60;
     const SEQUENCE_HEIGHT = 90;
     const allWorkflowObjects =
       window.WorkflowArchitectDataStore.getWorkflowsArray();
@@ -804,15 +804,6 @@ window.SequenceDiagramRenderer = {
         newOrderIndex = currentOrder + 1;
       }
 
-      console.log(
-        "Current order:",
-        currentOrder,
-        "Next order:",
-        nextOrder,
-        "New order:",
-        newOrderIndex
-      );
-
       console.log("Calculated new order index:", newOrderIndex);
 
       const newContainerData = {
@@ -875,71 +866,15 @@ window.SequenceDiagramRenderer = {
       if (!feature || !feature.id) {
         return;
       }
-      const nextOrderIndex =
-        workflows.length > 0
-          ? Math.max(...workflows.map((w) => w.orderIndex || 0)) + 10
-          : 10;
       const newWorkflowData = {
         name: "New Workflow",
         featureId: feature.id,
-        orderIndex: nextOrderIndex,
       };
       if (window.WorkflowArchitectEventBridge) {
         window.WorkflowArchitectEventBridge.handleWorkflowAdd(newWorkflowData);
       }
     };
 
-    const handleAddWorkflowAfter = (currentOrderIndex) => {
-      console.log(
-        "Add Workflow After clicked - order index:",
-        currentOrderIndex
-      );
-
-      const feature = window.WorkflowArchitectDataStore?.getFeature();
-      if (!feature || !feature.id) {
-        console.error("No feature ID available for new workflow");
-        return;
-      }
-
-      // Get all workflows to calculate proper order index
-      const allWorkflows =
-        window.WorkflowArchitectDataStore?.getWorkflowsArray() || [];
-
-      // Find the next workflow after the current one
-      const sortedWorkflows = allWorkflows.sort(
-        (a, b) => (a.orderIndex || 0) - (b.orderIndex || 0)
-      );
-      const currentIndex = sortedWorkflows.findIndex(
-        (w) => (w.orderIndex || 0) === currentOrderIndex
-      );
-
-      let newOrderIndex;
-      if (currentIndex >= 0 && currentIndex < sortedWorkflows.length - 1) {
-        // There is a next workflow, insert between current and next
-        const nextWorkflow = sortedWorkflows[currentIndex + 1];
-        const nextOrder = nextWorkflow.orderIndex || (currentIndex + 2) * 10;
-        newOrderIndex = (currentOrderIndex + nextOrder) / 2;
-      } else {
-        // This is the last workflow, add after it
-        newOrderIndex = currentOrderIndex + 10;
-      }
-
-      console.log("Calculated new workflow order index:", newOrderIndex);
-
-      const newWorkflowData = {
-        name: "New Workflow",
-        featureId: feature.id,
-        orderIndex: newOrderIndex,
-        colorHex: "#4caf50",
-      };
-
-      if (window.WorkflowArchitectEventBridge) {
-        window.WorkflowArchitectEventBridge.handleEntityAdd(
-          "workflow",
-          newWorkflowData
-        );
-      }
-    };
 
     const handleAddSubgroup = () => {
       console.log("Add Subgroup clicked - triggering Bubble workflow");
@@ -1198,17 +1133,6 @@ window.SequenceDiagramRenderer = {
                           React.createElement(
                             "span",
                             {
-                              key: "doc-icon",
-                              className: "doc-icon",
-                              style: {
-                                fontSize: "14px",
-                              },
-                            },
-                            "📄"
-                          ),
-                          React.createElement(
-                            "span",
-                            {
                               key: "text",
                               style: {
                                 flex: "1",
@@ -1216,51 +1140,62 @@ window.SequenceDiagramRenderer = {
                             },
                             bounds.workflow.name || "Workflow"
                           ),
+                          React.createElement(
+                            "div",
+                            {
+                              key: "workflow-icon-button",
+                              className: "workflow-icon-button",
+                              onClick: (e) => {
+                                e.stopPropagation();
+                                console.log(
+                                  `WORKFLOW ICON CLICKED: ${bounds.workflow.id}`
+                                );
+                                if (window.WorkflowArchitectEventBridge) {
+                                  window.WorkflowArchitectEventBridge.handleWorkflowClick(
+                                    bounds.workflow.id
+                                  );
+                                }
+                              },
+                            },
+                            React.createElement(
+                              "svg",
+                              {
+                                viewBox: "0 0 24 24",
+                                fill: "none",
+                                stroke: "currentColor",
+                                strokeWidth: "2",
+                              },
+                              [
+                                React.createElement("path", {
+                                  key: "path1",
+                                  d: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z",
+                                }),
+                                React.createElement("polyline", {
+                                  key: "path2",
+                                  points: "14,2 14,8 20,8",
+                                }),
+                                React.createElement("line", {
+                                  key: "path3",
+                                  x1: "16",
+                                  y1: "13",
+                                  x2: "8",
+                                  y2: "13",
+                                }),
+                                React.createElement("line", {
+                                  key: "path4",
+                                  x1: "16",
+                                  y1: "17",
+                                  x2: "8",
+                                  y2: "17",
+                                }),
+                                React.createElement("polyline", {
+                                  key: "path5",
+                                  points: "10,9 9,9 8,9",
+                                }),
+                              ]
+                            )
+                          ),
                         ]
-                      ),
-                      React.createElement(
-                        "div",
-                        {
-                          key: "add-workflow-plus",
-                          className: "add-workflow-plus-icon",
-                          style: {
-                            position: "absolute",
-                            bottom: "-15px",
-                            left: "50%",
-                            transform: "translateX(-50%)",
-                            width: "24px",
-                            height: "24px",
-                            backgroundColor: "#4caf50",
-                            borderRadius: "50%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            cursor: "pointer",
-                            fontSize: "14px",
-                            fontWeight: "bold",
-                            color: "white",
-                            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                            zIndex: "10",
-                            transition: "all 0.2s ease",
-                          },
-                          "data-workflow-order":
-                            bounds.workflow.orderIndex || 0,
-                          onClick: (e) =>
-                            handleAddWorkflowAfter(
-                              bounds.workflow.orderIndex || 0
-                            ),
-                          onMouseEnter: (e) => {
-                            e.target.style.transform =
-                              "translateX(-50%) scale(1.1)";
-                            e.target.style.backgroundColor = "#45a049";
-                          },
-                          onMouseLeave: (e) => {
-                            e.target.style.transform =
-                              "translateX(-50%) scale(1)";
-                            e.target.style.backgroundColor = "#4caf50";
-                          },
-                        },
-                        "+"
                       ),
                     ]
                   );
