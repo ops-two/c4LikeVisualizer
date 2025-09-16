@@ -322,6 +322,11 @@
   z-index: 2.5; /* Above subgroup background */
 }
 
+.workflow-master-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
 .workflow-label {
   position: absolute;
   background: #4caf50;
@@ -341,24 +346,25 @@
 
 .workflow-icon-button {
   position: absolute;
-  width: 16px;
-  height: 16px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #ddd;
-  border-radius: 3px;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  padding: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  cursor: pointer;
-  z-index: 101;
-  pointer-events: none;
-  right: 4px;
-  top: 4px;
 }
 
-.workflow-label:hover .workflow-icon-button {
+.workflow-master-wrapper:hover .workflow-icon-button {
   opacity: 1;
   pointer-events: auto;
 }

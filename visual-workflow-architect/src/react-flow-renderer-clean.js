@@ -1115,30 +1115,39 @@ window.SequenceDiagramRenderer = {
                       React.createElement(
                         "div",
                         {
-                          key: "label",
-                          className: "workflow-label",
-                          style: {
-                            backgroundColor:
-                              bounds.workflow.colorHex || "#4caf50",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                            cursor: "pointer",
-                          },
-                          "data-workflow-id": bounds.workflow.id,
-                          "data-label-text": bounds.workflow.name || "Workflow",
-                          title: "Double-click to edit workflow",
+                          key: "workflow-wrapper",
+                          className: "workflow-master-wrapper",
                         },
                         [
                           React.createElement(
-                            "span",
+                            "div",
                             {
-                              key: "text",
+                              key: "label",
+                              className: "workflow-label",
                               style: {
-                                flex: "1",
+                                backgroundColor:
+                                  bounds.workflow.colorHex || "#4caf50",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "8px",
+                                cursor: "pointer",
                               },
+                              "data-workflow-id": bounds.workflow.id,
+                              "data-label-text": bounds.workflow.name || "Workflow",
+                              title: "Double-click to edit workflow",
                             },
-                            bounds.workflow.name || "Workflow"
+                            [
+                              React.createElement(
+                                "span",
+                                {
+                                  key: "text",
+                                  style: {
+                                    flex: "1",
+                                  },
+                                },
+                                bounds.workflow.name || "Workflow"
+                              ),
+                            ]
                           ),
                           React.createElement(
                             "div",

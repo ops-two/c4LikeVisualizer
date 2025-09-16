@@ -62,14 +62,11 @@ window.WorkflowArchitectWorkflowInlineEdit = {
       return;
     }
 
-    // Create input container with doc icon
+    // Create input container (no doc icon in edit mode)
     const inputContainer = document.createElement("div");
     inputContainer.className = "workflow-edit-container";
     inputContainer.style.cssText = `
       position: absolute;
-      display: flex;
-      align-items: center;
-      gap: 8px;
       background: white;
       border: 2px solid #4caf50;
       border-radius: 6px;
@@ -78,6 +75,8 @@ window.WorkflowArchitectWorkflowInlineEdit = {
       z-index: 1000;
       min-width: 200px;
       height: 40px;
+      display: flex;
+      align-items: center;
     `;
 
     // Create input field
