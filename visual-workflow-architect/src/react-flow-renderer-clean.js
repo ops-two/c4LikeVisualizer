@@ -490,9 +490,11 @@ window.SequenceDiagramRenderer = {
           subgroupId: sequence.subgroupId,
         });
 
+        // Adjust Y increment based on sequence type for the next element
+        const selfMessageHeight = SEQUENCE_HEIGHT * 0.8;
         const yIncrement = isSelfMessage
-          ? SEQUENCE_HEIGHT * 1.4
-          : SEQUENCE_HEIGHT;
+          ? selfMessageHeight + SEQUENCE_SPACING
+          : SEQUENCE_SPACING;
         currentY += yIncrement;
       } else if (item.type === "WORKFLOW_BLOCK") {
         const { workflow, sequences } = item.data;
