@@ -497,14 +497,13 @@ window.SequenceDiagramRenderer = {
       } else if (item.type === "WORKFLOW_BLOCK") {
         const { workflow, sequences } = item.data;
 
-        // --- REVISED: Dynamic height and position calculation with intelligent spacing ---
+        // --- FINAL: Corrected dynamic height and position calculation ---
 
         // 1. Calculate the vertical space (increment) for each sequence based on what follows it.
         const increments = sequences.map((seq, index) => {
           const isCurrentSelf = seq.fromContainerId === seq.toContainerId;
           if (isCurrentSelf) {
-            // A self-loop always has a fixed vertical footprint of 126px.
-            return SEQUENCE_HEIGHT * 1.4;
+            return SEQUENCE_HEIGHT * 1.4; // A self-loop always has a fixed vertical footprint of 126px.
           } else {
             const nextSeq = sequences[index + 1];
             const isNextSelf =
@@ -514,21 +513,28 @@ window.SequenceDiagramRenderer = {
           }
         });
 
-        // 2. Calculate total content height by summing increments, then removing the last one.
-        const totalIncrements = increments.reduce((sum, inc) => sum + inc, 0);
+        // 2. Calculate the total height of the actual visual content.
+        let totalContentHeight = 0;
+        if (increments.length > 0) {
+          // The total height is the starting position of the last element PLUS that element's own height.
+          const yOffsetBeforeLast = increments
+            .slice(0, -1)
+            .reduce((sum, inc) => sum + inc, 0);
 
-        // A normal sequence at the end provides 90px of space. We remove this before adding final padding.
-        // A self-loop at the end provides 126px. We also remove this.
-        const lastIncrement =
-          increments.length > 0 ? increments[increments.length - 1] : 0;
-        const totalContentHeight =
-          totalIncrements > 0 ? totalIncrements - lastIncrement : 0;
+          const lastSeq = sequences[sequences.length - 1];
+          const isLastSelf = lastSeq.fromContainerId === lastSeq.toContainerId;
+
+          // A normal sequence is a line (conceptual height 0), a self-loop has a physical height.
+          const heightOfLastElement = isLastSelf ? SEQUENCE_HEIGHT * 0.8 : 0;
+
+          totalContentHeight = yOffsetBeforeLast + heightOfLastElement;
+        }
 
         // 3. Calculate the final workflow background height.
         const workflowHeight =
           WORKFLOW_PADDING_TOP + totalContentHeight + WORKFLOW_PADDING_BOTTOM;
 
-        // 4. Position the sequences within the block using the calculated increments.
+        // 4. Position the sequences within the block using the calculated increments (this logic is correct).
         let yOffset = 0;
         sequences.forEach((sequence, index) => {
           const fromActor = actors.find(
@@ -559,11 +565,13 @@ window.SequenceDiagramRenderer = {
             subgroupId: sequence.subgroupId,
           });
 
-          // The offset for the next item is the increment we calculated for the current item.
           if (increments[index]) {
             yOffset += increments[index];
           }
         });
+
+        // Calculate the workflow's background bounds
+        // --- FIX END ---
 
         // Calculate the workflow's background bounds
         const actorIndicesInWorkflow = [
