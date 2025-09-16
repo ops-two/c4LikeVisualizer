@@ -350,23 +350,23 @@
 
 .workflow-icon-button {
   position: absolute;
-  right: 8px;
-  top: -15px;
-  transform: translateY(0);
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  border-radius: 4px;
-  color: white;
+  right: 4px;
+  top: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  color: #555;
   cursor: pointer;
-  padding: 4px;
+  padding: 2px;
   opacity: 0;
-  transition: opacity 0.2s;
-  width: 24px;
-  height: 24px;
+  transition: opacity 0.2s ease;
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: auto;
+  pointer-events: none;
+  z-index: 15;
 }
 
 .workflow-master-wrapper:hover .workflow-icon-button {
