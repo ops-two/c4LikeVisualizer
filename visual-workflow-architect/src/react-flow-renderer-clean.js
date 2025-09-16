@@ -453,7 +453,7 @@ window.SequenceDiagramRenderer = {
     const WORKFLOW_PADDING_TOP = 80;
     const WORKFLOW_PADDING_BOTTOM = 70;
     const SEQUENCE_HEIGHT = 90; // Base unit for self-message height
-    const SEQUENCE_SPACING = 54; // Con
+    const SEQUENCE_SPACING = 54;
     const allWorkflowObjects =
       window.WorkflowArchitectDataStore.getWorkflowsArray();
     const populatedWorkflowIds = Object.keys(sequencesByWorkflow).filter(
@@ -491,10 +491,9 @@ window.SequenceDiagramRenderer = {
         });
 
         // Adjust Y increment based on sequence type - self-messages need more space
-        const selfMessageHeight = SEQUENCE_HEIGHT * 0.8;
         const yIncrement = isSelfMessage
-          ? selfMessageHeight + SEQUENCE_SPACING
-          : SEQUENCE_SPACING;
+          ? SEQUENCE_HEIGHT * 1.4
+          : SEQUENCE_HEIGHT;
         currentY += yIncrement;
       } else if (item.type === "WORKFLOW_BLOCK") {
         const { workflow, sequences } = item.data;
@@ -548,7 +547,10 @@ window.SequenceDiagramRenderer = {
           });
 
           // Increment the offset for the next sequence.
-          yOffset += isSelfMessage ? SEQUENCE_HEIGHT * 1.4 : SEQUENCE_HEIGHT;
+          const selfMessageHeight = SEQUENCE_HEIGHT * 0.8;
+          yOffset += isSelfMessage
+            ? selfMessageHeight + SEQUENCE_SPACING
+            : SEQUENCE_SPACING;
         });
 
         // --- FIX END ---
