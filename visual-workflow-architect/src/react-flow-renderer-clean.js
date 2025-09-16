@@ -875,7 +875,6 @@ window.SequenceDiagramRenderer = {
       }
     };
 
-
     const handleAddSubgroup = () => {
       console.log("Add Subgroup clicked - triggering Bubble workflow");
 
@@ -1075,9 +1074,97 @@ window.SequenceDiagramRenderer = {
                     },
                     [
                       React.createElement(
-                        "h4",
-                        { key: "title", className: "empty-workflow-title" },
-                        bounds.workflow.name || "Workflow"
+                        "div",
+                        {
+                          key: "empty-workflow-wrapper",
+                          className: "workflow-master-wrapper",
+                        },
+                        [
+                          React.createElement(
+                            "h4",
+                            {
+                              key: "title",
+                              className: "empty-workflow-title workflow-label",
+                              "data-workflow-id": bounds.workflow.id,
+                              "data-label-text": bounds.workflow.name || "Workflow",
+                              title: "Double-click to edit workflow",
+                              style: {
+                                backgroundColor: bounds.workflow.colorHex || "#4caf50",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "8px",
+                                cursor: "pointer",
+                              },
+                            },
+                            [
+                              React.createElement(
+                                "span",
+                                {
+                                  key: "text",
+                                  style: {
+                                    flex: "1",
+                                  },
+                                },
+                                bounds.workflow.name || "Workflow"
+                              ),
+                              React.createElement(
+                                "div",
+                                {
+                                  key: "workflow-icon-button",
+                                  className: "workflow-icon-button",
+                                  onClick: (e) => {
+                                    e.stopPropagation();
+                                    console.log(
+                                      `EMPTY WORKFLOW ICON CLICKED: ${bounds.workflow.id}`
+                                    );
+                                    if (window.WorkflowArchitectEventBridge) {
+                                      window.WorkflowArchitectEventBridge.handleWorkflowClick(
+                                        bounds.workflow.id
+                                      );
+                                    }
+                                  },
+                                },
+                                React.createElement(
+                                  "svg",
+                                  {
+                                    viewBox: "0 0 24 24",
+                                    fill: "none",
+                                    stroke: "currentColor",
+                                    strokeWidth: "2",
+                                  },
+                                  [
+                                    React.createElement("path", {
+                                      key: "path1",
+                                      d: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z",
+                                    }),
+                                    React.createElement("polyline", {
+                                      key: "path2",
+                                      points: "14,2 14,8 20,8",
+                                    }),
+                                    React.createElement("line", {
+                                      key: "path3",
+                                      x1: "16",
+                                      y1: "13",
+                                      x2: "8",
+                                      y2: "13",
+                                    }),
+                                    React.createElement("line", {
+                                      key: "path4",
+                                      x1: "16",
+                                      y1: "17",
+                                      x2: "8",
+                                      y2: "17",
+                                    }),
+                                    React.createElement("polyline", {
+                                      key: "path5",
+                                      points: "10,9 9,9 8,9",
+                                    }),
+                                  ]
+                                )
+                              ),
+                            ]
+                          ),
+                        ]
                       ),
                       React.createElement(
                         "div",
@@ -1133,7 +1220,8 @@ window.SequenceDiagramRenderer = {
                                 cursor: "pointer",
                               },
                               "data-workflow-id": bounds.workflow.id,
-                              "data-label-text": bounds.workflow.name || "Workflow",
+                              "data-label-text":
+                                bounds.workflow.name || "Workflow",
                               title: "Double-click to edit workflow",
                             },
                             [
@@ -1387,7 +1475,9 @@ window.SequenceDiagramRenderer = {
                         className: "sequence-icon-button",
                         onClick: (e) => {
                           e.stopPropagation();
-                          console.log(`SEQUENCE ICON CLICKED: ${msg.sequenceId}`);
+                          console.log(
+                            `SEQUENCE ICON CLICKED: ${msg.sequenceId}`
+                          );
                           if (window.WorkflowArchitectEventBridge) {
                             window.WorkflowArchitectEventBridge.handleSequenceClick(
                               msg.sequenceId

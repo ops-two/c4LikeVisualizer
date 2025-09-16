@@ -379,8 +379,8 @@
 }
 
 .workflow-icon-button svg {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   color: #555;
 }
 .arrow-line {
@@ -565,14 +565,19 @@
 }
 
 .empty-workflow-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: #4a6a8a;
-  margin: 0 0 5px 0;
-  padding: 2px 8px;
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  margin: 0;
+  padding: 8px 16px;
+  border-radius: 6px;
   flex-shrink: 0; /* Prevent title from shrinking */
+  position: absolute;
+  top: -15px;
+  left: 8px;
+  z-index: 100;
+  pointer-events: auto;
+  min-height: 20px;
 }
 
 .empty-workflow-drop-message {
