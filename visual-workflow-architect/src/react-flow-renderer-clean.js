@@ -451,7 +451,7 @@ window.SequenceDiagramRenderer = {
     let allWorkflowBounds = {};
     const WORKFLOW_MARGIN = 80;
     const WORKFLOW_PADDING_TOP = 80;
-    const WORKFLOW_PADDING_BOTTOM = 70;
+    const WORKFLOW_PADDING_BOTTOM = 40;
     const SEQUENCE_HEIGHT = 90;
     const allWorkflowObjects =
       window.WorkflowArchitectDataStore.getWorkflowsArray();
