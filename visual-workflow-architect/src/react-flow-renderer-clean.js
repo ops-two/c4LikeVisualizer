@@ -844,16 +844,19 @@ window.SequenceDiagramRenderer = {
         orderIndex: nextOrderIndex,
       };
       if (window.WorkflowArchitectEventBridge) {
-        window.WorkflowArchitectEventBridge.handleEntityAdd(
+        window.WorkflowArchitectEventBridge.handleWorkflowAdd(
           "workflow",
           newWorkflowData
         );
       }
     };
-    
+
     const handleAddWorkflowAfter = (currentOrderIndex) => {
-      console.log("Add Workflow After clicked - order index:", currentOrderIndex);
-      
+      console.log(
+        "Add Workflow After clicked - order index:",
+        currentOrderIndex
+      );
+
       const feature = window.WorkflowArchitectDataStore?.getFeature();
       if (!feature || !feature.id) {
         console.error("No feature ID available for new workflow");
@@ -861,17 +864,22 @@ window.SequenceDiagramRenderer = {
       }
 
       // Get all workflows to calculate proper order index
-      const allWorkflows = window.WorkflowArchitectDataStore?.getWorkflowsArray() || [];
-      
+      const allWorkflows =
+        window.WorkflowArchitectDataStore?.getWorkflowsArray() || [];
+
       // Find the next workflow after the current one
-      const sortedWorkflows = allWorkflows.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
-      const currentIndex = sortedWorkflows.findIndex(w => (w.orderIndex || 0) === currentOrderIndex);
-      
+      const sortedWorkflows = allWorkflows.sort(
+        (a, b) => (a.orderIndex || 0) - (b.orderIndex || 0)
+      );
+      const currentIndex = sortedWorkflows.findIndex(
+        (w) => (w.orderIndex || 0) === currentOrderIndex
+      );
+
       let newOrderIndex;
       if (currentIndex >= 0 && currentIndex < sortedWorkflows.length - 1) {
         // There is a next workflow, insert between current and next
         const nextWorkflow = sortedWorkflows[currentIndex + 1];
-        const nextOrder = nextWorkflow.orderIndex || ((currentIndex + 2) * 10);
+        const nextOrder = nextWorkflow.orderIndex || (currentIndex + 2) * 10;
         newOrderIndex = (currentOrderIndex + nextOrder) / 2;
       } else {
         // This is the last workflow, add after it
@@ -894,7 +902,7 @@ window.SequenceDiagramRenderer = {
         );
       }
     };
-    
+
     const handleAddSubgroup = () => {
       console.log("Add Subgroup clicked - triggering Bubble workflow");
 
@@ -1148,7 +1156,7 @@ window.SequenceDiagramRenderer = {
                           "data-label-text": bounds.workflow.name || "Workflow",
                           title: "Double-click to edit workflow",
                         },
-[
+                        [
                           React.createElement(
                             "span",
                             {
@@ -1197,19 +1205,25 @@ window.SequenceDiagramRenderer = {
                             zIndex: "10",
                             transition: "all 0.2s ease",
                           },
-                          "data-workflow-order": bounds.workflow.orderIndex || 0,
-                          onClick: (e) => handleAddWorkflowAfter(bounds.workflow.orderIndex || 0),
+                          "data-workflow-order":
+                            bounds.workflow.orderIndex || 0,
+                          onClick: (e) =>
+                            handleAddWorkflowAfter(
+                              bounds.workflow.orderIndex || 0
+                            ),
                           onMouseEnter: (e) => {
-                            e.target.style.transform = "translateX(-50%) scale(1.1)";
+                            e.target.style.transform =
+                              "translateX(-50%) scale(1.1)";
                             e.target.style.backgroundColor = "#45a049";
                           },
                           onMouseLeave: (e) => {
-                            e.target.style.transform = "translateX(-50%) scale(1)";
+                            e.target.style.transform =
+                              "translateX(-50%) scale(1)";
                             e.target.style.backgroundColor = "#4caf50";
                           },
                         },
                         "+"
-                      )
+                      ),
                     ]
                   );
                 }

@@ -90,7 +90,7 @@ window.WorkflowArchitectEventBridge = {
       "WorkflowArchitectEventBridge: Workflow add requested",
       eventData
     );
-    this.instance.publishState("pending_update", JSON.stringify(eventData));
+    this.instance.publishState("pending_add", JSON.stringify(eventData));
     this.instance.triggerEvent("workflow_added");
   },
 
