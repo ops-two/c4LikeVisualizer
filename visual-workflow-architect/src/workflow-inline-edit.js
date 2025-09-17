@@ -188,7 +188,6 @@ window.WorkflowArchitectWorkflowInlineEdit = {
 
   cleanup() {
     if (this.currentEdit) {
-      // Make the original element visible again
       if (this.currentEdit.element) {
         this.currentEdit.element.style.visibility = "visible";
       }
