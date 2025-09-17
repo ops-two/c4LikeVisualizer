@@ -17,17 +17,21 @@ window.WorkflowArchitectInlineEdit = {
     // Double-click editing for container names and sequence labels
     document.addEventListener("dblclick", (e) => {
       // Check if target is a container name or a span inside a container
-      if (e.target.classList.contains("container-name") || 
-          (e.target.dataset.containerId && e.target.dataset.labelText)) {
+      if (
+        e.target.classList.contains("container-name") ||
+        (e.target.dataset.containerId && e.target.dataset.labelText)
+      ) {
         e.preventDefault();
         e.stopPropagation();
         // If clicking on span, find the parent container element for consistent behavior
-        const containerElement = e.target.classList.contains("container-name") 
-          ? e.target 
+        const containerElement = e.target.classList.contains("container-name")
+          ? e.target
           : e.target.closest(".container-name") || e.target;
         this.startEdit(containerElement, "container");
-      } else if (e.target.classList.contains("sequence-label") ||
-                 (e.target.dataset.sequenceId && e.target.dataset.labelText)) {
+      } else if (
+        e.target.classList.contains("sequence-label") ||
+        (e.target.dataset.sequenceId && e.target.dataset.labelText)
+      ) {
         e.preventDefault();
         e.stopPropagation();
         // If clicking on span, find the parent sequence element for consistent behavior
@@ -59,7 +63,7 @@ window.WorkflowArchitectInlineEdit = {
     } else {
       currentText = element.textContent.trim();
     }
-    
+
     this.createEditInput(element, currentText, entityType, entityId);
   },
 
@@ -129,12 +133,20 @@ window.WorkflowArchitectInlineEdit = {
       // Follow storymap pattern: Update local data store first
       if (this.currentEdit.entityType === "container") {
         // Update local data store
-        window.WorkflowArchitectDataStore.updateEntity("container", this.currentEdit.entityId, {
-          name: newText
-        });
-        
+        window.WorkflowArchitectDataStore.updateEntity(
+          "container",
+          this.currentEdit.entityId,
+          {
+            name: newText,
+          }
+        );
+
         // Get full entity data for Bubble update
-        const fullEntityData = window.WorkflowArchitectDataStore.getEntityForUpdate("container", this.currentEdit.entityId);
+        const fullEntityData =
+          window.WorkflowArchitectDataStore.getEntityForUpdate(
+            "container",
+            this.currentEdit.entityId
+          );
         if (fullEntityData) {
           fullEntityData.name_text = newText;
         }
@@ -152,15 +164,22 @@ window.WorkflowArchitectInlineEdit = {
             },
           })
         );
-
       } else if (this.currentEdit.entityType === "sequence") {
         // Update local data store
-        window.WorkflowArchitectDataStore.updateEntity("sequence", this.currentEdit.entityId, {
-          label: newText
-        });
-        
+        window.WorkflowArchitectDataStore.updateEntity(
+          "sequence",
+          this.currentEdit.entityId,
+          {
+            label: newText,
+          }
+        );
+
         // Get full entity data for Bubble update
-        const fullEntityData = window.WorkflowArchitectDataStore.getEntityForUpdate("sequence", this.currentEdit.entityId);
+        const fullEntityData =
+          window.WorkflowArchitectDataStore.getEntityForUpdate(
+            "sequence",
+            this.currentEdit.entityId
+          );
         if (fullEntityData) {
           fullEntityData.label_text = newText;
         }
@@ -203,28 +222,30 @@ window.WorkflowArchitectInlineEdit = {
 
   // Add re-render trigger method following storymap pattern
   triggerRerender() {
-    // Find the main container and trigger re-render
-    const container = document.getElementById("sequence-diagram-container");
-    if (container && window.SequenceDiagramRenderer) {
-      console.log("INLINE EDIT: Triggering re-render after edit");
-      
-      // Get fresh data from data store
-      const containers = window.WorkflowArchitectDataStore.getContainersArray();
-      const sequences = window.WorkflowArchitectDataStore.getSequencesArray();
-      const workflows = window.WorkflowArchitectDataStore.getWorkflowsArray();
-      const subgroups = window.WorkflowArchitectDataStore.getSubgroupsArray();
-      
-      const freshData = {
-        containers,
-        sequences,
-        workflows,
-        subgroups
-      };
-      
-      // Clear and re-render
-      container.innerHTML = "";
-      window.SequenceDiagramRenderer.render(freshData, container);
+    // 1. Find the main plugin container by its class.
+    const container = document.querySelector(".workflow-architect-container");
+    if (!container) {
+      return;
     }
+
+    // 2. Get its unique ID and find its persistent React root.
+    const uniqueId = container.dataset.pluginId;
+    const reactRoot = uniqueId ? window.WorkflowArchitectRoots[uniqueId] : null;
+    if (!reactRoot) {
+      return;
+    }
+
+    // 3. Get fresh data from the data store.
+    const freshData = {
+      containers: window.WorkflowArchitectDataStore.getContainersArray(),
+      sequences: window.WorkflowArchitectDataStore.getSequencesArray(),
+      workflows: window.WorkflowArchitectDataStore.getWorkflowsArray(),
+      subgroups: window.WorkflowArchitectDataStore.getSubgroupsArray(),
+    };
+
+    // 4. Render using the persistent root. No more innerHTML = ""!
+    console.log("INLINE EDIT: Triggering efficient re-render after edit");
+    window.SequenceDiagramRenderer.render(freshData, reactRoot);
   },
 };
 

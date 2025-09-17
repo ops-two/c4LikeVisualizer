@@ -181,12 +181,18 @@ function(instance, properties, context) {
             window.WorkflowArchitectViewManager.init(fullContainerId, bubbleData);
         }
         
-        if (window.WorkflowArchitectRenderer) {
-            window.WorkflowArchitectRenderer.init(pluginId);
-            // Pass DOM element, not jQuery object
+     if (window.WorkflowArchitectRenderer) {
             var domElement = containerElement[0] || containerElement.get(0);
-            console.log('UPDATE: Passing DOM element to renderer:', domElement, 'from jQuery object:', containerElement);
-            window.WorkflowArchitectRenderer.render(bubbleData, domElement);
+            var uniqueId = pluginId; // Get the uniqueId from the already-defined variable
+
+            // Create and store the React root in our global manager ONLY if it doesn't already exist for this instance.
+            if (!window.WorkflowArchitectRoots[uniqueId]) {
+                console.log('UPDATE: Creating React root for instance:', uniqueId);
+                window.WorkflowArchitectRoots[uniqueId] = window.ReactDOM.createRoot(domElement);
+            }
+            
+            // Pass the data and the persistent React root for this specific instance to the renderer.
+            window.WorkflowArchitectRenderer.render(bubbleData, window.WorkflowArchitectRoots[uniqueId]);
         } else {
             containerElement.html('<div style="padding:20px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;"><h3>Feature: ' + featureName + '</h3><p>Containers: ' + allContainers.length + '</p><p>Sequences: ' + allSequences.length + '</p><p>Renderer not available - check headers.txt</p></div>');
         }

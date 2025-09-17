@@ -1,26 +1,36 @@
 // Visual Workflow Architect - Proper Sequence Diagram Renderer
+// Based on SequenceFlow.html structure using React + CSS positioning (NOT React Flow)
+
+// NEW: Global manager to store a persistent React root for each plugin instance.
+// This is the key to preserving state (like scroll position) across re-renders.
+window.WorkflowArchitectRoots = {};
+
+// Add rerender event listener (following storymap-grid pattern)
 document.addEventListener("workflow-architect:rerender", function (event) {
-  // 1. Find the container by its class, which is reliable.
+  // 1. Find the container by its class.
   const container = document.querySelector(".workflow-architect-container");
-
-  if (container && window.SequenceDiagramRenderer) {
-    // 2. Get the fresh data from the data store, which was just updated by the drag-drop action.
-    const freshData = {
-      feature: window.WorkflowArchitectDataStore.getFeature(),
-      containers: window.WorkflowArchitectDataStore.getContainersArray(),
-      sequences: window.WorkflowArchitectDataStore.getSequencesArray(),
-      workflows: window.WorkflowArchitectDataStore.getWorkflowsArray(),
-      subgroups: window.WorkflowArchitectDataStore.getSubgroupsArray(),
-    };
-
-    // Clear existing content
-    container.innerHTML = "";
-
-    // 3. Re-render with the correct arguments: (data, element).
-    window.SequenceDiagramRenderer.render(freshData, container);
-  } else {
-    console.warn("RERENDER: Container or renderer not found for rerender");
+  if (!container) {
+    return;
   }
+
+  // 2. Get its unique ID and find its persistent React root.
+  const uniqueId = container.dataset.pluginId;
+  const reactRoot = uniqueId ? window.WorkflowArchitectRoots[uniqueId] : null;
+  if (!reactRoot) {
+    return;
+  }
+
+  // 3. Get fresh data from the data store.
+  const freshData = {
+    feature: window.WorkflowArchitectDataStore.getFeature(),
+    containers: window.WorkflowArchitectDataStore.getContainersArray(),
+    sequences: window.WorkflowArchitectDataStore.getSequencesArray(),
+    workflows: window.WorkflowArchitectDataStore.getWorkflowsArray(),
+    subgroups: window.WorkflowArchitectDataStore.getSubgroupsArray(),
+  };
+
+  // 4. Render using the persistent root. No more innerHTML = ""!
+  window.SequenceDiagramRenderer.render(freshData, reactRoot);
 });
 
 // Initialize inline editing modules
@@ -347,15 +357,20 @@ window.SequenceDiagramRenderer = {
     });
   },
 
-  render: function (data, targetElement) {
+  render: function (data, reactRoot) {
+    if (!reactRoot) {
+      console.error("Renderer called without a valid React root. Aborting.");
+      return;
+    }
     console.log(
-      "SequenceDiagramRenderer: Rendering proper sequence diagram",
+      "SequenceDiagramRenderer: Rendering into persistent React root",
       data
     );
 
     // Add CSS styles with default height (will be updated later)
     this.addStyles();
-    const container = targetElement[0] || targetElement;
+    // Get the container DOM element directly from the persistent root
+    const container = reactRoot._internalRoot.containerInfo;
     if (container) {
       container.classList.add("sequence-diagram-container");
     }
@@ -1625,50 +1640,35 @@ window.SequenceDiagramRenderer = {
       );
     };
 
-    // Render to target element
     try {
-      const container = targetElement[0] || targetElement;
-      if (container) {
-        const reactRoot = window.ReactDOM.createRoot
-          ? window.ReactDOM.createRoot(container)
-          : null;
+      reactRoot.render(React.createElement(SequenceDiagram));
 
-        if (reactRoot) {
-          reactRoot.render(React.createElement(SequenceDiagram));
-        } else {
-          window.ReactDOM.render(
-            React.createElement(SequenceDiagram),
-            container
-          );
+      console.log(
+        "SequenceDiagramRenderer: Successfully rendered sequence diagram"
+      );
+
+      // Initialize interactive modules using the container from the root
+      setTimeout(() => {
+        const container = reactRoot._internalRoot.containerInfo;
+        if (window.WorkflowArchitectSequenceDragDrop) {
+          window.WorkflowArchitectSequenceDragDrop.init(container);
+          console.log("SequenceDiagramRenderer: Drag and drop initialized");
         }
-
+        // Initialize hover logic
+        this.initContainerHoverLogic(container);
         console.log(
-          "SequenceDiagramRenderer: Successfully rendered sequence diagram"
+          "SequenceDiagramRenderer: Container hover logic initialized"
         );
-
-        // Initialize interactive modules
-        setTimeout(() => {
-          if (window.WorkflowArchitectSequenceDragDrop) {
-            window.WorkflowArchitectSequenceDragDrop.init(container);
-            console.log("SequenceDiagramRenderer: Drag and drop initialized");
-          }
-          // Initialize hover logic
-          this.initContainerHoverLogic(container);
-          console.log(
-            "SequenceDiagramRenderer: Container hover logic initialized"
-          );
-        }, 100); // Small delay to ensure DOM is ready
-      } else {
-        console.error("SequenceDiagramRenderer: Target container not found");
-      }
+      }, 100); // Small delay to ensure DOM is ready
     } catch (error) {
       console.error("SequenceDiagramRenderer: Render error:", error);
-      if (targetElement && targetElement.html) {
-        targetElement.html(
+      // If there's an error, display it in the container
+      const errorContainer = reactRoot._internalRoot.containerInfo;
+      if (errorContainer) {
+        errorContainer.innerHTML =
           '<div style="padding:20px; color: red;">Render error: ' +
-            error.message +
-            "</div>"
-        );
+          error.message +
+          "</div>";
       }
     }
   },
