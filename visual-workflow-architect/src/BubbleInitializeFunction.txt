@@ -14,7 +14,7 @@ function(instance, context) {
         'data-plugin-id="' + uniqueId + '" ' +
         'data-initialized="true" ' +
         'data-last-load="' + new Date().toISOString() + '" ' +
-        'style="min-height: 400px; border: 1px dashed #ccc; padding: 20px; text-align: center; color: #666; background: #f8f9fa; border-radius: 8px;">' +
+        'style="min-height: 400px; border: 1px dashed #ccc;overflow:scroll; padding: 20px; text-align: center; color: #666; background: #f8f9fa; border-radius: 8px;">' +
         'Waiting for data...</div>';
     
     instance.canvas.append(containerHtml);

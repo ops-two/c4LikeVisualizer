@@ -16,20 +16,28 @@ window.WorkflowArchitectWorkflowInlineEdit = {
   setupEventListeners() {
     // Double-click editing for workflow labels
     document.addEventListener("dblclick", (e) => {
-      console.log("Double-click detected on:", e.target, "Classes:", e.target.classList);
-      
+      console.log(
+        "Double-click detected on:",
+        e.target,
+        "Classes:",
+        e.target.classList
+      );
+
       // Check if target is a workflow label or is inside one
       let workflowElement = null;
-      
+
       if (e.target.classList.contains("workflow-label")) {
         workflowElement = e.target;
       } else {
         // Check if we're clicking on a child element (doc icon or text span)
         workflowElement = e.target.closest(".workflow-label");
       }
-      
+
       if (workflowElement && workflowElement.dataset.workflowId) {
-        console.log("Starting workflow edit for:", workflowElement.dataset.workflowId);
+        console.log(
+          "Starting workflow edit for:",
+          workflowElement.dataset.workflowId
+        );
         e.preventDefault();
         e.stopPropagation();
         this.startEdit(workflowElement);
@@ -56,56 +64,62 @@ window.WorkflowArchitectWorkflowInlineEdit = {
 
     const workflowId = element.dataset.workflowId;
     const currentText = element.dataset.labelText || element.textContent.trim();
-    
+
     if (!workflowId) {
       console.error("No workflow ID found for editing");
       return;
     }
 
-    // Create input container (no doc icon in edit mode)
+    // Get original element's dimensions and position relative to the diagram container
+    const rect = element.getBoundingClientRect();
+    const containerRect = element
+      .closest(".diagram-container")
+      .getBoundingClientRect();
+
+    // Create an input container that perfectly matches the original element's size and position
     const inputContainer = document.createElement("div");
     inputContainer.className = "workflow-edit-container";
     inputContainer.style.cssText = `
-      position: absolute;
-      background: white;
-      border: 2px solid #4caf50;
-      border-radius: 6px;
-      padding: 8px 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      z-index: 1000;
-      min-width: 200px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-    `;
+    position: absolute;
+    background: white;
+    border: 2px solid #4caf50;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    left: ${rect.left - containerRect.left}px;
+    top: ${rect.top - containerRect.top}px;
+    width: ${rect.width}px;
+    height: ${rect.height}px;
+    box-sizing: border-box;
+  `;
 
-    // Create input field
+    // Create an input field that fills the new container
     const input = document.createElement("input");
     input.type = "text";
     input.value = currentText;
     input.style.cssText = `
-      border: none;
-      outline: none;
-      background: transparent;
-      font-size: 14px;
-      font-weight: 500;
-      color: #333;
-      flex: 1;
-      min-width: 0;
-    `;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    width: 100%;
+    height: 100%;
+    padding: 0 12px; /* Horizontal padding */
+    box-sizing: border-box;
+  `;
 
     // Assemble container
     inputContainer.appendChild(input);
 
-    // Position the input container
-    const rect = element.getBoundingClientRect();
-    const containerRect = element.closest('.diagram-container').getBoundingClientRect();
-    
-    inputContainer.style.left = `${rect.left - containerRect.left - 10}px`;
-    inputContainer.style.top = `${rect.top - containerRect.top - 5}px`;
+    // Hide the original element now that the replacement is ready
+    element.style.visibility = "hidden";
 
-    // Insert into diagram container
-    const diagramContainer = element.closest('.diagram-container');
+    // Insert the new edit container into the diagram
+    const diagramContainer = element.closest(".diagram-container");
     diagramContainer.appendChild(inputContainer);
 
     // Store edit state
@@ -114,7 +128,7 @@ window.WorkflowArchitectWorkflowInlineEdit = {
       input: input,
       container: inputContainer,
       workflowId: workflowId,
-      originalText: currentText
+      originalText: currentText,
     };
 
     // Focus and select text
@@ -131,12 +145,11 @@ window.WorkflowArchitectWorkflowInlineEdit = {
         this.cancelEdit();
       }
     });
-
   },
 
   handleDocIconClick(workflowId) {
     console.log("Doc icon clicked for workflow:", workflowId);
-    
+
     // Trigger workflow clicked event (same as hover doc icon)
     if (window.WorkflowArchitectEventBridge) {
       window.WorkflowArchitectEventBridge.handleWorkflowClick(workflowId);
@@ -157,9 +170,9 @@ window.WorkflowArchitectWorkflowInlineEdit = {
         const updateData = {
           workflowId: workflowId,
           labelText: newText,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
-        
+
         window.WorkflowArchitectEventBridge.handleWorkflowUpdate(updateData);
       } else {
         console.error("WorkflowArchitectEventBridge not available");
@@ -175,17 +188,24 @@ window.WorkflowArchitectWorkflowInlineEdit = {
 
   cleanup() {
     if (this.currentEdit) {
+      // Make the original element visible again
+      if (this.currentEdit.element) {
+        this.currentEdit.element.style.visibility = "visible";
+      }
+      // Remove the edit container from the DOM
       if (this.currentEdit.container && this.currentEdit.container.parentNode) {
-        this.currentEdit.container.parentNode.removeChild(this.currentEdit.container);
+        this.currentEdit.container.parentNode.removeChild(
+          this.currentEdit.container
+        );
       }
       this.currentEdit = null;
     }
-  }
+  },
 };
 
 // Auto-initialize when script loads
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
     window.WorkflowArchitectWorkflowInlineEdit.init();
   });
 } else {

@@ -1,17 +1,23 @@
 // Visual Workflow Architect - Proper Sequence Diagram Renderer
-// Based on SequenceFlow.html structure using React + CSS positioning (NOT React Flow)
-
-// Add rerender event listener (following storymap-grid pattern)
 document.addEventListener("workflow-architect:rerender", function (event) {
-  // Find the container and re-render
-  const container = document.getElementById("sequence-diagram-container");
+  // 1. Find the container by its class, which is reliable.
+  const container = document.querySelector(".workflow-architect-container");
 
   if (container && window.SequenceDiagramRenderer) {
+    // 2. Get the fresh data from the data store, which was just updated by the drag-drop action.
+    const freshData = {
+      feature: window.WorkflowArchitectDataStore.getFeature(),
+      containers: window.WorkflowArchitectDataStore.getContainersArray(),
+      sequences: window.WorkflowArchitectDataStore.getSequencesArray(),
+      workflows: window.WorkflowArchitectDataStore.getWorkflowsArray(),
+      subgroups: window.WorkflowArchitectDataStore.getSubgroupsArray(),
+    };
+
     // Clear existing content
     container.innerHTML = "";
 
-    // Re-render with new data
-    window.SequenceDiagramRenderer.render(container, event.detail);
+    // 3. Re-render with the correct arguments: (data, element).
+    window.SequenceDiagramRenderer.render(freshData, container);
   } else {
     console.warn("RERENDER: Container or renderer not found for rerender");
   }
@@ -1086,10 +1092,12 @@ window.SequenceDiagramRenderer = {
                               key: "title",
                               className: "empty-workflow-title workflow-label",
                               "data-workflow-id": bounds.workflow.id,
-                              "data-label-text": bounds.workflow.name || "Workflow",
+                              "data-label-text":
+                                bounds.workflow.name || "Workflow",
                               title: "Double-click to edit workflow",
                               style: {
-                                backgroundColor: bounds.workflow.colorHex || "#4caf50",
+                                backgroundColor:
+                                  bounds.workflow.colorHex || "#4caf50",
                                 display: "flex",
                                 alignItems: "center",
                                 gap: "8px",
@@ -1172,6 +1180,13 @@ window.SequenceDiagramRenderer = {
                           key: "drop-zone",
                           className:
                             "empty-workflow-drop-message sequence-drop-zone",
+                          style: {
+                            position: "absolute",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            width: "auto", // Ensure it doesn't stretch full width
+                          },
                           "data-order-before": 0,
                           "data-order-after": 20,
                           "data-workflow-id": bounds.workflow.id,
