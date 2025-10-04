@@ -419,7 +419,6 @@ window.SequenceDiagramRenderer = {
       subgroups = {};
     }
 
-    console.log("DEBUG - About to create actors...");
     // Create actor data from containers
     const actors = containers.map((container) => ({
       name: container.name || container.name_text || "Container",
@@ -1526,11 +1525,6 @@ window.SequenceDiagramRenderer = {
                         left: "10px",
                         width: "calc(100% - 20px)",
                         top: `${config.yPos}px`,
-                        backgroundColor:
-                          config.debugColor || "rgba(123, 152, 183, 0.1)",
-                        border:
-                          config.debugBorder ||
-                          "1px dashed rgba(123, 152, 183, 0.3)",
                       },
                       // CRITICAL: Keep exact same data attributes for backend compatibility
                       "data-order-before": config.orderBefore,
@@ -1556,8 +1550,6 @@ window.SequenceDiagramRenderer = {
                         orderAfter: 0,
                         workflowId: "",
                         subgroupId: "",
-                        debugColor: "rgba(255, 165, 0, 0.2)", // Orange for global top
-                        debugBorder: "2px dashed #ffa500",
                       })
                     );
                   }
@@ -1581,8 +1573,6 @@ window.SequenceDiagramRenderer = {
                             orderAfter: workflowIndex * 1000,
                             workflowId: "",
                             subgroupId: "",
-                            debugColor: "rgba(255, 255, 0, 0.2)", // Yellow for before workflow
-                            debugBorder: "2px dashed #ffff00",
                           })
                         );
                       }
@@ -1597,8 +1587,6 @@ window.SequenceDiagramRenderer = {
                             orderAfter: 20,
                             workflowId: workflow.id,
                             subgroupId: "",
-                            debugColor: "rgba(0, 255, 0, 0.2)", // Green for empty workflow interior
-                            debugBorder: "2px dashed #00ff00",
                           })
                         );
                       } else {
@@ -1619,8 +1607,6 @@ window.SequenceDiagramRenderer = {
                               orderAfter: msg.originalOrderIndex,
                               workflowId: msg.workflowId,
                               subgroupId: msg.subgroupId || "",
-                              debugColor: "rgba(0, 0, 255, 0.1)", // Blue for workflow sequence zones
-                              debugBorder: "1px dashed #0000ff",
                             })
                           );
 
@@ -1636,8 +1622,6 @@ window.SequenceDiagramRenderer = {
                                   : msg.originalOrderIndex + 10,
                                 workflowId: msg.workflowId,
                                 subgroupId: msg.subgroupId || "",
-                                debugColor: "rgba(0, 0, 255, 0.1)", // Blue for workflow sequence zones
-                                debugBorder: "1px dashed #0000ff",
                               })
                             );
                           }
@@ -1653,8 +1637,6 @@ window.SequenceDiagramRenderer = {
                           orderAfter: (workflowIndex + 2) * 1000,
                           workflowId: "",
                           subgroupId: "",
-                          debugColor: "rgba(0, 255, 255, 0.2)", // Cyan for after workflow
-                          debugBorder: "2px dashed #00ffff",
                         })
                       );
                     }
@@ -1680,8 +1662,6 @@ window.SequenceDiagramRenderer = {
                         orderAfter: msg.originalOrderIndex,
                         workflowId: "",
                         subgroupId: "",
-                        debugColor: "rgba(255, 0, 0, 0.2)", // Red for ungrouped before
-                        debugBorder: "2px dashed #ff0000",
                       })
                     );
 
@@ -1696,8 +1676,6 @@ window.SequenceDiagramRenderer = {
                           : msg.originalOrderIndex + 10,
                         workflowId: "",
                         subgroupId: "",
-                        debugColor: "rgba(0, 255, 0, 0.2)", // Green for ungrouped after
-                        debugBorder: "2px dashed #00ff00",
                       })
                     );
                   });
@@ -1714,8 +1692,6 @@ window.SequenceDiagramRenderer = {
                         orderAfter: 10000,
                         workflowId: "",
                         subgroupId: "",
-                        debugColor: "rgba(255, 0, 255, 0.2)", // Magenta for global bottom
-                        debugBorder: "2px dashed #ff00ff",
                       })
                     );
                   }
