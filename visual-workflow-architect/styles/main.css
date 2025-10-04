@@ -596,8 +596,28 @@
 }
 /* This class will be added to the main container during a drag operation */
 .diagram-container.sequence-drag-active .sequence-drop-zone,
-.diagram-container.sequence-drag-active .empty-workflow-drop-zone {
+.diagram-container.sequence-drag-active .empty-workflow-drop-zone,
+.diagram-container.sequence-drag-active .ungrouped-drop-zone {
   pointer-events: auto; /* Make zones interactive ONLY during a drag */
+}
+
+/* Ungrouped drop zones (outside workflows) */
+.ungrouped-drop-zone {
+  position: absolute;
+  height: 30px; /* Taller for better visibility outside workflows */
+  z-index: 5; /* Higher than workflow drop zones */
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  background-color: rgba(123, 152, 183, 0.1);
+  border: 2px dashed rgba(123, 152, 183, 0.3);
+}
+
+.ungrouped-drop-zone.drag-over {
+  background-color: rgba(25, 118, 210, 0.2) !important;
+  border-color: #1976d2 !important;
+  box-shadow: 0 0 10px rgba(25, 118, 210, 0.3);
 }
 
 /* New styles for empty workflow drop message */

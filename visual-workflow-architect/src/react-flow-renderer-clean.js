@@ -1598,6 +1598,56 @@ window.SequenceDiagramRenderer = {
                 return [dropZoneBefore, sequenceLabel, ...nodes, dropZoneAfter];
               }),
 
+              // Drop zones for ungrouped sequences (outside workflows)
+              ...allPositionedMessages
+                .filter((msg) => !msg.workflowId) // Only ungrouped sequences
+                .flatMap((msg, index, ungroupedArr) => {
+                  const prevMsg = ungroupedArr[index - 1];
+                  const nextMsg = ungroupedArr[index + 1];
+
+                  const orderBefore = prevMsg
+                    ? prevMsg.originalOrderIndex
+                    : msg.originalOrderIndex - 10;
+
+                  // Drop zone BEFORE this ungrouped sequence
+                  const dropZoneBefore = React.createElement("div", {
+                    key: `ungrouped-drop-zone-before-${msg.sequenceId}`,
+                    className: "sequence-drop-zone ungrouped-drop-zone",
+                    style: {
+                      left: "10px",
+                      width: "calc(100% - 20px)",
+                      top: `${msg.yPos - SEQUENCE_HEIGHT / 2}px`,
+                      backgroundColor: "rgba(255, 0, 0, 0.2)", // Debug: red background
+                      border: "2px dashed #ff0000",
+                    },
+                    "data-order-before": orderBefore,
+                    "data-order-after": msg.originalOrderIndex,
+                    "data-workflow-id": "",
+                    "data-subgroup-id": "",
+                  });
+
+                  // Drop zone AFTER this ungrouped sequence
+                  const dropZoneAfter = React.createElement("div", {
+                    key: `ungrouped-drop-zone-after-${msg.sequenceId}`,
+                    className: "sequence-drop-zone ungrouped-drop-zone",
+                    style: {
+                      left: "10px",
+                      width: "calc(100% - 20px)",
+                      top: `${msg.yPos + SEQUENCE_HEIGHT / 2}px`,
+                      backgroundColor: "rgba(0, 255, 0, 0.2)", // Debug: green background
+                      border: "2px dashed #00ff00",
+                    },
+                    "data-order-before": msg.originalOrderIndex,
+                    "data-order-after": nextMsg
+                      ? nextMsg.originalOrderIndex
+                      : msg.originalOrderIndex + 10,
+                    "data-workflow-id": "",
+                    "data-subgroup-id": "",
+                  });
+
+                  return [dropZoneBefore, dropZoneAfter];
+                }),
+
               // Final drop zone after the last item
               (() => {
                 if (

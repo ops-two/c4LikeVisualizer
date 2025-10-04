@@ -68,7 +68,7 @@ window.WorkflowArchitectSequenceDragDrop = {
   setupSequenceDragging: function () {
     const sequenceLabels = this.container.querySelectorAll(".sequence-label");
     const dropZones = this.container.querySelectorAll(
-      ".sequence-drop-zone, .empty-workflow-drop-zone"
+      ".sequence-drop-zone, .empty-workflow-drop-zone, .ungrouped-drop-zone"
     );
     const diagramContainer = this.container.querySelector(".diagram-container");
 
