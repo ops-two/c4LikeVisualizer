@@ -67,12 +67,8 @@ window.WorkflowArchitectSequenceDragDrop = {
   },
   setupSequenceDragging: function () {
     const sequenceLabels = this.container.querySelectorAll(".sequence-label");
-    const dropZones = this.container.querySelectorAll(
-      ".sequence-drop-zone, .empty-workflow-drop-zone, .ungrouped-drop-zone, .inter-workflow-drop-zone"
-    );
+    const dropZones = this.container.querySelectorAll(".universal-drop-zone");
     const diagramContainer = this.container.querySelector(".diagram-container");
-
-    console.log("Found drop zones:", dropZones.length, dropZones);
 
     // Setup listeners for the draggable labels
     sequenceLabels.forEach((label) => {
@@ -120,16 +116,12 @@ window.WorkflowArchitectSequenceDragDrop = {
 
     // Setup listeners for the drop zones
     dropZones.forEach((zone) => {
-      console.log("Setting up drop zone:", zone.className, zone);
-
       zone.addEventListener("dragover", (e) => {
         e.preventDefault(); // This is crucial to allow a drop
-        console.log("Dragover on zone:", zone.className);
         zone.classList.add("drag-over");
       });
 
       zone.addEventListener("dragleave", (e) => {
-        console.log("Dragleave on zone:", zone.className);
         zone.classList.remove("drag-over");
       });
 
