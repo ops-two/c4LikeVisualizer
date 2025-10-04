@@ -496,6 +496,54 @@
   transition: all 0.2s ease;
   border-radius: 4px;
 }
+
+/* Empty workflow drop zones don't need the transform */
+.empty-workflow-drop-zone {
+  position: absolute;
+  z-index: 4; /* Above backgrounds but below labels */
+  pointer-events: none; /* Initially not interactive */
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  /* No transform needed since it fills the entire workflow area */
+}
+
+.empty-workflow-drop-zone::before {
+  content: "";
+  position: absolute;
+  width: calc(100% - 20px);
+  height: 3px;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #1976d2 20%,
+    #1976d2 80%,
+    transparent 100%
+  );
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  box-shadow: 0 0 8px rgba(25, 118, 210, 0.3);
+}
+
+.empty-workflow-drop-zone::after {
+  content: "Drop Here";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(25, 118, 210, 0.9);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
 .sequence-drop-zone::before {
   content: "";
   position: absolute;
@@ -535,15 +583,19 @@
 }
 /* This class will be added by JS during a drag operation to show both indicators */
 .sequence-drop-zone.drag-over::before,
-.sequence-drop-zone.drag-over::after {
+.sequence-drop-zone.drag-over::after,
+.empty-workflow-drop-zone.drag-over::before,
+.empty-workflow-drop-zone.drag-over::after {
   opacity: 1;
 }
 /* This class will be added by JS during a drag operation */
-.sequence-drop-zone.drag-over::before {
+.sequence-drop-zone.drag-over::before,
+.empty-workflow-drop-zone.drag-over::before {
   opacity: 1;
 }
 /* This class will be added to the main container during a drag operation */
-.diagram-container.sequence-drag-active .sequence-drop-zone {
+.diagram-container.sequence-drag-active .sequence-drop-zone,
+.diagram-container.sequence-drag-active .empty-workflow-drop-zone {
   pointer-events: auto; /* Make zones interactive ONLY during a drag */
 }
 

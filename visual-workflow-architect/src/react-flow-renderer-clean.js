@@ -1194,7 +1194,7 @@ window.SequenceDiagramRenderer = {
                         {
                           key: "drop-zone",
                           className:
-                            "empty-workflow-drop-message sequence-drop-zone",
+                            "empty-workflow-drop-message empty-workflow-drop-zone",
                           style: {
                             position: "absolute",
                             top: "0",
