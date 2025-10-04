@@ -1598,7 +1598,94 @@ window.SequenceDiagramRenderer = {
                 return [dropZoneBefore, sequenceLabel, ...nodes, dropZoneAfter];
               }),
 
-              // Drop zones for ungrouped sequences (outside workflows)
+              // Inter-workflow drop zones (always present in white spaces)
+              (() => {
+                const interWorkflowDropZones = [];
+
+                // Get all workflow bounds sorted by Y position
+                const sortedWorkflowBounds = Object.values(
+                  allWorkflowBounds
+                ).sort((a, b) => a.y - b.y);
+
+                // Drop zone BEFORE the first workflow (at the very top)
+                if (sortedWorkflowBounds.length > 0) {
+                  const firstWorkflow = sortedWorkflowBounds[0];
+                  interWorkflowDropZones.push(
+                    React.createElement("div", {
+                      key: "inter-workflow-drop-zone-top",
+                      className: "sequence-drop-zone inter-workflow-drop-zone",
+                      style: {
+                        left: "10px",
+                        width: "calc(100% - 20px)",
+                        top: `${firstWorkflow.y - 40}px`, // 40px above first workflow
+                        backgroundColor: "rgba(255, 165, 0, 0.2)", // Debug: orange background
+                        border: "2px dashed #ffa500",
+                      },
+                      "data-order-before": -100,
+                      "data-order-after": 0,
+                      "data-workflow-id": "",
+                      "data-subgroup-id": "",
+                    })
+                  );
+                }
+
+                // Drop zones BETWEEN workflows
+                for (let i = 0; i < sortedWorkflowBounds.length - 1; i++) {
+                  const currentWorkflow = sortedWorkflowBounds[i];
+                  const nextWorkflow = sortedWorkflowBounds[i + 1];
+                  const betweenY =
+                    currentWorkflow.y +
+                    currentWorkflow.height +
+                    (nextWorkflow.y -
+                      (currentWorkflow.y + currentWorkflow.height)) /
+                      2;
+
+                  interWorkflowDropZones.push(
+                    React.createElement("div", {
+                      key: `inter-workflow-drop-zone-between-${i}`,
+                      className: "sequence-drop-zone inter-workflow-drop-zone",
+                      style: {
+                        left: "10px",
+                        width: "calc(100% - 20px)",
+                        top: `${betweenY}px`,
+                        backgroundColor: "rgba(0, 255, 255, 0.2)", // Debug: cyan background
+                        border: "2px dashed #00ffff",
+                      },
+                      "data-order-before": (i + 1) * 1000,
+                      "data-order-after": (i + 2) * 1000,
+                      "data-workflow-id": "",
+                      "data-subgroup-id": "",
+                    })
+                  );
+                }
+
+                // Drop zone AFTER the last workflow
+                if (sortedWorkflowBounds.length > 0) {
+                  const lastWorkflow =
+                    sortedWorkflowBounds[sortedWorkflowBounds.length - 1];
+                  interWorkflowDropZones.push(
+                    React.createElement("div", {
+                      key: "inter-workflow-drop-zone-bottom",
+                      className: "sequence-drop-zone inter-workflow-drop-zone",
+                      style: {
+                        left: "10px",
+                        width: "calc(100% - 20px)",
+                        top: `${lastWorkflow.y + lastWorkflow.height + 40}px`, // 40px below last workflow
+                        backgroundColor: "rgba(255, 0, 255, 0.2)", // Debug: magenta background
+                        border: "2px dashed #ff00ff",
+                      },
+                      "data-order-before": 9000,
+                      "data-order-after": 10000,
+                      "data-workflow-id": "",
+                      "data-subgroup-id": "",
+                    })
+                  );
+                }
+
+                return interWorkflowDropZones;
+              })(),
+
+              // Drop zones for existing ungrouped sequences (if any)
               ...allPositionedMessages
                 .filter((msg) => !msg.workflowId) // Only ungrouped sequences
                 .flatMap((msg, index, ungroupedArr) => {

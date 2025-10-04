@@ -597,7 +597,8 @@
 /* This class will be added to the main container during a drag operation */
 .diagram-container.sequence-drag-active .sequence-drop-zone,
 .diagram-container.sequence-drag-active .empty-workflow-drop-zone,
-.diagram-container.sequence-drag-active .ungrouped-drop-zone {
+.diagram-container.sequence-drag-active .ungrouped-drop-zone,
+.diagram-container.sequence-drag-active .inter-workflow-drop-zone {
   pointer-events: auto; /* Make zones interactive ONLY during a drag */
 }
 
@@ -618,6 +619,26 @@
   background-color: rgba(25, 118, 210, 0.2) !important;
   border-color: #1976d2 !important;
   box-shadow: 0 0 10px rgba(25, 118, 210, 0.3);
+}
+
+/* Inter-workflow drop zones (always present between workflows) */
+.inter-workflow-drop-zone {
+  position: absolute;
+  height: 8px; /* Thin line as requested */
+  z-index: 6; /* Highest priority */
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  background-color: rgba(123, 152, 183, 0.15);
+  border: 1px dashed rgba(123, 152, 183, 0.4);
+}
+
+.inter-workflow-drop-zone.drag-over {
+  background-color: rgba(25, 118, 210, 0.3) !important;
+  border-color: #1976d2 !important;
+  height: 12px; /* Slightly thicker when active */
+  box-shadow: 0 0 15px rgba(25, 118, 210, 0.4);
 }
 
 /* New styles for empty workflow drop message */
