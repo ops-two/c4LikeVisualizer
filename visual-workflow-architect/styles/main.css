@@ -292,7 +292,12 @@
 }
 .workflow-background {
   position: absolute;
-  background: rgba(227, 242, 253, 0.25); /* Increased opacity for better visibility */
+  background: rgba(
+    227,
+    242,
+    253,
+    0.25
+  ); /* Increased opacity for better visibility */
   border: 1px solid rgba(227, 242, 253, 0.5); /* Thinner border with higher opacity */
   border-radius: 8px;
   z-index: 1; /* Above diagram background but behind sequences */
@@ -488,20 +493,28 @@
   z-index: 4; /* Above backgrounds but below labels */
   pointer-events: none; /* Initially not interactive */
   transform: translateY(-50%);
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  border-radius: 4px;
 }
 .sequence-drop-zone::before {
   content: "";
   position: absolute;
   width: 100%;
-  height: 2px; /* MODIFIED: Thinner line */
+  height: 3px; /* Slightly thicker for better visibility */
   top: 50%;
   left: 0;
   transform: translateY(-50%);
-  background-color: rgba(25, 118, 210, 0.6); /* MODIFIED: Faded color */
-  border-radius: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #1976d2 20%,
+    #1976d2 80%,
+    transparent 100%
+  );
+  border-radius: 2px;
   opacity: 0;
   transition: opacity 0.2s ease;
+  box-shadow: 0 0 8px rgba(25, 118, 210, 0.3);
 }
 /* NEW: Styles for the 'Drop here' text label */
 .sequence-drop-zone::after {
@@ -546,10 +559,14 @@
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  border: 2px dashed transparent;
 }
 .empty-workflow-drop-message.drag-over {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(25, 118, 210, 0.1);
+  border-color: #1976d2;
+  color: #1976d2;
+  font-weight: 600;
 }
 
 /* New styles for the empty workflow Flexbox layout */

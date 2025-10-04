@@ -5,13 +5,13 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@8f37a7d/visual-workflow-architect/styles/main.css">
 
 <!-- Plugin core modules -->
-<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@d53ebba/visual-workflow-architect/src/data-store.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@0546259/visual-workflow-architect/src/event-bridge.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@0546259/visual-workflow-architect/src/inline-edit.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@0546259/visual-workflow-architect/src/workflow-inline-edit.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@69c59ff/visual-workflow-architect/src/data-store.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@69c59ff/visual-workflow-architect/src/event-bridge.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@4ea657d/visual-workflow-architect/src/inline-edit.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@69c59ff/visual-workflow-architect/src/workflow-inline-edit.js"></script>
 
-<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@0546259/visual-workflow-architect/src/sequence-drag-drop.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@e10fbda/visual-workflow-architect/src/react-flow-renderer-clean.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@69c59ff/visual-workflow-architect/src/sequence-drag-drop.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ops-two/c4LikeVisualizer@4ea657d/visual-workflow-architect/src/react-flow-renderer-clean.js"></script>
 
 
  	

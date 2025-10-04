@@ -1197,10 +1197,13 @@ window.SequenceDiagramRenderer = {
                             "empty-workflow-drop-message sequence-drop-zone",
                           style: {
                             position: "absolute",
-                            top: "50%",
-                            left: "50%",
-                            transform: "translate(-50%, -50%)",
-                            width: "auto", // Ensure it doesn't stretch full width
+                            top: "0",
+                            left: "0",
+                            width: "100%",
+                            height: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           },
                           "data-order-before": 0,
                           "data-order-after": 20,
