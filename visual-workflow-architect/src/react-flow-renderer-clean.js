@@ -1220,9 +1220,10 @@ window.SequenceDiagramRenderer = {
                       key: `wf-bg-${bounds.workflow.id}`,
                       className: "workflow-background",
                       style: {
+                        position: "absolute",
                         left: `${bounds.x}px`,
                         top: `${bounds.y}px`,
-                        width: `${bounds.width}px`,
+                        width: bounds.width,
                         height: `${bounds.height}px`,
                         backgroundColor:
                           (bounds.workflow.colorHex || "#e3f2fd") + "40",
