@@ -1454,6 +1454,9 @@ window.SequenceDiagramRenderer = {
                     left: "10px",
                     width: "calc(100% - 20px)",
                     top: `${msg.yPos - SEQUENCE_HEIGHT / 4}px`,
+                    backgroundColor: msg.workflowId
+                      ? "transparent"
+                      : "rgba(255, 0, 0, 0.1)", // Debug: red background for ungrouped
                   },
                   "data-order-before": orderBefore,
                   "data-order-after": msg.originalOrderIndex,
@@ -1469,6 +1472,9 @@ window.SequenceDiagramRenderer = {
                     left: "10px",
                     width: "calc(100% - 20px)",
                     top: `${msg.yPos + SEQUENCE_HEIGHT / 2}px`,
+                    backgroundColor: msg.workflowId
+                      ? "transparent"
+                      : "rgba(0, 255, 0, 0.1)", // Debug: green background for ungrouped
                   },
                   "data-order-before": msg.originalOrderIndex,
                   "data-order-after": nextMsg
