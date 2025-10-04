@@ -502,8 +502,8 @@
   transform: translateY(-50%);
   transition: all 0.2s ease;
   border-radius: 4px;
-  background-color: rgba(123, 152, 183, 0.1);
-  border: 1px dashed rgba(123, 152, 183, 0.3);
+  background-color: transparent; /* Completely invisible by default */
+  border: none; /* No border by default */
 }
 
 .universal-drop-zone.drag-over {
