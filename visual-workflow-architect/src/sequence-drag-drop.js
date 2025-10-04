@@ -67,8 +67,12 @@ window.WorkflowArchitectSequenceDragDrop = {
   },
   setupSequenceDragging: function () {
     const sequenceLabels = this.container.querySelectorAll(".sequence-label");
-    const dropZones = this.container.querySelectorAll(".sequence-drop-zone");
+    const dropZones = this.container.querySelectorAll(
+      ".sequence-drop-zone, .empty-workflow-drop-zone"
+    );
     const diagramContainer = this.container.querySelector(".diagram-container");
+
+    console.log("Found drop zones:", dropZones.length, dropZones);
 
     // Setup listeners for the draggable labels
     sequenceLabels.forEach((label) => {
@@ -116,16 +120,20 @@ window.WorkflowArchitectSequenceDragDrop = {
 
     // Setup listeners for the drop zones
     dropZones.forEach((zone) => {
+      console.log("Setting up drop zone:", zone.className, zone);
+
       zone.addEventListener("dragover", (e) => {
         e.preventDefault(); // This is crucial to allow a drop
+        console.log("Dragover on zone:", zone.className);
         zone.classList.add("drag-over");
       });
 
       zone.addEventListener("dragleave", (e) => {
+        console.log("Dragleave on zone:", zone.className);
         zone.classList.remove("drag-over");
       });
 
-      zone.addEventListener("drop", e => {
+      zone.addEventListener("drop", (e) => {
         e.preventDefault();
         e.stopPropagation();
         zone.classList.remove("drag-over");
@@ -133,49 +141,53 @@ window.WorkflowArchitectSequenceDragDrop = {
         if (!this.draggedSequence || this.isProcessing) return;
 
         try {
-            this.isProcessing = true;
-            const draggedId = this.draggedSequence.dataset.sequenceId;
-            
-            // 1. Read the new position and parent info directly from the drop zone.
-            const orderBefore = parseFloat(zone.dataset.orderBefore);
-            const orderAfter = parseFloat(zone.dataset.orderAfter);
-            const newOrderValue = (orderBefore + orderAfter) / 2;
-            const newWorkflowId = zone.dataset.workflowId || null;
-            const newSubgroupId = zone.dataset.subgroupId || null;
+          this.isProcessing = true;
+          const draggedId = this.draggedSequence.dataset.sequenceId;
 
-            // 2. --- FIX: Perform the optimistic UI update FIRST ---
-            // This ensures the data store has the correct, new information.
-            const localSeq = window.WorkflowArchitectDataStore.getSequence(draggedId);
-            if (localSeq) {
-                localSeq.orderIndex = newOrderValue;
-                localSeq.workflowId = newWorkflowId;
-                localSeq.subgroupId = newSubgroupId;
-            }
-            
-            // 3. --- NOW, prepare the payload from the UPDATED data ---
-            const fullSequenceData = window.WorkflowArchitectDataStore.getSequenceForUpdate(draggedId);
+          // 1. Read the new position and parent info directly from the drop zone.
+          const orderBefore = parseFloat(zone.dataset.orderBefore);
+          const orderAfter = parseFloat(zone.dataset.orderAfter);
+          const newOrderValue = (orderBefore + orderAfter) / 2;
+          const newWorkflowId = zone.dataset.workflowId || null;
+          const newSubgroupId = zone.dataset.subgroupId || null;
 
-            const payload = {
-                entityType: "sequence",
-                entityId: draggedId,
-                fieldName: "order_index_and_parents",
-                newValue: newOrderValue,
-                allData: fullSequenceData, // This will now contain the correct new workflowId
-                // Add top-level keys for easy backend parsing
-                order_index: newOrderValue,
-                workflowId: newWorkflowId,
-                subgroupId: newSubgroupId
-            };
+          // 2. --- FIX: Perform the optimistic UI update FIRST ---
+          // This ensures the data store has the correct, new information.
+          const localSeq =
+            window.WorkflowArchitectDataStore.getSequence(draggedId);
+          if (localSeq) {
+            localSeq.orderIndex = newOrderValue;
+            localSeq.workflowId = newWorkflowId;
+            localSeq.subgroupId = newSubgroupId;
+          }
 
-            // 4. Dispatch events to re-render and save to Bubble.
-            document.dispatchEvent(new CustomEvent("workflow-architect:rerender", { detail: {} }));
-            if (window.WorkflowArchitectEventBridge) {
-                window.WorkflowArchitectEventBridge.handleSequenceDragDrop(payload);
-            }
+          // 3. --- NOW, prepare the payload from the UPDATED data ---
+          const fullSequenceData =
+            window.WorkflowArchitectDataStore.getSequenceForUpdate(draggedId);
+
+          const payload = {
+            entityType: "sequence",
+            entityId: draggedId,
+            fieldName: "order_index_and_parents",
+            newValue: newOrderValue,
+            allData: fullSequenceData, // This will now contain the correct new workflowId
+            // Add top-level keys for easy backend parsing
+            order_index: newOrderValue,
+            workflowId: newWorkflowId,
+            subgroupId: newSubgroupId,
+          };
+
+          // 4. Dispatch events to re-render and save to Bubble.
+          document.dispatchEvent(
+            new CustomEvent("workflow-architect:rerender", { detail: {} })
+          );
+          if (window.WorkflowArchitectEventBridge) {
+            window.WorkflowArchitectEventBridge.handleSequenceDragDrop(payload);
+          }
         } catch (error) {
-            console.error("Error during sequence drop:", error);
+          console.error("Error during sequence drop:", error);
         } finally {
-            this.isProcessing = false;
+          this.isProcessing = false;
         }
       });
     });

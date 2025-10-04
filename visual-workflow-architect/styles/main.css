@@ -500,7 +500,7 @@
 /* Empty workflow drop zones don't need the transform */
 .empty-workflow-drop-zone {
   position: absolute;
-  z-index: 4; /* Above backgrounds but below labels */
+  z-index: 10; /* Higher z-index to ensure it's on top */
   pointer-events: none; /* Initially not interactive */
   transition: all 0.2s ease;
   border-radius: 4px;
@@ -612,13 +612,16 @@
   justify-content: center;
   border-radius: 6px;
   transition: all 0.2s ease;
-  border: 2px dashed transparent;
+  border: 2px dashed rgba(123, 152, 183, 0.3);
+  background-color: rgba(123, 152, 183, 0.05);
 }
-.empty-workflow-drop-message.drag-over {
-  background-color: rgba(25, 118, 210, 0.1);
-  border-color: #1976d2;
-  color: #1976d2;
+.empty-workflow-drop-message.drag-over,
+.empty-workflow-drop-zone.drag-over {
+  background-color: rgba(25, 118, 210, 0.2) !important;
+  border-color: #1976d2 !important;
+  color: #1976d2 !important;
   font-weight: 600;
+  box-shadow: 0 0 10px rgba(25, 118, 210, 0.3);
 }
 
 /* New styles for the empty workflow Flexbox layout */
