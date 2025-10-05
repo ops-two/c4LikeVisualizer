@@ -496,7 +496,7 @@
 /* PHASE 1: Universal Drop Zone - Single type for all drop zones */
 .universal-drop-zone {
   position: absolute;
-  height: 16px; /* Wider line for easier dropping */
+  height: 30px; /* Much wider for easier targeting */
   z-index: 10; /* Highest priority to ensure visibility */
   pointer-events: none; /* Initially not interactive */
   transform: translateY(-50%);
@@ -512,7 +512,7 @@
   border-bottom: none !important;
   border-left: none !important;
   border-right: none !important;
-  height: 20px; /* Thicker when active for easier targeting */
+  height: 30px; /* Same as default for consistent targeting */
   box-shadow: none;
   display: flex;
   align-items: center;
