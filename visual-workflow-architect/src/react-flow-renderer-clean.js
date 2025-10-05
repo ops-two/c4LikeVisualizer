@@ -611,9 +611,9 @@ window.SequenceDiagramRenderer = {
         const maxX = maxActor * 180 + 100 + PADDING;
 
         allWorkflowBounds[workflow.id] = {
-          x: minX,
+          x: 10,
           y: startY,
-          width: maxX - minX,
+          width: "calc(100% - 20px)",
           height: workflowHeight,
           workflow: workflow,
         };
