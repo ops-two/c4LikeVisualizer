@@ -977,7 +977,7 @@ window.SequenceDiagramRenderer = {
                 key: "add-sequence",
                 className: "toolbar-button",
                 onClick: handleAddSequence,
-                disabled: actors.length < 2,
+                disabled: actors.length < 1,
               },
               "+ Add Sequence"
             ),
