@@ -842,25 +842,30 @@ window.SequenceDiagramRenderer = {
       }
     };
     const handleAddSequence = () => {
-      console.log("Add Sequence clicked - triggering Bubble workflow");
+      console.log("=== ADD SEQUENCE BUTTON CLICKED ===");
+      console.log("Actors count:", actors.length);
 
       // Check if we have at least 2 containers
       if (actors.length < 2) {
         console.log("Need at least 2 containers to create a sequence");
+        alert("You need at least 2 containers to create a sequence");
         return;
       }
 
       // Get feature ID from data store
       const feature = window.WorkflowArchitectDataStore?.getFeature();
+      console.log("Feature from data store:", feature);
       const featureId = feature?.id;
 
       if (!featureId) {
         console.error("No feature ID available for new sequence");
+        alert("No feature ID available");
         return;
       }
 
       // Calculate next order index for new sequence
       const nextOrderIndex = allPositionedMessages.length + 1;
+      console.log("Next order index:", nextOrderIndex);
 
       // Trigger Bubble workflow event to show sequence creation popup
       // This follows the StoryMapper pattern where button click triggers workflow
@@ -870,16 +875,34 @@ window.SequenceDiagramRenderer = {
         nextOrderIndex: nextOrderIndex,
         timestamp: Date.now(),
       };
+      console.log("Event data prepared:", eventData);
 
       // Use event bridge to trigger sequence creation popup
+      console.log("Checking for WorkflowArchitectEventBridge...");
+      console.log(
+        "WorkflowArchitectEventBridge exists?",
+        !!window.WorkflowArchitectEventBridge
+      );
+
       if (window.WorkflowArchitectEventBridge) {
-        console.log("Triggering sequence creation popup via event bridge");
+        console.log(
+          "WorkflowArchitectEventBridge is initialized?",
+          window.WorkflowArchitectEventBridge.isInitialized
+        );
+        console.log(
+          "WorkflowArchitectEventBridge has instance?",
+          !!window.WorkflowArchitectEventBridge.instance
+        );
+        console.log("Calling handleSequenceCreationTrigger...");
         window.WorkflowArchitectEventBridge.handleSequenceCreationTrigger(
           eventData
         );
+        console.log("handleSequenceCreationTrigger call completed");
       } else {
         console.error("WorkflowArchitectEventBridge not available");
+        alert("Event bridge not initialized");
       }
+      console.log("=== ADD SEQUENCE BUTTON HANDLER COMPLETED ===");
     };
     const handleAddWorkflow = () => {
       const feature = window.WorkflowArchitectDataStore?.getFeature();

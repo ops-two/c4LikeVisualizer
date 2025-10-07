@@ -70,8 +70,35 @@ window.WorkflowArchitectEventBridge = {
       "WorkflowArchitectEventBridge: Sequence add requested",
       eventData
     );
+    console.log(
+      "WorkflowArchitectEventBridge: Instance available?",
+      !!this.instance
+    );
+    console.log(
+      "WorkflowArchitectEventBridge: Is initialized?",
+      this.isInitialized
+    );
+
+    if (!this.instance) {
+      console.error(
+        "WorkflowArchitectEventBridge: Instance not available! Cannot publish state or trigger event."
+      );
+      return;
+    }
+
+    console.log(
+      "WorkflowArchitectEventBridge: Publishing state to 'pending_add'"
+    );
     this.instance.publishState("pending_add", JSON.stringify(eventData));
+
+    console.log(
+      "WorkflowArchitectEventBridge: Triggering event 'sequence_added'"
+    );
     this.instance.triggerEvent("sequence_added");
+
+    console.log(
+      "WorkflowArchitectEventBridge: Sequence add completed successfully"
+    );
   },
 
   // Handle sequence updates
@@ -126,10 +153,16 @@ window.WorkflowArchitectEventBridge = {
   // Handle sequence creation trigger (for "Add Sequence" button)
   handleSequenceCreationTrigger: function (eventData) {
     console.log(
-      "WorkflowArchitectEventBridge: Sequence creation trigger",
+      "WorkflowArchitectEventBridge: Sequence creation trigger CALLED",
       eventData
     );
+    console.log(
+      "WorkflowArchitectEventBridge: About to call handleSequenceAdd..."
+    );
     this.handleSequenceAdd(eventData);
+    console.log(
+      "WorkflowArchitectEventBridge: handleSequenceAdd call completed"
+    );
   },
 
   // Handle subgroup creation trigger (for "Add Subgroup" button)
